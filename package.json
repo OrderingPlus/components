@@ -61,7 +61,6 @@
     "firebase": "9.15.0",
     "libphonenumber-js": "^1.9.17",
     "moment": "^2.29.4",
-    "ordering-api-sdk": "github:Ordering-Inc/ordering-api-sdk#release",
     "prop-types": "^15.7.2",
     "react-google-recaptcha": "latest",
     "react-google-recaptcha-v3": "^1.10.0",

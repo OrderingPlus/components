@@ -1,0 +1,93 @@
+{
+  "name": "orderingx-components",
+  "version": "0.0.1",
+  "description": "This repository contains a collection of functional components built with React Hooks and ES6.",
+  "main": "./_modules/index.js",
+  "scripts": {
+    "lint": "eslint . --fix"
+  },
+  "repository": {
+    "url": "git@github.com:OrderingX/components.git"
+  },
+  "keywords": [
+    "orderingx",
+    "orderingx-components"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.11.6",
+    "@babel/core": "^7.10.4",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/plugin-proposal-decorators": "^7.10.5",
+    "@babel/plugin-syntax-jsx": "^7.10.4",
+    "@babel/plugin-transform-runtime": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "@babel/preset-react": "^7.10.4",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^3.6.0",
+    "eslint": "^8.0.1",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "html-webpack-plugin": "^4.3.0",
+    "mini-css-extract-plugin": "^1.3.4",
+    "react": "^16.13.1",
+    "react-datepicker": "^3.1.3",
+    "react-dom": "^16.13.1",
+    "react-hook-form": "^6.0.8",
+    "react-router-dom": "^5.2.0",
+    "shx": "^0.3.2",
+    "standard": "^14.3.4",
+    "style-loader": "^1.2.1",
+    "terser-webpack-plugin": "^4.2.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.10.4",
+    "@react-native-async-storage/async-storage": "^1.13.1",
+    "@segment/analytics-next": "^1.35.1",
+    "@sentry/react": "^5.27.4",
+    "@sentry/tracing": "^5.27.4",
+    "@stripe/react-stripe-js": "^1.1.2",
+    "@stripe/stripe-js": "^1.9.0",
+    "dayjs": "^1.9.3",
+    "decimal.js": "^10.4.3",
+    "firebase": "9.15.0",
+    "libphonenumber-js": "^1.9.17",
+    "moment": "^2.29.4",
+    "ordering-api-sdk": "github:Ordering-Inc/ordering-api-sdk#release",
+    "prop-types": "^15.7.2",
+    "react-google-recaptcha": "latest",
+    "react-google-recaptcha-v3": "^1.10.0",
+    "socket.io-client": "^4.7.2"
+  },
+  "peerDependencies": {
+    "react": ">=16.13.1",
+    "react-dom": ">=16.13.1"
+  },
+  "eslintConfig": {
+    "extends": [
+      "./node_modules/standard/eslintrc.json",
+      "plugin:cypress/recommended"
+    ]
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "before",
+      "after",
+      "beforeEach",
+      "afterEach",
+      "it",
+      "cy",
+      "context",
+      "assert"
+    ]
+  }
+}

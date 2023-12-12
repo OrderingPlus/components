@@ -36,6 +36,12 @@ module.exports = {
   rules: {
     'react/prop-types': 'off',
     'no-useless-escape': 'off',
-    'array-callback-return': 'off'
+    'array-callback-return': 'off',
+    'no-proto': 'off',
+    'no-prototype-builtins': 'off',
+    'no-return-assign': 'off',
+    'no-sequences': 'off',
+    'no-void': 'off',
+    'no-unused-expressions': 'off'
   }
 }

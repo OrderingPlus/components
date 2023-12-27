@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { createContext, useContext, useState } from 'react'
 
 // Defines the three kinds of message that are displayed
 export const ToastType = {
@@ -8,7 +8,7 @@ export const ToastType = {
 }
 
 // Creates the toast context
-export const ToastContext = React.createContext(null)
+export const ToastContext = createContext()
 
 export const ToastProvider = ({ children }) => {
   // Calls setToastConfig in order to control the toast
@@ -16,7 +16,7 @@ export const ToastProvider = ({ children }) => {
   const [
     toastConfig,
     setToastConfig
-  ] = React.useState(null)
+  ] = useState(null)
 
   const showToast = (type, message, duration = 3000) => {
     setToastConfig({ type, message, duration })
@@ -27,8 +27,10 @@ export const ToastProvider = ({ children }) => {
     setToastConfig(null)
   }
 
+  const functions = { showToast, hideToast }
+
   return (
-    <ToastContext.Provider value={[toastConfig, { showToast, hideToast }]}>
+    <ToastContext.Provider value={[toastConfig, functions]}>
       {children}
     </ToastContext.Provider>
   )
@@ -37,6 +39,6 @@ export const ToastProvider = ({ children }) => {
 // hook context
 
 export function useToast () {
-  const toastManager = React.useContext(ToastContext)
+  const toastManager = useContext(ToastContext)
   return toastManager || [{}, () => {}]
 }

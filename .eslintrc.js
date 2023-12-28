@@ -42,6 +42,7 @@ module.exports = {
     'no-return-assign': 'off',
     'no-sequences': 'off',
     'no-void': 'off',
-    'no-unused-expressions': 'off'
+    'no-unused-expressions': 'off',
+    'import/no-duplicates': 'off'
   }
 }

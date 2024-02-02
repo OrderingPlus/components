@@ -313,6 +313,7 @@ export const SignupForm = (props) => {
     const body = {
       ...values
     }
+    if (isGuest && user?.guest_id) body.guest_token = user?.guest_id
     try {
       setCheckPhoneCodeState({ ...checkPhoneCodeState, loading: true })
       if (notificationState?.notification_token) {
@@ -374,6 +375,7 @@ export const SignupForm = (props) => {
         _credentials.verification_code = reCaptchaValue
       }
     }
+    if (isGuest && user?.guest_id) _credentials.guest_token = user?.guest_id
 
     try {
       setCheckPhoneCodeState({ ...checkPhoneCodeState, loading: true, result: { error: false } })

@@ -75,6 +75,8 @@ export const Checkout = (props) => {
 
   const [checkoutFieldsState, setCheckoutFieldsState] = useState({ fields: [], loading: false, error: null })
 
+  const [isLoadingCheckprice, setIsLoadingCheckprice] = useState(false)
+
   const businessId = props.uuid
     ? Object.values(orderState.carts).find(_cart => _cart?.uuid === props.uuid)?.business_id ?? {}
     : props.businessId
@@ -514,11 +516,13 @@ export const Checkout = (props) => {
   useEffect(() => {
     const alseaProjects = ['alsea', 'alsea-staging']
     const amount = cart?.balance ?? cart?.total
-    if (!(alseaProjects.includes(ordering.project) && amount && isCustomerMode)) return
+    if (!(alseaProjects.includes(ordering.project) && isCustomerMode)) return
     const handleAlseaCheckPrice = async () => {
       try {
+        setIsLoadingCheckprice(true)
         const customerFromLocalStorage = await window.localStorage.getItem('user-customer', true)
-        const response = await fetch('https://alsea-plugins.ordering.co/alseaplatform/api_checkprice.php', {
+        const apiCheckprice = ordering.project === 'alsea' ? 'https://alsea-plugins.ordering.co/alseaplatform/api_checkprice.php' : 'https://alsea-plugins-staging.ordering.co/alseaplatform/api_checkprice.php'
+        const response = await fetch(apiCheckprice, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -526,7 +530,7 @@ export const Checkout = (props) => {
             Authorization: `bearer ${token}`
           },
           body: JSON.stringify({
-            amount,
+            amount: amount ?? 0,
             user_id: customerFromLocalStorage?.id || user.id,
             uuid: cart.uuid
           })
@@ -536,13 +540,16 @@ export const Checkout = (props) => {
           setAlseaCheckpriceError(t(result?.result))
         } else {
           setAlseaCheckpriceError(null)
+          await refreshOrderOptions()
         }
+        setIsLoadingCheckprice(false)
       } catch (err) {
         setAlseaCheckpriceError(err?.message)
+        setIsLoadingCheckprice(false)
       }
     }
     handleAlseaCheckPrice()
-  }, [isCustomerMode, cart?.balance, cart?.total])
+  }, [isCustomerMode, JSON.stringify(cart?.products)])
 
   return (
     <>
@@ -570,6 +577,7 @@ export const Checkout = (props) => {
           handleConfirmCredomaticPage={handleConfirmCredomaticPage}
           checkoutFieldsState={checkoutFieldsState}
           alseaCheckPriceError={alseaCheckPriceError}
+          isLoadingCheckprice={isLoadingCheckprice}
         />
       )}
     </>

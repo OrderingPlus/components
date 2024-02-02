@@ -24,7 +24,8 @@ export const GoogleMaps = (props) => {
     useMapWithBusinessZones,
     deactiveAlerts,
     fallbackIcon,
-    manualZoom
+    manualZoom,
+    avoidFitBounds
   } = props
 
   const [{ optimizeImage }] = useUtils()
@@ -115,7 +116,9 @@ export const GoogleMaps = (props) => {
     if (useMapWithBusinessZones) {
       bounds.extend(center)
     }
-    map.fitBounds(bounds)
+    if (!avoidFitBounds) {
+      map.fitBounds(bounds)
+    }
     setBoundMap(bounds)
   }
   /**
@@ -231,7 +234,7 @@ export const GoogleMaps = (props) => {
   useEffect(() => {
     if (googleReady) {
       const map = new window.google.maps.Map(divRef.current, {
-        zoom: location.zoom ?? mapControls.defaultZoom,
+        zoom: location?.zoom ?? mapControls.defaultZoom,
         center,
         zoomControl: mapControls?.zoomControl,
         streetViewControl: mapControls?.streetViewControl,
@@ -253,7 +256,13 @@ export const GoogleMaps = (props) => {
         if (businessMap) {
           marker = new window.google.maps.Marker({
             position: new window.google.maps.LatLng(center.lat, center.lng),
-            map
+            map,
+            ...(location?.hideicon && {
+              icon: {
+                url: 'https://picsum.photos/10',
+                size: new window.google.maps.Size(1, 1)
+              }
+            })
           })
           map.panTo(new window.google.maps.LatLng(center?.lat, center?.lng))
         } else {
@@ -394,7 +403,9 @@ export const GoogleMaps = (props) => {
             const newLocation = new window.google.maps.LatLng(driverLocation?.lat, driverLocation?.lng)
             useMapWithBusinessZones ? boundMap.extend(newLocation) : markers?.[0] && markers[0].setPosition(newLocation)
             markers?.length > 0 && markers.forEach(marker => boundMap.extend(marker.position))
-            googleMap.fitBounds(boundMap)
+            if (!avoidFitBounds) {
+              googleMap.fitBounds(boundMap)
+            }
           }
         }
         setUserActivity(false)

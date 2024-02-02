@@ -121,9 +121,7 @@ export const AddressForm = (props) => {
       onSaveAddress && onSaveAddress(formState.changes)
       return
     }
-    if (userCustomerSetup) {
-      setUserCustomer(userCustomerSetup, true)
-    }
+
     setFormState({ ...formState, loading: true })
     try {
       const { content } = await ordering
@@ -150,6 +148,9 @@ export const AddressForm = (props) => {
             isEdit
           })
         }
+      }
+      if (userCustomerSetup) {
+        await setUserCustomer(userCustomerSetup, true)
       }
       refreshUserInfo()
     } catch (err) {
@@ -200,6 +201,7 @@ export const AddressForm = (props) => {
         result,
         fetched: true
       })
+      return result
     } catch (err) {
       if (err.constructor.name !== 'Cancel') {
         setBusinessesList({

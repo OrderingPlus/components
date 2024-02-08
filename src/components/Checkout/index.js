@@ -506,7 +506,7 @@ export const Checkout = (props) => {
           return promise.then(
             value => Promise.reject(value),
             error => Promise.resolve(error)
-          )
+          ).catch((error) => Promise.resolve(error))
         })
       )
     }
@@ -521,7 +521,9 @@ export const Checkout = (props) => {
       try {
         setIsLoadingCheckprice(true)
         const customerFromLocalStorage = await window.localStorage.getItem('user-customer', true)
-        const apiCheckprice = ordering.project === 'alsea' ? 'https://alsea-plugins.ordering.co/alseaplatform/api_checkprice.php' : 'https://alsea-plugins-staging.ordering.co/alseaplatform/api_checkprice.php'
+        const apiCheckprice = ordering.project === 'alsea'
+          ? 'https://alsea-plugins.ordering.co/alseaplatform/api_checkprice.php'
+          : 'https://alsea-plugins-staging.ordering.co/alseaplatform/api_checkprice.php'
         const response = await fetch(apiCheckprice, {
           method: 'POST',
           headers: {

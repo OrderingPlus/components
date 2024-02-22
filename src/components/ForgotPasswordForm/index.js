@@ -131,26 +131,6 @@ ForgotPasswordForm.propTypes = {
    */
   handleCustomForgotPasswordClick: PropTypes.func,
   /**
-   * Components types before forgot password form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after forgot password form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before forgot password form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after forgot password form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element),
-  /**
    * Url to signup page
    * Url to create element link to signup page
    */
@@ -170,11 +150,4 @@ ForgotPasswordForm.propTypes = {
    * You can provide de link element as react router Link or your custom Anchor to login page
    */
   elementLinkToLogin: PropTypes.element
-}
-
-ForgotPasswordForm.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
 }

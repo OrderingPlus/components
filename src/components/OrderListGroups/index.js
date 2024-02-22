@@ -1161,9 +1161,5 @@ OrderListGroups.defaultProps = {
   orderBy: '-id',
   orderDirection: 'desc',
   isNetConnected: true,
-  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

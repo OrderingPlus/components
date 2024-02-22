@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import { WrapperGoogleMaps } from '../WrapperGoogleMaps'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useGoogleMaps } from '../../hooks/useGoogleMaps'
 
 /**
  * Component to get information from GPS
@@ -10,13 +10,14 @@ import { useLanguage } from '../../contexts/LanguageContext'
 export const GpsButton = (props) => {
   const {
     UIComponent,
-    googleReady,
+    apiKey,
     onData,
     onError,
     onAddress
   } = props
 
   const [, t] = useLanguage()
+  const [googleReady] = useGoogleMaps(apiKey)
   const [isLoading, setIsLoading] = useState(false)
   const isGoogleButton = typeof googleReady !== 'undefined'
 
@@ -99,26 +100,6 @@ GpsButton.propTypes = {
    * @param {object} data New address
    */
   onData: PropTypes.func,
-  /**
-   * Function to get error from GPS
-   * @param {object} address New address
-   */
-  onError: PropTypes.func
-}
-
-export const GoogleGpsButton = WrapperGoogleMaps(GpsButton)
-
-GoogleGpsButton.propTypes = {
-  /**
-   * You Google Maps api key
-   * @see apiKey What is Api Key ? https://developers.google.com/maps/gmp-get-started
-   */
-  apiKey: PropTypes.string.isRequired,
-  /**
-   * Function to get address from GPS
-   * @param {object} address New address
-   */
-  onAddress: PropTypes.func,
   /**
    * Function to get error from GPS
    * @param {object} address New address

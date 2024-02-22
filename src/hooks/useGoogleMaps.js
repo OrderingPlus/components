@@ -1,23 +1,17 @@
-/* eslint-disable react/display-name */
-import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
+import { useEffect, useState } from 'react'
 
-export const WrapperGoogleMaps = (Child) => (props) => {
-  const {
-    apiKey
-  } = props
-
+/**
+ * Hooks to get google ready status
+ * @param {string} apiKey
+ */
+export function useGoogleMaps (apiKey) {
   if (!apiKey) {
     console.warn('Prop `apiKey` is required to use Google Maps components.')
+    return
   }
-
   const [googleReady, setGoogleReady] = useState(false)
 
   useEffect(() => {
-    if (!apiKey) {
-      return
-    }
-
     let checker = null
 
     if (window.document.getElementById('google-maps-sdk')) {
@@ -52,17 +46,8 @@ export const WrapperGoogleMaps = (Child) => (props) => {
     }
   }, [apiKey])
 
-  return (
-    <Child googleReady={googleReady} />
-  )
+  return [
+    googleReady,
+    setGoogleReady
+  ]
 }
-
-WrapperGoogleMaps.propTypes = {
-  /**
-   * You Google Maps api key
-   * @see apiKey What is Api Key ? https://developers.google.com/maps/gmp-get-started
-   */
-  apiKey: PropTypes.string.isRequired
-}
-
-WrapperGoogleMaps.defaultProps = {}

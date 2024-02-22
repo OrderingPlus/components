@@ -327,10 +327,3 @@ PaymentOptionSquare.propTypes = {
    */
   UIComponent: propTypes.elementType
 }
-
-PaymentOptionSquare.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
-}

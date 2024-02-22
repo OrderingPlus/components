@@ -598,37 +598,13 @@ Checkout.propTypes = {
   /**
    * onPlaceOrderClick, function to get click event and return business object after default behavior
    */
-  onPlaceOrderClick: PropTypes.func,
+  onPlaceOrderClick: PropTypes.func
   // /**
   //  * handler values from other components
   //  */
   // handlerValues: PropTypes.func,
-  /**
-   * Components types before Checkout
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Checkout
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Checkout
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Checkout
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
 }
 
 Checkout.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: [],
   propsToFetch: ['id', 'name', 'email', 'cellphone', 'address', 'address_notes', 'paymethods', 'logo', 'location', 'configs']
 }

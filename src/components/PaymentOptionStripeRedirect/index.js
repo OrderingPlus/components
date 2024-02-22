@@ -91,32 +91,5 @@ PaymentOptionStripeRedirect.propTypes = {
   /**
    * Method to get stripe source from a stripe redirect form
    */
-  handlerStripeSource: PropTypes.func,
-  /**
-   * Components types before payment option stripe redirect
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after payment option stripe redirect
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before payment option stripe redirect
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after payment option stripe redirect
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-PaymentOptionStripeRedirect.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  handlerStripeSource: PropTypes.func
 }

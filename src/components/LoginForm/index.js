@@ -540,26 +540,6 @@ LoginForm.propTypes = {
    */
   defaultLoginTab: PropTypes.string,
   /**
-   * Components types before login form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after login form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element),
-  /**
    * Url to signup page
    * Url to create element link to signup page
    */
@@ -584,9 +564,5 @@ LoginForm.propTypes = {
 LoginForm.defaultProps = {
   defaultLoginTab: 'email',
   useLoginByEmail: true,
-  useDefualtSessionManager: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  useDefualtSessionManager: true
 }

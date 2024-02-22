@@ -287,35 +287,11 @@ MomentOption.propTypes = {
   /**
    * Method to return moment selection
    */
-  onChangeMoment: PropTypes.func,
-  /**
-   * Components types before [PUT HERE COMPONENT NAME]
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after [PUT HERE COMPONENT NAME]
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before [PUT HERE COMPONENT NAME]
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after [PUT HERE COMPONENT NAME]
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  onChangeMoment: PropTypes.func
 }
 
 MomentOption.defaultProps = {
   useOrderContext: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: [],
   preorderSlotInterval: 15,
   preorderLeadTime: 0,
   preorderTimeRange: 30

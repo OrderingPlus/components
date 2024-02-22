@@ -240,27 +240,7 @@ ProductComponent.propTypes = {
   /**
    * Custom function to add the product to the cart
    */
-  onClickedButtonAdd: PropTypes.func,
-  /**
-   * Components types before login form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after login form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  onClickedButtonAdd: PropTypes.func
 }
 
 ProductComponent.defaultProps = {

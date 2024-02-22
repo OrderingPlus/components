@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
-import { WrapperGoogleMaps } from '../WrapperGoogleMaps'
 
 import { useEvent } from '../../contexts/EventContext'
 import { useUtils } from '../../contexts/UtilsContext'
+import { useGoogleMaps } from '../../hooks/useGoogleMaps'
 
 export const GoogleMaps = (props) => {
   const {
-    googleReady,
+    apiKey,
     locations,
     mapControls,
     setErrors,
@@ -36,6 +36,7 @@ export const GoogleMaps = (props) => {
   const [googleMapMarker, setGoogleMapMarker] = useState(null)
   const [boundMap, setBoundMap] = useState(null)
   const [userActivity, setUserActivity] = useState(false)
+  const [googleReady] = useGoogleMaps(apiKey)
   const markerRef = useRef()
 
   const location = fixedLocation || props.location
@@ -234,7 +235,7 @@ export const GoogleMaps = (props) => {
   useEffect(() => {
     if (googleReady) {
       const map = new window.google.maps.Map(divRef.current, {
-        zoom: location?.zoom ?? mapControls.defaultZoom,
+        zoom: location?.zoom ?? mapControls?.defaultZoom ?? 18,
         center,
         zoomControl: mapControls?.zoomControl,
         streetViewControl: mapControls?.streetViewControl,
@@ -439,46 +440,6 @@ GoogleMaps.propTypes = {
    */
   UIComponent: PropTypes.elementType,
   /**
-   * maxLimitLocation, max value to set position
-   */
-  maxLimitLocation: PropTypes.number,
-  /**
-   * handleChangeAddressMap, function to set address when pin is moved
-   */
-  handleChangeAddressMap: PropTypes.func,
-  /**
-   * Components types before [PUT HERE COMPONENT NAME]
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after [PUT HERE COMPONENT NAME]
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before [PUT HERE COMPONENT NAME]
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after [PUT HERE COMPONENT NAME]
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-GoogleMaps.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
-}
-
-export const GoogleMapsMap = WrapperGoogleMaps(GoogleMaps)
-
-GoogleMapsMap.propTypes = {
-  /**
    * You Google Maps api key
    * @see apiKey What is Api Key ? https://developers.google.com/maps/gmp-get-started
    */
@@ -492,5 +453,13 @@ GoogleMapsMap.propTypes = {
    * Function to get error from GPS
    * @param {object} address New address
    */
-  onError: PropTypes.func
+  onError: PropTypes.func,
+  /**
+   * maxLimitLocation, max value to set position
+   */
+  maxLimitLocation: PropTypes.number,
+  /**
+   * handleChangeAddressMap, function to set address when pin is moved
+   */
+  handleChangeAddressMap: PropTypes.func
 }

@@ -155,33 +155,9 @@ BusinessReviews.propTypes = {
   /**
    * Id to get business from aPI
    */
-  businessId: PropTypes.number,
-  /**
-   * Components types before business reviews
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after business reviews
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before business reviews
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after business reviews
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  businessId: PropTypes.number
 }
 
 BusinessReviews.defaultProps = {
-  reviews: [],
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  reviews: []
 }

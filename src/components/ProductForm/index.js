@@ -154,9 +154,9 @@ export const ProductForm = (props) => {
   const maxProductQuantity = Math.min(maxCartProductConfig, maxCartProductInventory)
 
   /**
-   * alsea validation
+   * isCustomPlatform validation
    */
-  const isAlsea = ['alsea', 'alsea-staging'].includes(ordering.project)
+  const isCustomPlatform = ['alsea', 'alsea-staging'].includes(ordering.project)
 
   /**
    * Init product cart status
@@ -422,7 +422,7 @@ export const ProductForm = (props) => {
           price: state?.id === cartSuboption?.id ? state.price : price,
           quantity: state?.id === cartSuboption?.id
             ? state.quantity
-            : preselectedOptions[i]?.name?.toLowerCase() === 'queso y salsa' && isAlsea
+            : preselectedOptions[i]?.name?.toLowerCase() === 'queso y salsa' && isCustomPlatform
               ? cartSuboption?.quantity ?? 1
               : cartSuboption?.quantity || 1,
           selected: true,
@@ -753,12 +753,12 @@ export const ProductForm = (props) => {
             [`option:${option?.id}`]: {
               ...newPizzaState?.[`option:${option?.id}`],
               [`suboption:${preselectedSuboptions[i]?.id}`]:
-                isAlsea
+                isCustomPlatform
                   ? (states[i]?.position === 'whole' ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0)
                   : (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
             }
           }
-          const suboptionValue = isAlsea
+          const suboptionValue = isCustomPlatform
             ? ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0))
             : ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity)
 
@@ -912,12 +912,12 @@ export const ProductForm = (props) => {
             ...newPizzaState,
             [`option:${option?.id}`]: {
               ...newPizzaState?.[`option:${option?.id}`],
-              [`suboption:${preselectedSuboptions[i]?.id}`]: isAlsea
+              [`suboption:${preselectedSuboptions[i]?.id}`]: isCustomPlatform
                 ? (states[i]?.position === 'whole' ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0)
                 : (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
             }
           }
-          const suboptionValue = isAlsea
+          const suboptionValue = isCustomPlatform
             ? ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0))
             : ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity)
 
@@ -1040,7 +1040,7 @@ export const ProductForm = (props) => {
             handleChangeCommentState={handleChangeCommentState}
             professionalListState={professionalListState}
             cart2={props.productCart}
-            isAlsea={isAlsea}
+            isCustomPlatform={isCustomPlatform}
           />
         )
       }

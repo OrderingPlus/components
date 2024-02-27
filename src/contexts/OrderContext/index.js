@@ -23,7 +23,17 @@ export const OrderContext = createContext()
  * This provider has a reducer for manage order state
  * @param {props} props
  */
-export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToast, franchiseId, isDisabledDefaultOpts, businessSlug, userAgent }) => {
+export const OrderProvider = ({
+  Alert,
+  children,
+  strategy,
+  isCustomPlatform,
+  isDisableToast,
+  franchiseId,
+  isDisabledDefaultOpts,
+  businessSlug,
+  userAgent
+}) => {
   const [confirmAlert, setConfirm] = useState({ show: false })
   const [alert, setAlert] = useState({ show: false })
   const [ordering] = useApi()
@@ -660,7 +670,7 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
     try {
       setState({ ...state, loading: true })
       const countryCode = await strategy.getItem('country-code')
-      if (customParams && isAlsea) {
+      if (customParams && isCustomPlatform) {
         const response = await fetch('https://alsea-plugins.ordering.co/alseaplatform/vcoupon2.php', {
           method: 'POST',
           body: JSON.stringify({

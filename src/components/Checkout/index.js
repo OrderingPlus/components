@@ -31,7 +31,7 @@ export const Checkout = (props) => {
 
   const [placing, setPlacing] = useState(false)
   const [errors, setErrors] = useState(null)
-  const [alseaCheckPriceError, setAlseaCheckpriceError] = useState(null)
+  const [customPlatformCheckpriceError, setCustomPlatformCheckpriceError] = useState(null)
   /**
    * Language context
    */
@@ -514,10 +514,10 @@ export const Checkout = (props) => {
   }, [])
 
   useEffect(() => {
-    const alseaProjects = ['alsea', 'alsea-staging']
+    const customPlatformProjects = ['alsea', 'alsea-staging']
     const amount = cart?.balance ?? cart?.total
-    if (!(alseaProjects.includes(ordering.project) && isCustomerMode)) return
-    const handleAlseaCheckPrice = async () => {
+    if (!(customPlatformProjects.includes(ordering.project) && isCustomerMode)) return
+    const handleCustomPlatformCheckPrice = async () => {
       try {
         setIsLoadingCheckprice(true)
         const customerFromLocalStorage = await window.localStorage.getItem('user-customer', true)
@@ -539,18 +539,18 @@ export const Checkout = (props) => {
         })
         const result = await response.json()
         if (result.error) {
-          setAlseaCheckpriceError(t(result?.result))
+          setCustomPlatformCheckpriceError(t(result?.result))
         } else {
-          setAlseaCheckpriceError(null)
+          setCustomPlatformCheckpriceError(null)
           await refreshOrderOptions()
         }
         setIsLoadingCheckprice(false)
       } catch (err) {
-        setAlseaCheckpriceError(err?.message)
+        setCustomPlatformCheckpriceError(err?.message)
         setIsLoadingCheckprice(false)
       }
     }
-    handleAlseaCheckPrice()
+    handleCustomPlatformCheckPrice()
   }, [isCustomerMode, JSON.stringify(cart?.products)])
 
   return (
@@ -578,7 +578,7 @@ export const Checkout = (props) => {
           handleChangeDeliveryOption={handleChangeDeliveryOption}
           handleConfirmCredomaticPage={handleConfirmCredomaticPage}
           checkoutFieldsState={checkoutFieldsState}
-          alseaCheckPriceError={alseaCheckPriceError}
+          customPlatformCheckpriceError={customPlatformCheckpriceError}
           isLoadingCheckprice={isLoadingCheckprice}
         />
       )}

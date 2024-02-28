@@ -15,7 +15,7 @@ export const WebsocketContext = createContext()
  * This provider has a reducer for manage session state
  * @param {props} props
  */
-export const WebsocketProvider = ({ settings, children, strategy, isCustomPlatform }) => {
+export const WebsocketProvider = ({ settings, children, strategy }) => {
   const [session] = useSession()
   const [socket, setSocket] = useState()
   const [configs, setConfigs] = useState(settings)
@@ -26,9 +26,7 @@ export const WebsocketProvider = ({ settings, children, strategy, isCustomPlatfo
       const _socket = new Socket({
         ...configs,
         accessToken: session.token,
-        url: isCustomPlatform
-          ? 'https://alsea-socket3-production.ordering.co'
-          : 'https://socket-v3.ordering.co'
+        url: 'https://socket-v3.ordering.co'
       })
       setSocket(_socket)
     }

@@ -20,8 +20,7 @@ export const Checkout = (props) => {
     onPlaceOrderClick,
     UIComponent,
     isApp,
-    isKiosk,
-    isCustomerMode
+    isKiosk
   } = props
 
   const [ordering] = useApi()
@@ -31,7 +30,6 @@ export const Checkout = (props) => {
 
   const [placing, setPlacing] = useState(false)
   const [errors, setErrors] = useState(null)
-  const [customPlatformCheckpriceError, setCustomPlatformCheckpriceError] = useState(null)
   /**
    * Language context
    */
@@ -43,7 +41,7 @@ export const Checkout = (props) => {
   /**
    * Session content
    */
-  const [{ token, user }] = useSession()
+  const [{ token }] = useSession()
   /**
    * Toast state
    */
@@ -74,8 +72,6 @@ export const Checkout = (props) => {
   const [loyaltyPlansState, setLoyaltyPlansState] = useState({ loading: true, error: null, result: [] })
 
   const [checkoutFieldsState, setCheckoutFieldsState] = useState({ fields: [], loading: false, error: null })
-
-  const [isLoadingCheckprice, setIsLoadingCheckprice] = useState(false)
 
   const businessId = props.uuid
     ? Object.values(orderState.carts).find(_cart => _cart?.uuid === props.uuid)?.business_id ?? {}
@@ -513,46 +509,6 @@ export const Checkout = (props) => {
     getValidationFieldOrderTypes()
   }, [])
 
-  useEffect(() => {
-    const customPlatformProjects = ['alsea', 'alsea-staging']
-    const amount = cart?.balance ?? cart?.total
-    if (!(customPlatformProjects.includes(ordering.project) && isCustomerMode)) return
-    const handleCustomPlatformCheckPrice = async () => {
-      try {
-        setIsLoadingCheckprice(true)
-        const customerFromLocalStorage = await window.localStorage.getItem('user-customer', true)
-        const apiCheckprice = ordering.project === 'alsea'
-          ? 'https://alsea-plugins.ordering.co/alseaplatform/api_checkprice.php'
-          : 'https://alsea-plugins-staging.ordering.co/alseaplatform/api_checkprice.php'
-        const response = await fetch(apiCheckprice, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-App-X': ordering.appId,
-            Authorization: `bearer ${token}`
-          },
-          body: JSON.stringify({
-            amount: amount ?? 0,
-            user_id: customerFromLocalStorage?.id || user.id,
-            uuid: cart.uuid
-          })
-        })
-        const result = await response.json()
-        if (result.error) {
-          setCustomPlatformCheckpriceError(t(result?.result))
-        } else {
-          setCustomPlatformCheckpriceError(null)
-          await refreshOrderOptions()
-        }
-        setIsLoadingCheckprice(false)
-      } catch (err) {
-        setCustomPlatformCheckpriceError(err?.message)
-        setIsLoadingCheckprice(false)
-      }
-    }
-    handleCustomPlatformCheckPrice()
-  }, [isCustomerMode, JSON.stringify(cart?.products)])
-
   return (
     <>
       {UIComponent && (
@@ -578,8 +534,6 @@ export const Checkout = (props) => {
           handleChangeDeliveryOption={handleChangeDeliveryOption}
           handleConfirmCredomaticPage={handleConfirmCredomaticPage}
           checkoutFieldsState={checkoutFieldsState}
-          customPlatformCheckpriceError={customPlatformCheckpriceError}
-          isLoadingCheckprice={isLoadingCheckprice}
         />
       )}
     </>

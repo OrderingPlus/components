@@ -29,14 +29,12 @@ export const OrderingContext = createContext()
  */
 export const OrderingProvider = ({ Alert, settings, children }) => {
   const webStrategy = new WebStrategy()
-  const isCustomPlatform = ['alsea', 'alsea-staging']?.includes(settings.project)
   const restOfSettings = {
     project: settings.project,
     appId: settings.app_id,
     countryCode: settings.countryCode,
     useOptimizeLoad: settings.useOptimizeLoad,
-    use_root_point: settings.use_root_point,
-    isCustomPlatform
+    use_root_point: settings.use_root_point
   }
   return (
     <OrderingContext.Provider value={{}}>
@@ -53,7 +51,6 @@ export const OrderingProvider = ({ Alert, settings, children }) => {
                           <SessionProvider strategy={webStrategy}>
                             <WebsocketProvider
                               strategy={webStrategy}
-                              isCustomPlatform={isCustomPlatform}
                               settings={Object.assign(settings.socket, restOfSettings)}
                             >
                               <CustomerProvider strategy={webStrategy}>
@@ -61,7 +58,6 @@ export const OrderingProvider = ({ Alert, settings, children }) => {
                                   Alert={Alert}
                                   strategy={webStrategy}
                                   businessSlug={settings?.businessSlug}
-                                  isCustomPlatform={isCustomPlatform}
                                   franchiseId={settings?.franchiseSlug ?? settings?.franchiseId}
                                 >
                                   <BusinessProvider>

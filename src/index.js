@@ -62,6 +62,7 @@ import { ProductForm } from './components/ProductForm'
 import { ProductShare } from './components/ProductShare'
 import { ProductImages } from './components/ProductImages'
 import { ProductIngredient } from './components/ProductIngredient'
+import { ProductItemAccordion } from './components/ProductItemAccordion'
 import { ProductOption } from './components/ProductOption'
 import { ProductOptionSuboption } from './components/ProductOptionSuboption'
 import { ProductsList } from './components/ProductsList'
@@ -237,6 +238,7 @@ export {
   ProductShare,
   ProductImages,
   ProductIngredient,
+  ProductItemAccordion,
   ProductOption,
   ProductOptionSuboption,
   ProductsList,

@@ -180,33 +180,9 @@ AddressList.propTypes = {
    * Access token to get addresses
    * If you don't provide one it is used by the current session by default
    */
-  accessToken: PropTypes.string,
-  /**
-   * Components types before addresses list
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after addresses list
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before addresses list
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after addresses list
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  accessToken: PropTypes.string
 }
 
 AddressList.defaultProps = {
-  changeOrderAddressWithDefault: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  changeOrderAddressWithDefault: true
 }

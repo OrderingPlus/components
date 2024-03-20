@@ -172,9 +172,5 @@ OrderReview.propTypes = {
 
 OrderReview.defaultProps = {
   defaultStar: 1,
-  order: {},
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  order: {}
 }

@@ -23,7 +23,16 @@ export const OrderContext = createContext()
  * This provider has a reducer for manage order state
  * @param {props} props
  */
-export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToast, franchiseId, isDisabledDefaultOpts, businessSlug, userAgent }) => {
+export const OrderProvider = ({
+  Alert,
+  children,
+  strategy,
+  isDisableToast,
+  franchiseId,
+  isDisabledDefaultOpts,
+  businessSlug,
+  userAgent
+}) => {
   const [confirmAlert, setConfirm] = useState({ show: false })
   const [alert, setAlert] = useState({ show: false })
   const [ordering] = useApi()
@@ -660,31 +669,6 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
     try {
       setState({ ...state, loading: true })
       const countryCode = await strategy.getItem('country-code')
-      if (customParams && isAlsea) {
-        const response = await fetch('https://alsea-plugins.ordering.co/alseaplatform/vcoupon2.php', {
-          method: 'POST',
-          body: JSON.stringify({
-            userId: customParams.userId,
-            businessId: customParams.businessId,
-            couponId: couponData.coupon
-          }),
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Access-Control-Allow-Origin': '*',
-            'X-App-X': ordering.appId,
-            'X-Socket-Id-X': socket?.getId(),
-            'X-Country-Code-X': countryCode
-          }
-        })
-        const result = await response.json()
-
-        if (result.message !== 'Cup\u00f3n v\u00e1lido') {
-          setAlert({ show: true, content: result.message === 'Not found' ? ['ERROR_INVALID_COUPON'] : [result.message] })
-          setState({ ...state, loading: false })
-          return
-        }
-      }
       const customerFromLocalStorage = await strategy.getItem('user-customer', true)
       const userCustomerId = customerFromLocalStorage?.id
       const body = {

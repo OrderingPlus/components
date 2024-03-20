@@ -517,26 +517,6 @@ SignupForm.propTypes = {
    */
   handleCustomSendReview: PropTypes.func,
   /**
-   * Components types before signup form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after signup form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before signup form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after signup form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element),
-  /**
    * Url to login page
    * Url to create element link to login page
    */
@@ -549,9 +529,5 @@ SignupForm.propTypes = {
 }
 
 SignupForm.defaultProps = {
-  useChekoutFileds: false,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  useChekoutFileds: false
 }

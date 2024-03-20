@@ -66,32 +66,5 @@ CmsContent.propTypes = {
   /**
    * UI Component, this must be containt all graphic elements and use parent props
    */
-  UIComponent: PropTypes.elementType,
-  /**
-   * Components types before login form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after login form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-CmsContent.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  UIComponent: PropTypes.elementType
 }

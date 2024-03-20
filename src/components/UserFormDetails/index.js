@@ -117,6 +117,11 @@ export const UserFormDetails = (props) => {
       setFormState({ ...formState, loading: true })
       const _changes = { ...formState.changes, ...(changes ?? {}) }
 
+      if (userState.result.result?.guest_id) {
+        _changes.guest_cellphone = _changes?.cellphone
+        _changes.guest_email = _changes.email
+      }
+
       if (!_changes?.country_code && _changes?.country_phone_code && _changes?.cellphone) {
         const parsedNumber = parsePhoneNumber(`+${_changes?.country_phone_code}${_changes?.cellphone}`)
         _changes.country_code = parsedNumber?.country
@@ -126,6 +131,7 @@ export const UserFormDetails = (props) => {
         if (_changes?.country_code === 'PR') {
           _changes.cellphone = `787${_changes.cellphone}`
           _changes.country_phone_code = '1'
+          !!userState.result.result?.guest_id && (_changes.guest_cellphone = `787${_changes.cellphone}`)
         }
       }
       if (cellphoneStartZero) {
@@ -698,26 +704,6 @@ UserFormDetails.propTypes = {
     }
   },
   /**
-   * Components types before user details form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after user details form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before user details form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after user details form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element),
-  /**
    * Url to login page
    * Url to create element link to login page
    */
@@ -732,9 +718,5 @@ UserFormDetails.propTypes = {
 UserFormDetails.defaultProps = {
   useValidationFields: false,
   validationFieldsType: 'checkout',
-  useDefualtSessionManager: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  useDefualtSessionManager: true
 }

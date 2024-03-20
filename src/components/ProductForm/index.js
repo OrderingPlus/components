@@ -154,11 +154,6 @@ export const ProductForm = (props) => {
   const maxProductQuantity = Math.min(maxCartProductConfig, maxCartProductInventory)
 
   /**
-   * alsea validation
-   */
-  const isAlsea = ['alsea', 'alsea-staging'].includes(ordering.project)
-
-  /**
    * Init product cart status
    * @param {object} product Product to init product cart status
    */
@@ -422,9 +417,7 @@ export const ProductForm = (props) => {
           price: state?.id === cartSuboption?.id ? state.price : price,
           quantity: state?.id === cartSuboption?.id
             ? state.quantity
-            : preselectedOptions[i]?.name?.toLowerCase() === 'queso y salsa' && isAlsea
-              ? cartSuboption?.quantity ?? 1
-              : cartSuboption?.quantity || 1,
+            : cartSuboption?.quantity || 1,
           selected: true,
           total: state?.id === cartSuboption?.id ? state.total : price
         }
@@ -752,15 +745,10 @@ export const ProductForm = (props) => {
             ...newPizzaState,
             [`option:${option?.id}`]: {
               ...newPizzaState?.[`option:${option?.id}`],
-              [`suboption:${preselectedSuboptions[i]?.id}`]:
-                isAlsea
-                  ? (states[i]?.position === 'whole' ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0)
-                  : (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
+              [`suboption:${preselectedSuboptions[i]?.id}`]: (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
             }
           }
-          const suboptionValue = isAlsea
-            ? ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0))
-            : ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity)
+          const suboptionValue = (states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity
 
           const value = suboptionValue + (newPizzaState[`option:${option?.id}`].value || 0)
           newPizzaState[`option:${option?.id}`].value = value
@@ -912,14 +900,10 @@ export const ProductForm = (props) => {
             ...newPizzaState,
             [`option:${option?.id}`]: {
               ...newPizzaState?.[`option:${option?.id}`],
-              [`suboption:${preselectedSuboptions[i]?.id}`]: isAlsea
-                ? (states[i]?.position === 'whole' ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0)
-                : (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
+              [`suboption:${preselectedSuboptions[i]?.id}`]: (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
             }
           }
-          const suboptionValue = isAlsea
-            ? ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0))
-            : ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity)
+          const suboptionValue = (states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity
 
           const value = suboptionValue + (newPizzaState[`option:${option?.id}`].value || 0)
           newPizzaState[`option:${option?.id}`].value = value
@@ -1040,7 +1024,6 @@ export const ProductForm = (props) => {
             handleChangeCommentState={handleChangeCommentState}
             professionalListState={professionalListState}
             cart2={props.productCart}
-            isAlsea={isAlsea}
           />
         )
       }

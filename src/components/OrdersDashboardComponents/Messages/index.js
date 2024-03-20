@@ -353,32 +353,5 @@ Messages.propTypes = {
    * @param {object} message
    * handleCustomClick, function to get click event and return message without default behavior
    */
-  customHandleSend: PropTypes.func,
-  /**
-   * Components types before [PUT HERE COMPONENT NAME]
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after [PUT HERE COMPONENT NAME]
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before [PUT HERE COMPONENT NAME]
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after [PUT HERE COMPONENT NAME]
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-Messages.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  customHandleSend: PropTypes.func
 }

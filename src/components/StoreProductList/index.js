@@ -268,35 +268,11 @@ StoreProductList.propTypes = {
   /**
    * Enable/disable search by description
    */
-  isSearchByDescription: PropTypes.bool,
-  /**
-   * Components types before products listing
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after products listing
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before products listing
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after products listing
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  isSearchByDescription: PropTypes.bool
 }
 
 StoreProductList.defaultProps = {
   isSearchByName: true,
   isSearchByDescription: true,
-  paginationSettings: { initialPage: 1, pageSize: 15, controlType: 'infinity' },
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  paginationSettings: { initialPage: 1, pageSize: 15, controlType: 'infinity' }
 }

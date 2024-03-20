@@ -131,9 +131,7 @@ export const AddressForm = (props) => {
       onSaveAddress && onSaveAddress(formState.changes)
       return
     }
-    if (userCustomerSetup) {
-      setUserCustomer(userCustomerSetup, true)
-    }
+
     setFormState({ ...formState, loading: true })
     try {
       const { content } = await ordering
@@ -160,6 +158,9 @@ export const AddressForm = (props) => {
             isEdit
           })
         }
+      }
+      if (userCustomerSetup) {
+        await setUserCustomer(userCustomerSetup, true)
       }
       refreshUserInfo()
     } catch (err) {
@@ -210,6 +211,7 @@ export const AddressForm = (props) => {
         result,
         fetched: true
       })
+      return result
     } catch (err) {
       if (err.constructor.name !== 'Cancel') {
         setBusinessesList({
@@ -367,33 +369,9 @@ AddressForm.propTypes = {
   /**
    * Custom function
    */
-  onSaveCustomAddress: PropTypes.func,
-  /**
-   * Components types before address form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after address form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before address form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after address form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  onSaveCustomAddress: PropTypes.func
 }
 
 AddressForm.defaultProps = {
-  useValidationFileds: false,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  useValidationFileds: false
 }

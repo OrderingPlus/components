@@ -620,10 +620,3 @@ BusinessProductsListing.propTypes = {
   isInitialRender: PropTypes.bool
 
 }
-
-BusinessProductsListing.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
-}

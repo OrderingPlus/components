@@ -31,9 +31,11 @@ import { FirebaseGoogleLoginButton } from './components/FirebaseGoogleLoginButto
 import { ForgotPasswordForm } from './components/ForgotPasswordForm'
 import { GiftCardOrdersList } from './components/GiftCard/GiftCardOrdersList'
 import { GoogleLoginButton } from './components/GoogleLoginButton'
-import { GoogleAutocompleteInput } from './components/GoogleAutocompleteInput'
-import { GoogleMaps, GoogleMapsMap } from './components/GoogleMaps'
-import { GpsButton, GoogleGpsButton } from './components/GpsButton'
+import { AutocompleteInput as GoogleAutocompleteInput } from './components/GoogleAutocompleteInput'
+import { GoogleMaps } from './components/GoogleMaps'
+import { GoogleMaps as GoogleMapsMap } from './components/GoogleMaps'
+import { GpsButton } from './components/GpsButton'
+import { GpsButton as GoogleGpsButton } from './components/GpsButton'
 import { GoogleIdentityButton } from './components/GoogleIdentity'
 import { LanguageSelector } from './components/LanguageSelector'
 import { LoginForm } from './components/LoginForm'
@@ -81,7 +83,6 @@ import { SmartAppBanner } from './components/SmartAppBanner'
 import { StoreProductList } from './components/StoreProductList'
 import { UserFormDetails } from './components/UserFormDetails'
 import { UpsellingPage } from './components/UpsellingPage'
-import { WrapperGoogleMaps } from './components/WrapperGoogleMaps'
 import { OrderDetails } from './components/OrderDetails'
 import { OrderVerticalList } from './components/OrderVerticalList'
 import { OrderReview } from './components/OrderReview'
@@ -256,7 +257,6 @@ export {
   StoreProductList,
   UserFormDetails,
   UpsellingPage,
-  WrapperGoogleMaps,
   OrderDetails,
   OrderReview,
   PaymentOptionCash,

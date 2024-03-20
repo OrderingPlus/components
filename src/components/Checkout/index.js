@@ -20,8 +20,7 @@ export const Checkout = (props) => {
     onPlaceOrderClick,
     UIComponent,
     isApp,
-    isKiosk,
-    isCustomerMode
+    isKiosk
   } = props
 
   const [ordering] = useApi()
@@ -31,7 +30,6 @@ export const Checkout = (props) => {
 
   const [placing, setPlacing] = useState(false)
   const [errors, setErrors] = useState(null)
-  const [alseaCheckPriceError, setAlseaCheckpriceError] = useState(null)
   /**
    * Language context
    */
@@ -43,7 +41,7 @@ export const Checkout = (props) => {
   /**
    * Session content
    */
-  const [{ token, user }] = useSession()
+  const [{ token }] = useSession()
   /**
    * Toast state
    */
@@ -504,45 +502,12 @@ export const Checkout = (props) => {
           return promise.then(
             value => Promise.reject(value),
             error => Promise.resolve(error)
-          )
+          ).catch((error) => Promise.resolve(error))
         })
       )
     }
     getValidationFieldOrderTypes()
   }, [])
-
-  useEffect(() => {
-    const alseaProjects = ['alsea', 'alsea-staging']
-    const amount = cart?.balance ?? cart?.total
-    if (!(alseaProjects.includes(ordering.project) && amount && isCustomerMode)) return
-    const handleAlseaCheckPrice = async () => {
-      try {
-        const customerFromLocalStorage = await window.localStorage.getItem('user-customer', true)
-        const response = await fetch('https://alsea-plugins.ordering.co/alseaplatform/api_checkprice.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-App-X': ordering.appId,
-            Authorization: `bearer ${token}`
-          },
-          body: JSON.stringify({
-            amount,
-            user_id: customerFromLocalStorage?.id || user.id,
-            uuid: cart.uuid
-          })
-        })
-        const result = await response.json()
-        if (result.error) {
-          setAlseaCheckpriceError(t(result?.result))
-        } else {
-          setAlseaCheckpriceError(null)
-        }
-      } catch (err) {
-        setAlseaCheckpriceError(err?.message)
-      }
-    }
-    handleAlseaCheckPrice()
-  }, [isCustomerMode, cart?.balance, cart?.total])
 
   return (
     <>
@@ -569,7 +534,6 @@ export const Checkout = (props) => {
           handleChangeDeliveryOption={handleChangeDeliveryOption}
           handleConfirmCredomaticPage={handleConfirmCredomaticPage}
           checkoutFieldsState={checkoutFieldsState}
-          alseaCheckPriceError={alseaCheckPriceError}
         />
       )}
     </>
@@ -588,37 +552,13 @@ Checkout.propTypes = {
   /**
    * onPlaceOrderClick, function to get click event and return business object after default behavior
    */
-  onPlaceOrderClick: PropTypes.func,
+  onPlaceOrderClick: PropTypes.func
   // /**
   //  * handler values from other components
   //  */
   // handlerValues: PropTypes.func,
-  /**
-   * Components types before Checkout
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Checkout
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Checkout
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Checkout
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
 }
 
 Checkout.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: [],
   propsToFetch: ['id', 'name', 'email', 'cellphone', 'address', 'address_notes', 'paymethods', 'logo', 'location', 'configs']
 }

@@ -5,6 +5,7 @@ import { useToast, ToastType } from '../../contexts/ToastContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
+import { useCustomer } from '../../contexts/CustomerContext'
 
 export const PlaceSpot = (props) => {
   const {
@@ -16,6 +17,7 @@ export const PlaceSpot = (props) => {
   } = props
 
   const [orderState] = useOrder()
+  const [customerState] = useCustomer()
   const [ordering] = useApi()
   const socket = useWebsocket()
   const [{ token }] = useSession()
@@ -101,6 +103,12 @@ export const PlaceSpot = (props) => {
   }
 
   const handleChangeSpot = async ({ isCheckout = true, bodyToSend }) => {
+    if (customerState?.user?.id) {
+      bodyToSend = {
+        ...bodyToSend,
+        user_id: customerState?.user?.id
+      }
+    }
     try {
       setSpotState({ ...spotState, loading: true })
       const id = isCheckout ? cart?.uuid : cart?.id

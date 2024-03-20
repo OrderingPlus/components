@@ -180,35 +180,11 @@ FacebookLoginButton.propTypes = {
   /**
    * Facebook SDK domain
    */
-  domain: PropTypes.string,
-  /**
-   * Components types before Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  domain: PropTypes.string
 }
 
 FacebookLoginButton.defaultProps = {
   version: 'v7.0',
   language: 'en_US',
-  domain: 'connect.facebook.net',
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  domain: 'connect.facebook.net'
 }

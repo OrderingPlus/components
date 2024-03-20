@@ -413,9 +413,5 @@ export const OrderVerticalList = (props) => {
 OrderVerticalList.defaultProps = {
   orderBy: '-id',
   orderDirection: 'desc',
-  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

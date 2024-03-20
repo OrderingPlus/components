@@ -46,27 +46,7 @@ SingleBusinessCard.propTypes = {
   /**
    * Time for pickup of each business
    */
-  pickup_time: PropTypes.string,
-  /**
-   * Components types before single business card
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after single business card
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before single business card
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after single business card
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  pickup_time: PropTypes.string
 }
 
 SingleBusinessCard.defaultProps = {

@@ -319,33 +319,9 @@ BusinessController.propTypes = {
   /**
    * handleCustomClick, function to get click event and return business object without default behavior
    */
-  handleCustomClick: PropTypes.func,
-  /**
-   * Components types before Business Controller
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Business Controller
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Business Controller
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Business Controller
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  handleCustomClick: PropTypes.func
 }
 
 BusinessController.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: [],
   minutesToCloseSoon: 30
 }

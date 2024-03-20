@@ -29,17 +29,15 @@ export const OrderingContext = createContext()
  */
 export const OrderingProvider = ({ Alert, settings, children }) => {
   const webStrategy = new WebStrategy()
-  const isAlsea = ['alsea', 'alsea-staging']?.includes(settings.project)
   const restOfSettings = {
     project: settings.project,
     appId: settings.app_id,
     countryCode: settings.countryCode,
     useOptimizeLoad: settings.useOptimizeLoad,
-    use_root_point: settings.use_root_point,
-    isAlsea
+    use_root_point: settings.use_root_point
   }
   return (
-    <OrderingContext.Provider>
+    <OrderingContext.Provider value={{}}>
       <EventProvider>
         <ApiProvider settings={Object.assign(settings.api, restOfSettings)}>
           <OptimizationLoadProvider settings={Object.assign(settings.api, restOfSettings)} strategy={webStrategy}>
@@ -52,17 +50,15 @@ export const OrderingProvider = ({ Alert, settings, children }) => {
                         <ValidationFieldsProvider appId={settings.app_id}>
                           <SessionProvider strategy={webStrategy}>
                             <WebsocketProvider
-                              isAlsea={isAlsea}
                               strategy={webStrategy}
                               settings={Object.assign(settings.socket, restOfSettings)}
                             >
                               <CustomerProvider strategy={webStrategy}>
                                 <OrderProvider
-                                  strategy={webStrategy}
                                   Alert={Alert}
-                                  isAlsea={isAlsea}
-                                  franchiseId={settings?.franchiseSlug ?? settings?.franchiseId}
+                                  strategy={webStrategy}
                                   businessSlug={settings?.businessSlug}
+                                  franchiseId={settings?.franchiseSlug ?? settings?.franchiseId}
                                 >
                                   <BusinessProvider>
                                     {children}

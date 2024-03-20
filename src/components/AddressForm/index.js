@@ -20,7 +20,9 @@ export const AddressForm = (props) => {
     onSaveAddress,
     isSelectedAfterAdd,
     onSaveCustomAddress,
-    franchiseId
+    franchiseId,
+    handleGoToLogin,
+    avoidRefreshUserInfo
   } = props
 
   const [ordering] = useApi()
@@ -28,6 +30,7 @@ export const AddressForm = (props) => {
   const [{ configs }] = useConfig()
   const [addressState, setAddressState] = useState({ loading: false, error: null, address: address || {} })
   const [formState, setFormState] = useState({ loading: false, changes: {}, error: null })
+  const [userByToken, setUserByToken] = useState(null)
   const [{ auth, user, token }, { refreshUserInfo }] = useSession()
   const requestsState = {}
   const [{ options }, { changeAddress }] = useOrder()
@@ -123,7 +126,7 @@ export const AddressForm = (props) => {
       onSaveCustomAddress(values)
       return
     }
-    if (!auth) {
+    if (!auth && !userByToken?.session?.token) {
       changeAddress(
         { ...values, ...formState.changes },
         { country_code: values?.country_code ?? formState.changes?.country_code }
@@ -135,9 +138,9 @@ export const AddressForm = (props) => {
     setFormState({ ...formState, loading: true })
     try {
       const { content } = await ordering
-        .users(userId)
+        .users(userByToken?.id || userId)
         .addresses(addressState.address?.id)
-        .save({ ...values, ...formState.changes }, { accessToken })
+        .save({ ...values, ...formState.changes }, { accessToken: userByToken?.session?.token || accessToken })
       setFormState({
         ...formState,
         loading: false,
@@ -162,7 +165,9 @@ export const AddressForm = (props) => {
       if (userCustomerSetup) {
         await setUserCustomer(userCustomerSetup, true)
       }
-      refreshUserInfo()
+      if (!avoidRefreshUserInfo) {
+        refreshUserInfo()
+      }
     } catch (err) {
       setFormState({
         ...formState,
@@ -185,7 +190,9 @@ export const AddressForm = (props) => {
       const conditions = []
       const parameters = {
         location: `${location?.lat},${location?.lng}`,
-        type: options?.type
+        type: 2,
+        page: 1,
+        page_size: 5
       }
       if (franchiseId) {
         conditions.push({ attribute: 'franchise_id', value: franchiseId })
@@ -196,7 +203,11 @@ export const AddressForm = (props) => {
       }
       const source = {}
       requestsState.businesses = source
-      const fetchEndpoint = ordering.businesses().select(['delivery_zone', 'name', 'id', 'location', 'logo', 'slug', 'zones']).parameters(parameters).where(where)
+      const fetchEndpoint = ordering
+        .businesses()
+        .select(['delivery_zone', 'name', 'id', 'location', 'logo', 'slug', 'zones'])
+        .parameters(parameters)
+        .where(where)
       const { content: { error, result } } = await fetchEndpoint.get({ cancelToken: source })
       setBusinessesList({
         ...businessesList,
@@ -280,6 +291,27 @@ export const AddressForm = (props) => {
     }
   }
 
+  const getUserByToken = async () => {
+    try {
+      const requestOptions = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${props.accessToken}`
+        }
+      }
+      const response = await fetch(`${ordering.root}/users/me`, requestOptions)
+      const { error, result } = await response.json()
+      if (!error) {
+        setUserByToken(result)
+        return
+      }
+      handleGoToLogin && handleGoToLogin()
+    } catch (err) {
+      handleGoToLogin && handleGoToLogin()
+    }
+  }
+
   useEffect(() => {
     setAddressState({
       ...addressState,
@@ -310,6 +342,12 @@ export const AddressForm = (props) => {
       request && request.cancel()
     }
   }, [requestsState.businesses])
+
+  useEffect(() => {
+    if (props.confirmAddress) {
+      getUserByToken()
+    }
+  }, [])
 
   return (
     <>

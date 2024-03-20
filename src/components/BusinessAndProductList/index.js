@@ -26,7 +26,8 @@ export const BusinessAndProductList = (props) => {
     avoidProductDuplicate,
     isApp,
     isFetchAllProducts,
-    isCustomerMode
+    isCustomerMode,
+    notLoadProducts
   } = props
 
   const [orderState, { removeProduct }] = useOrder()
@@ -412,6 +413,10 @@ export const BusinessAndProductList = (props) => {
   }
 
   const loadProducts = async ({ newFetch } = {}) => {
+    if (notLoadProducts) {
+      return
+    }
+
     setErrors(null)
     const curCategoryState = categoriesState[categoryKey] ?? categoryStateDefault
     if (

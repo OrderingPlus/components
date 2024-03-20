@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useOrder } from '../../contexts/OrderContext'
 import { useValidationFields } from '../../contexts/ValidationsFieldsContext'
 import { useCustomer } from '../../contexts/CustomerContext'
+import { useConfig } from '../../contexts/ConfigContext'
+import { useLanguage } from '../../contexts/LanguageContext'
+dayjs.extend(utc)
 
 export const AddressForm = (props) => {
   const {
@@ -20,17 +25,22 @@ export const AddressForm = (props) => {
 
   const [ordering] = useApi()
   const [validationFields] = useValidationFields()
+  const [{ configs }] = useConfig()
   const [addressState, setAddressState] = useState({ loading: false, error: null, address: address || {} })
   const [formState, setFormState] = useState({ loading: false, changes: {}, error: null })
   const [{ auth, user, token }, { refreshUserInfo }] = useSession()
   const requestsState = {}
   const [{ options }, { changeAddress }] = useOrder()
+  const [, t] = useLanguage()
   const userId = props.userId || user?.id
   const accessToken = props.accessToken || token
   const [, { setUserCustomer }] = useCustomer()
 
   const [isEdit, setIsEdit] = useState(false)
   const [businessesList, setBusinessesList] = useState({ businesses: [], loading: true, error: null })
+  const [businessNearestState, setBusinessNearestState] = useState({ business: null, loading: false, error: null })
+
+  const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
 
   /**
    * Load an address by id
@@ -213,6 +223,61 @@ export const AddressForm = (props) => {
     }
   }
 
+  const getNearestBusiness = async (location) => {
+    try {
+      setBusinessNearestState({
+        ...businessNearestState,
+        loading: true
+      })
+      const defaultLatitude = Number(configs?.location_default_latitude?.value)
+      const defaultLongitude = Number(configs?.location_default_longitude?.value)
+      const isInvalidDefaultLocation = isNaN(defaultLatitude) || isNaN(defaultLongitude)
+      const defaultLocation = {
+        lat: !isInvalidDefaultLocation ? defaultLatitude : 40.7744146,
+        lng: !isInvalidDefaultLocation ? defaultLongitude : -73.9678064
+      }
+      const propsToFetch = ['name', 'address', 'location', 'distance', 'open', 'schedule', 'slug']
+      let parameters = {
+        location: location || defaultLocation,
+        type: options?.type || 1,
+        orderBy: 'distance'
+      }
+      const paginationParams = {
+        page: 1,
+        page_size: 5
+      }
+      if (options?.moment && isValidMoment(options?.moment, 'YYYY-MM-DD HH:mm:ss')) {
+        const moment = dayjs.utc(options?.moment, 'YYYY-MM-DD HH:mm:ss').local().unix()
+        parameters.timestamp = moment
+      }
+      parameters = { ...parameters, ...paginationParams }
+      const source = {}
+      requestsState.businesses = source
+
+      const { content: { error, result } } = await ordering.businesses().select(propsToFetch).parameters(parameters).get({ cancelToken: source })
+      if (!error) {
+        const firstNearestOpenBusiness = result?.find(business => business?.open)
+        setBusinessNearestState({
+          business: firstNearestOpenBusiness,
+          error: firstNearestOpenBusiness ? null : t('NO_BUSINESS_NEAR_LOCATION', 'No business near of you location') || error,
+          loading: false
+        })
+        return
+      }
+      setBusinessNearestState({
+        business: null,
+        error,
+        loading: false
+      })
+    } catch (err) {
+      setBusinessNearestState({
+        ...businessNearestState,
+        error: err?.message,
+        loading: false
+      })
+    }
+  }
+
   useEffect(() => {
     setAddressState({
       ...addressState,
@@ -260,6 +325,8 @@ export const AddressForm = (props) => {
             setIsEdit={(val) => setIsEdit(val)}
             businessesList={businessesList}
             getBusinessDeliveryZones={getBusinessDeliveryZones}
+            getNearestBusiness={getNearestBusiness}
+            businessNearestState={businessNearestState}
           />
         )
       }

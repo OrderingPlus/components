@@ -45,9 +45,11 @@ export const AddressDetails = (props) => {
         firstLetterBusinessName = cart?.business?.name?.charAt(0)?.toUpperCase?.() ?? 'S'
         businessesMarkers += `&markers=label:${firstLetterBusinessName}%7Ccolor:${primaryColor}%7C${cart.business?.location?.lat},${cart.business?.location?.lng}`
       })
-    } else {
+    } else if (cart) {
       firstLetterBusinessName = cart?.business?.name?.charAt(0)?.toUpperCase?.() ?? 'S'
       businessesMarkers = `&markers=label:${firstLetterBusinessName}%7Ccolor:${primaryColor}%7C${cart.business?.location?.lat ?? businessLocation?.location?.lat},${cart.business?.location?.lng ?? businessLocation?.location?.lng}`
+    } else {
+      businessesMarkers = `&markers=label:Y%7Ccolor:${primaryColor}%7C${props?.orderLocation?.location?.lat},${props?.orderLocation?.location?.lng}`
     }
     const staticmapUrl = isMultiCheckout
       ? `https://maps.googleapis.com/maps/api/staticmap?size=${mapConfigs?.mapSize?.width || 500}x${mapConfigs?.mapSize?.height || 190}&scale=2&maptype=roadmap&markers=icon:%7Ccolor:red%7C${orderLocation?.lat},${orderLocation?.lng}${businessesMarkers}&key=${GM_API_KEY}`
@@ -95,7 +97,7 @@ export const AddressDetails = (props) => {
         <UIComponent
           {...props}
           googleMapsUrl={
-            isMultiCheckout
+            isMultiCheckout || (!isMultiCheckout && !cart)
               ? formatUrlMethod()
               : formatUrl
           }

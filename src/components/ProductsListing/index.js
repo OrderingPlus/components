@@ -5,10 +5,12 @@ import { useOrder } from '../../contexts/OrderContext'
 
 export const ProductsListing = (props) => {
   const {
+    useCategorySelectedForProducts,
     isSearchByName,
     isSearchByDescription,
     businessId,
-    UIComponent
+    UIComponent,
+    categorySelected
   } = props
 
   const [ordering] = useApi()
@@ -21,7 +23,7 @@ export const ProductsListing = (props) => {
   /**
    * This must be contains category selected by user
    */
-  const [categoryValue, setCategoryValue] = useState(null)
+  const [categoryValue, setCategoryValue] = useState(categorySelected)
   /**
    * Object to save products, loading and error values
    */
@@ -61,13 +63,16 @@ export const ProductsListing = (props) => {
         ...productsList,
         loading: true
       })
-      const { content: { result } } = await ordering
-        .businesses(businessId)
-        .products()
+      const businessesFetch = ordering.businesses(businessId)
+      const fetchFunction =
+        useCategorySelectedForProducts && categoryValue
+          ? businessesFetch.categories(categoryValue?.id).products()
+          : businessesFetch
+      const { content: { result } } = await fetchFunction
         .parameters({ type: orderState.options?.type || 1 })
         .get()
 
-      const productsFiltered = searchValue || categoryValue
+      const productsFiltered = (searchValue || categoryValue) && !useCategorySelectedForProducts
         ? result.filter(product => isMatchSearch(product.name, product.description) && isMatchCategory(product.category_id))
         : result
 

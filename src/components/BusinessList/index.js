@@ -58,7 +58,7 @@ export const BusinessList = (props) => {
   const [orderingTheme] = useOrderingTheme()
   const [ordering] = useApi()
   const socket = useWebsocket()
-  const [{ auth, token }, { refreshUserInfo }] = useSession()
+  const [{ auth, token, user }, { refreshUserInfo }] = useSession()
   const [requestsState, setRequestsState] = useState({})
   const [citiesState, setCitiesState] = useState({ loading: false, cities: [], error: null })
   const [{ configs }] = useConfig()
@@ -82,7 +82,7 @@ export const BusinessList = (props) => {
    * Get businesses by params, order options and filters
    * @param {boolean} newFetch Make a new request or next page
    */
-  const getBusinesses = async (newFetch, specificPagination, prev) => {
+  const getBusinesses = async (newFetch, specificPagination, prev, options = {}) => {
     try {
       setBusinessesList({
         ...businessesList,
@@ -612,6 +612,77 @@ export const BusinessList = (props) => {
     })
   }
 
+  const getFavoriteList = async (page, pageSize = paginationSettings.pageSize) => {
+    try {
+      setBusinessesList({
+        ...businessesList,
+        loading: true
+      })
+      const requestOptions = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-App-X': ordering.appId,
+          'X-Socket-Id-X': socket?.getId()
+        }
+      }
+      const url = `${ordering.root}/users/${user?.id}/favorite_businesses?page=${page}&page_size=${pageSize}`
+      const response = await fetch(url, requestOptions)
+      const content = await response.json()
+      if (!content.error) {
+        setPaginationProps({
+          currentPage: content.pagination.current_page,
+          pageSize: content.pagination.page_size,
+          totalPages: content.pagination.total_pages,
+          total: content.pagination.total,
+          from: content.pagination.from,
+          to: content.pagination.to
+        })
+        const idList = content?.result?.reduce((ids, product) => [...ids, product?.object_id], [])
+        const conditions = []
+        conditions.push({
+          attribute: 'id',
+          value: idList
+        })
+        const where = {
+          conditions,
+          conector: 'AND'
+        }
+        let fetchEndpoint = `${ordering.root}/business?where=${JSON.stringify(where)}`
+        if (location) fetchEndpoint = `${fetchEndpoint}&location=${`${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`}`
+        if (propsToFetch) fetchEndpoint = `${fetchEndpoint}&params=${propsToFetch}`
+        fetchEndpoint = `${fetchEndpoint}&type=${orderState?.options?.type}`
+        const _response = await fetch(fetchEndpoint)
+        const { error, result } = await _response.json()
+        setBusinessesList({
+          ...businessesList,
+          loading: false,
+          error,
+          businesses: result,
+          result,
+          fetched: true
+        })
+      } else {
+        setBusinessesList({
+          ...businessesList,
+          loading: false,
+          error: content.error,
+          businesses: content?.result,
+          result: content?.result,
+          fetched: true
+        })
+      }
+    } catch (error) {
+      setBusinessesList({
+        ...businessesList,
+        loading: false,
+        error: error?.message,
+        result: [error.message],
+        fetched: true
+      })
+    }
+  }
   useEffect(() => {
     if (avoidFetchData) return
     refreshUserInfo()
@@ -644,6 +715,7 @@ export const BusinessList = (props) => {
             getCities={getCities}
             setPaginationProps={setPaginationProps}
             citiesState={citiesState}
+            getFavoriteList={getFavoriteList}
           />
         )
       }

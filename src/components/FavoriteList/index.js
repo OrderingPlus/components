@@ -15,7 +15,9 @@ export const FavoriteList = (props) => {
     propsToFetch,
     isProduct,
     isProfessional,
-    franchiseId
+    franchiseId,
+    enableLoadingAtRender,
+    businessId
   } = props
 
   const [ordering] = useApi()
@@ -23,7 +25,7 @@ export const FavoriteList = (props) => {
   const [{ user, token }] = useSession()
   const [orderStatus, { reorder }] = useOrder()
 
-  const [favoriteList, setFavoriteList] = useState({ loading: false, favorites: [], error: null })
+  const [favoriteList, setFavoriteList] = useState({ loading: enableLoadingAtRender, favorites: [], error: null })
   const [reorderState, setReorderState] = useState({ loading: false, result: [], error: null })
   const [pagination, setPagination] = useState({
     currentPage: (paginationSettings.controlType === 'pages' && paginationSettings.initialPage && paginationSettings.initialPage >= 1) ? paginationSettings.initialPage - 1 : 0,
@@ -83,7 +85,7 @@ export const FavoriteList = (props) => {
         if (isProduct) {
           const updatedProducts = content?.result.map(item => {
             return item?.product
-          })
+          }).filter(product => !businessId || product?.category?.business_id === businessId)
           setFavoriteList({
             loading: false,
             favorites: [...favoriteList?.favorites, ...updatedProducts],

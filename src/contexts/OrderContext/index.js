@@ -869,6 +869,8 @@ export const OrderProvider = ({
       setState({ ...state, loading: false })
       return !error
     } catch (err) {
+      refreshOrderOptions()
+      setState({ ...state, loading: false })
       return false
     }
   }

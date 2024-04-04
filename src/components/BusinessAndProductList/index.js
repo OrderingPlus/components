@@ -27,7 +27,8 @@ export const BusinessAndProductList = (props) => {
     isApp,
     isFetchAllProducts,
     isCustomerMode,
-    notLoadProducts
+    notLoadProducts,
+    isSlugRequired
   } = props
 
   const [orderState, { removeProduct }] = useOrder()
@@ -57,7 +58,6 @@ export const BusinessAndProductList = (props) => {
     pagination: { currentPage: 0, pageSize: isApp ? 5 : 20, totalItems: null, totalPages: 0, nextPageItems: 10 },
     products: []
   }
-
   let [categoryState, setCategoryState] = useState(categoryStateDefault)
   const [errors, setErrors] = useState(null)
   const [errorQuantityProducts, setErrorQuantityProducts] = useState(false)
@@ -701,6 +701,10 @@ export const BusinessAndProductList = (props) => {
 
   const getBusiness = async () => {
     try {
+      if (!slug && isSlugRequired) {
+        setBusinessState({ ...businessState, loading: false })
+        return
+      }
       setBusinessState({ ...businessState, loading: true })
       const source = {}
       requestsState.business = source
@@ -738,7 +742,6 @@ export const BusinessAndProductList = (props) => {
         business: result,
         loading: false
       }
-
       if (menusProps && isGetMenus) {
         const { content: { result: menus } } = await ordering
           .businesses(result.id)

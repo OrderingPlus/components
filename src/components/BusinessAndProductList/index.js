@@ -27,7 +27,8 @@ export const BusinessAndProductList = (props) => {
     isApp,
     isFetchAllProducts,
     isCustomerMode,
-    notLoadProducts
+    notLoadProducts,
+    requireSlug
   } = props
 
   const [orderState, { removeProduct }] = useOrder()
@@ -701,6 +702,9 @@ export const BusinessAndProductList = (props) => {
 
   const getBusiness = async () => {
     try {
+      if (requireSlug && !slug) {
+        return
+      }
       setBusinessState({ ...businessState, loading: true })
       const source = {}
       requestsState.business = source

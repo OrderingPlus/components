@@ -85,7 +85,7 @@ export const FavoriteList = (props) => {
         if (isProduct) {
           const updatedProducts = content?.result.map(item => {
             return item?.product
-          }).filter(product => !businessId || product?.category?.business_id === businessId)
+          }).filter(product => !businessId || product?.businesses?.some(business => business?.id === businessId))
           setFavoriteList({
             loading: false,
             favorites: [...favoriteList?.favorites, ...updatedProducts],

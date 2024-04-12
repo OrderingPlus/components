@@ -65,11 +65,11 @@ export const FavoriteList = (props) => {
           'X-Socket-Id-X': socket?.getId()
         }
       }
-      let params = {}
+      let params
       if (franchiseId) {
         params = params + `&franchise_id=${franchiseId}`
       }
-      const url = `${ordering.root}/users/${user?.id}/${favoriteURL}?page=${page}&page_size=${pageSize}${params}`
+      const url = `${ordering.root}/users/${user?.id}/${favoriteURL}?page=${page}&page_size=${pageSize}${params || ''}`
       const response = await fetch(url, requestOptions)
       const content = await response.json()
 

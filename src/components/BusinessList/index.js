@@ -105,7 +105,7 @@ export const BusinessList = (props) => {
               ? (isAllowUnaddressOrderType && !orderState.options?.address?.location)
                   ? defaultLocation
                   : `${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`
-              : `${customLocation.lat},${customLocation.lng}`,
+              : `${customLocation?.lat},${customLocation?.lng}`,
             type: !initialOrderType ? (orderState.options?.type || 1) : initialOrderType
           }
       if (isCustomerMode) {

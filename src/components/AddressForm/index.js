@@ -9,6 +9,8 @@ import { useValidationFields } from '../../contexts/ValidationsFieldsContext'
 import { useCustomer } from '../../contexts/CustomerContext'
 import { useConfig } from '../../contexts/ConfigContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { v4 } from 'uuid'
+
 dayjs.extend(utc)
 
 export const AddressForm = (props) => {
@@ -31,10 +33,13 @@ export const AddressForm = (props) => {
   const [addressState, setAddressState] = useState({ loading: false, error: null, address: address || {} })
   const [formState, setFormState] = useState({ loading: false, changes: {}, error: null })
   const [userByToken, setUserByToken] = useState(null)
+  const [mapBoxSuggestCount, setMapBoxSuggestCount] = useState(0)
+  const [uuidv4, setUuidv4] = useState(null)
+  const [mapBoxSuggests, setMapBoxSuggest] = useState([])
   const [{ auth, user, token }, { refreshUserInfo }] = useSession()
   const requestsState = {}
   const [{ options }, { changeAddress }] = useOrder()
-  const [, t] = useLanguage()
+  const [languageState, t] = useLanguage()
   const userId = props.userId || user?.id
   const accessToken = props.accessToken || token
   const [, { setUserCustomer }] = useCustomer()
@@ -44,6 +49,7 @@ export const AddressForm = (props) => {
   const [businessNearestState, setBusinessNearestState] = useState({ business: null, loading: false, error: null })
 
   const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
+  const useAlternativeMap = configs?.use_alternative_to_google_maps?.value === '1'
 
   /**
    * Load an address by id
@@ -312,6 +318,87 @@ export const AddressForm = (props) => {
     }
   }
 
+  const getSuggestedResult = async (search) => {
+    if (!search) return
+    try {
+      const mapBoxToken = 'pk.eyJ1Ijoic2VyZ2lvYW9rIiwiYSI6ImNsdjJpY3E1eDBpYzYybGxjanV1eHI4NHgifQ.7Qf7htYM5vFQQJCC99nEyg'
+      const params = {
+        q: search,
+        limit: 5,
+        language: languageState?.language?.code,
+        access_token: mapBoxToken,
+        session_token: uuidv4
+      }
+
+      let paramsFormatted = ''
+      Object.keys(params)?.map((param, i, hash) => {
+        (i + 1) === hash?.length
+          ? paramsFormatted = paramsFormatted + `${param}=${params[param]}`
+          : paramsFormatted = paramsFormatted + `${param}=${params[param]}&`
+      })
+      const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?${paramsFormatted}`)
+      const result = await response.json()
+      if (result?.suggestions) {
+        setMapBoxSuggest(result?.suggestions)
+      }
+      setMapBoxSuggestCount((count) => count + 1)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const retrieveSuggestResult = async (mapboxId, callback) => {
+    if (!mapboxId) return
+    const mapBoxToken = 'pk.eyJ1Ijoic2VyZ2lvYW9rIiwiYSI6ImNsdjJpY3E1eDBpYzYybGxjanV1eHI4NHgifQ.7Qf7htYM5vFQQJCC99nEyg'
+    const params = {
+      language: languageState?.language?.code,
+      access_token: mapBoxToken,
+      session_token: uuidv4
+    }
+
+    let paramsFormatted = ''
+    Object.keys(params)?.map((param, i, hash) => {
+      (i + 1) === hash?.length
+        ? paramsFormatted = paramsFormatted + `${param}=${params[param]}`
+        : paramsFormatted = paramsFormatted + `${param}=${params[param]}&`
+    })
+    const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/retrieve/${mapboxId}?${paramsFormatted}`)
+    const result = await response.json()
+    const firstRetrieve = result?.features?.[0]
+    const coordinates = firstRetrieve?.geometry?.coordinates
+    const properties = firstRetrieve?.properties
+    const location = { lat: coordinates?.[1], lng: coordinates?.[0] }
+    const address = {
+      location,
+      address: properties?.full_address || properties?.address || properties?.name,
+      country: properties?.country?.name,
+      country_code: properties?.country?.country_code,
+      locality: properties?.locality?.name,
+      region: properties?.context?.region?.name,
+      street: properties?.context?.street?.name,
+      mapbox_id: properties?.mapbox_id
+    }
+    callback && callback(address)
+  }
+
+  const resetMapBoxSessionToken = () => {
+    if (!v4) return
+    setUuidv4(v4())
+    setMapBoxSuggestCount(0)
+  }
+
+  useEffect(() => {
+    if (mapBoxSuggestCount >= 50 && useAlternativeMap) {
+      resetMapBoxSessionToken()
+    }
+  }, [mapBoxSuggestCount, useAlternativeMap])
+
+  useEffect(() => {
+    if (formState?.changes?.location?.lat && useAlternativeMap) {
+      resetMapBoxSessionToken()
+    }
+  }, [JSON.stringify(formState?.changes?.location), useAlternativeMap])
+
   useEffect(() => {
     setAddressState({
       ...addressState,
@@ -366,7 +453,10 @@ export const AddressForm = (props) => {
             businessesList={businessesList}
             getBusinessDeliveryZones={getBusinessDeliveryZones}
             getNearestBusiness={getNearestBusiness}
+            getSuggestedResult={getSuggestedResult}
+            retrieveSuggestResult={retrieveSuggestResult}
             businessNearestState={businessNearestState}
+            mapBoxSuggests={mapBoxSuggests}
           />
         )
       }

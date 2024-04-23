@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { v4 } from 'uuid'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useOrder } from '../../contexts/OrderContext'
@@ -9,7 +10,7 @@ import { useValidationFields } from '../../contexts/ValidationsFieldsContext'
 import { useCustomer } from '../../contexts/CustomerContext'
 import { useConfig } from '../../contexts/ConfigContext'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { v4 } from 'uuid'
+import { ToastType, useToast } from '../../contexts/ToastContext'
 
 dayjs.extend(utc)
 
@@ -40,6 +41,7 @@ export const AddressForm = (props) => {
   const requestsState = {}
   const [{ options }, { changeAddress }] = useOrder()
   const [languageState, t] = useLanguage()
+  const [, { showToast }] = useToast()
   const userId = props.userId || user?.id
   const accessToken = props.accessToken || token
   const [, { setUserCustomer }] = useCustomer()
@@ -343,7 +345,7 @@ export const AddressForm = (props) => {
       }
       setMapBoxSuggestCount((count) => count + 1)
     } catch (err) {
-      console.log(err)
+      showToast(ToastType.error, err?.message)
     }
   }
 

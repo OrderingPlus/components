@@ -321,7 +321,7 @@ export const AddressForm = (props) => {
   const getSuggestedResult = async (search) => {
     if (!search) return
     try {
-      const mapBoxToken = 'pk.eyJ1Ijoic2VyZ2lvYW9rIiwiYSI6ImNsdjJpY3E1eDBpYzYybGxjanV1eHI4NHgifQ.7Qf7htYM5vFQQJCC99nEyg'
+      const mapBoxToken = configs?.map_box_token?.value
       const params = {
         q: search,
         limit: 5,
@@ -349,7 +349,7 @@ export const AddressForm = (props) => {
 
   const retrieveSuggestResult = async (mapboxId, callback) => {
     if (!mapboxId) return
-    const mapBoxToken = 'pk.eyJ1Ijoic2VyZ2lvYW9rIiwiYSI6ImNsdjJpY3E1eDBpYzYybGxjanV1eHI4NHgifQ.7Qf7htYM5vFQQJCC99nEyg'
+    const mapBoxToken = configs?.map_box_token?.value
     const params = {
       language: languageState?.language?.code,
       access_token: mapBoxToken,

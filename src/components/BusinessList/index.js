@@ -70,7 +70,6 @@ export const BusinessList = (props) => {
   const showCities = (!orderingTheme?.business_listing_view?.components?.cities?.hidden && orderState?.options?.type === 2 && !props.disabledCities) ?? false
   const unaddressedTypes = configs?.unaddressed_order_types_allowed?.value.split('|').map(value => Number(value)) || []
   const isAllowUnaddressOrderType = unaddressedTypes.includes(orderState?.options?.type)
-  const avoidFetchData = !token || isKiosk
 
   const sortBusinesses = (array, option) => {
     if (option === 'review') {
@@ -391,7 +390,12 @@ export const BusinessList = (props) => {
    * Listening order option and filter changes
    */
   useEffect(() => {
-    if ((orderState.loading || ((!orderState.options?.address?.location && !isAllowUnaddressOrderType) && !asDashboard && !customLocation)) || (auth && !orderState?.options?.user_id)) return
+    if (
+      (orderState.loading ||
+        ((!orderState.options?.address?.location && !isAllowUnaddressOrderType) && !asDashboard && !customLocation)) ||
+      (auth && !orderState?.options?.user_id)
+    ) return
+
     if (!isDoordash && !franchiseId) {
       getBusinesses(true, currentPageParam)
     }
@@ -423,7 +427,17 @@ export const BusinessList = (props) => {
     if (isDoordash || franchiseEnabled) {
       getBusinesses(true)
     }
-  }, [JSON.stringify(orderState.options), franchiseEnabled, businessTypeSelected, searchValue, priceLevelSelected, timeLimitValue, orderByValue, maxDeliveryFee, businessId])
+  }, [
+    JSON.stringify(orderState.options),
+    franchiseEnabled,
+    businessTypeSelected,
+    searchValue,
+    priceLevelSelected,
+    timeLimitValue,
+    orderByValue,
+    maxDeliveryFee,
+    businessId
+  ])
 
   useLayoutEffect(() => {
     if (isDoordash) {
@@ -683,10 +697,10 @@ export const BusinessList = (props) => {
       })
     }
   }
+
   useEffect(() => {
-    if (avoidFetchData) return
-    refreshUserInfo()
-  }, [auth])
+    token && !isKiosk && refreshUserInfo()
+  }, [token, isKiosk])
 
   return (
     <>

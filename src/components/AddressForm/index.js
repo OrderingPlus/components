@@ -327,7 +327,7 @@ export const AddressForm = (props) => {
       const params = {
         q: search,
         limit: 5,
-        language: languageState?.language?.code,
+        language: languageState?.language?.code?.slice?.(0, 2),
         access_token: mapBoxToken,
         session_token: uuidv4
       }
@@ -353,7 +353,7 @@ export const AddressForm = (props) => {
     if (!mapboxId) return
     const mapBoxToken = configs?.map_box_token?.value
     const params = {
-      language: languageState?.language?.code,
+      language: languageState?.language?.code?.slice?.(0, 2),
       access_token: mapBoxToken,
       session_token: uuidv4
     }

@@ -664,8 +664,8 @@ export const BusinessList = (props) => {
           conector: 'AND'
         }
         let fetchEndpoint = `${ordering.root}/business?where=${JSON.stringify(where)}`
-        if (location) fetchEndpoint = `${fetchEndpoint}&location=${`${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`}`
         if (propsToFetch) fetchEndpoint = `${fetchEndpoint}&params=${propsToFetch}`
+        fetchEndpoint = `${fetchEndpoint}&location=${`${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`}`
         fetchEndpoint = `${fetchEndpoint}&type=${orderState?.options?.type}`
         const _response = await fetch(fetchEndpoint)
         const { error, result } = await _response.json()

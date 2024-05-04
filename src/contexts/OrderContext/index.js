@@ -131,7 +131,7 @@ export const OrderProvider = ({
       const localOptions = await strategy.getItem('options', true)
       if (localOptions) {
         const options = {}
-        if (Object.keys(localOptions.address).length > 0) {
+        if (Object.keys(localOptions?.address || {})?.length > 0) {
           const conditions = [
             { attribute: 'address', value: localOptions?.address?.address }
           ]

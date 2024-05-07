@@ -127,9 +127,9 @@ export const LanguageProvider = ({ settings, children, strategy }) => {
   const t = (key, fallback = null) => {
     let originalKey = key
     const appInternalName = settings.app_internal_name ?? null
-    if (appInternalName !== null && key) {
+    if (appInternalName !== null) {
       const prefix = `${appInternalName.toUpperCase()}_`
-      if (!key.startsWith(prefix)) {
+      if (!key?.startsWith(prefix)) {
         key = `${prefix}${key}`
       } else {
         originalKey = key.substring(prefix.length)

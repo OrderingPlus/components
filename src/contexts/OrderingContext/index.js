@@ -35,7 +35,7 @@ export const OrderingProvider = ({ Alert, settings, children }) => {
     countryCode: settings.countryCode,
     useOptimizeLoad: settings.useOptimizeLoad,
     use_root_point: settings.use_root_point,
-    app_internal_name: settings.app_internal_name
+    app_internal_name: settings?.app_internal_name
   }
   return (
     <OrderingContext.Provider value={{}}>

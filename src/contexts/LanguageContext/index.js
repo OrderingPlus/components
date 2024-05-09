@@ -59,7 +59,20 @@ export const LanguageProvider = ({ settings, children, strategy }) => {
   const refreshTranslations = async () => {
     try {
       !state.loading && setState({ ...state, loading: true })
-      const { content: { error, result } } = await ordering.translations().asDictionary().get()
+      let params = {}
+      const conditons = []
+      const appInternalName = settings?.app_internal_name ?? null
+      if (appInternalName) {
+        conditons.push({
+          attribute: 'product',
+          value: appInternalName
+        })
+        params = {
+          ...params,
+          version: 'v2'
+        }
+      }
+      const { content: { error, result } } = await ordering.translations().parameters(params).where(conditons).asDictionary().get()
       setState({
         ...state,
         loading: false,

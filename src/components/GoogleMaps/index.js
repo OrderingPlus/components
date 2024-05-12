@@ -84,7 +84,7 @@ export const GoogleMaps = (props) => {
               infowindow.setContent(locations[i]?.markerPopup)
               infowindow.open(map, marker)
             } else {
-              onBusinessClick(locations[i]?.slug)
+              onBusinessClick(locations[i]?.slug, locations[i])
             }
           })
           bounds.extend(marker.position)
@@ -95,12 +95,13 @@ export const GoogleMaps = (props) => {
         }
       } else {
         marker.addListener('click', () => {
-          onBusinessClick && onBusinessClick(locations[i]?.slug)
+          onBusinessClick && onBusinessClick(locations[i]?.slug, locations[i])
         })
         bounds.extend(marker.position)
         locationMarkers.push(marker)
       }
     }
+
     if (locationMarkers.length > 0) {
       setMarkers(locationMarkers)
     }

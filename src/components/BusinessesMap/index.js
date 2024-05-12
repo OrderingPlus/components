@@ -8,7 +8,8 @@ export const BusinessesMap = (props) => {
     businessList,
     userLocation,
     setErrors,
-    onBusinessCustomClick
+    onBusinessCustomClick,
+    conserveAllBusinessProps
   } = props
 
   const [events] = useEvent()
@@ -19,12 +20,20 @@ export const BusinessesMap = (props) => {
    */
   const getBusinessListLocations = () => {
     setBusinessLocations(businessList?.filter(business => business?.location?.lat && business?.location?.lng).map(business => {
-      return {
-        lat: business?.location?.lat,
-        lng: business?.location?.lng,
-        icon: business.logo,
-        slug: business.slug
-      }
+      return conserveAllBusinessProps
+        ? {
+            lat: business?.location?.lat,
+            lng: business?.location?.lng,
+            icon: business.logo,
+            slug: business.slug
+          }
+        : {
+            ...business,
+            lat: business?.location?.lat,
+            lng: business?.location?.lng,
+            icon: business.logo,
+            slug: business.slug
+          }
     }))
   }
 
@@ -32,9 +41,9 @@ export const BusinessesMap = (props) => {
    * @param {business_slug} slug
    * handler event when clicks business on the map
    */
-  const onBusinessClick = (slug) => {
+  const onBusinessClick = (slug, business) => {
     if (onBusinessCustomClick) {
-      return onBusinessCustomClick(slug)
+      return onBusinessCustomClick(slug, business)
     }
     events.emit('go_to_page', { page: 'business', params: { store: slug } })
   }

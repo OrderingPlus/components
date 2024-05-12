@@ -647,7 +647,7 @@ export const BusinessList = (props) => {
       if (!content.error) {
         setPaginationProps({
           currentPage: content.pagination.current_page,
-          pageSize: content.pagination.page_size,
+          pageSize: content.pagination.page_size || paginationSettings.pageSize,
           totalPages: content.pagination.total_pages,
           total: content.pagination.total,
           from: content.pagination.from,

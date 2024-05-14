@@ -20,20 +20,13 @@ export const BusinessesMap = (props) => {
    */
   const getBusinessListLocations = () => {
     setBusinessLocations(businessList?.filter(business => business?.location?.lat && business?.location?.lng).map(business => {
-      return conserveAllBusinessProps
-        ? {
-            lat: business?.location?.lat,
-            lng: business?.location?.lng,
-            icon: business.logo,
-            slug: business.slug
-          }
-        : {
-            ...business,
-            lat: business?.location?.lat,
-            lng: business?.location?.lng,
-            icon: business.logo,
-            slug: business.slug
-          }
+      return {
+        ...(conserveAllBusinessProps ? business : {}),
+        lat: business?.location?.lat,
+        lng: business?.location?.lng,
+        icon: business.logo,
+        slug: business.slug
+      }
     }))
   }
 

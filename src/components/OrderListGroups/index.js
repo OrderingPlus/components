@@ -176,6 +176,13 @@ export const OrderListGroups = (props) => {
       })
     }
 
+    if (filtered?.business) {
+      options.query.where.push({
+        attribute: 'business_id',
+        value: filtered?.business
+      })
+    }
+
     if (filtered?.paymethod || customPaymethods) {
       let paymethodResult = controlsState
       if (!controlsState.paymethods.length) {

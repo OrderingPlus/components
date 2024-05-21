@@ -1271,6 +1271,9 @@ export const OrderProvider = ({
     if (configTypes?.length > 0 && state.options.type && !configTypes.includes(state.options.type)) {
       const validDefaultValue = configTypes.includes(configState?.configs?.default_order_type?.type)
       updateOrderOptions(validDefaultValue ? { type: configState?.configs?.default_order_type?.type } : { type: configTypes[0] })
+      if (!session.auth && !state?.loading) {
+        changeType(validDefaultValue ? configState?.configs?.default_order_type?.type : configTypes[0])
+      }
     }
   }, [configTypes?.length, state.options.type])
 

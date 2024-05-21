@@ -28,7 +28,8 @@ export const BusinessAndProductList = (props) => {
     isFetchAllProducts,
     isCustomerMode,
     notLoadProducts,
-    isSlugRequired
+    isSlugRequired,
+    onChangeBusinessSelected
   } = props
 
   const [orderState, { removeProduct }] = useOrder()
@@ -742,6 +743,7 @@ export const BusinessAndProductList = (props) => {
         business: result,
         loading: false
       }
+      onChangeBusinessSelected && onChangeBusinessSelected(result)
       if (menusProps && isGetMenus) {
         const { content: { result: menus } } = await ordering
           .businesses(result.id)

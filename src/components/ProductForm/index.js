@@ -215,7 +215,6 @@ export const ProductForm = (props) => {
     if (!product || !user) return
     showToast(ToastType.Info, t('LOADING', 'loading'))
     try {
-      setProduct({ ...product, loading: true, error: null })
       const productId = productFav?.id
       const changes = { object_id: productId }
       const requestOptions = {
@@ -234,23 +233,15 @@ export const ProductForm = (props) => {
       const response = await fetch(fetchEndpoint, requestOptions)
       const content = await response.json()
       if (!content.error) {
-        loadProductWithOptions()
         handleUpdateProducts && handleUpdateProducts(productId, { favorite: isAdd })
+        const newProductCart = JSON.parse(JSON.stringify(productCart))
+        newProductCart.favorite = isAdd
+        setProductCart(newProductCart)
         showToast(ToastType.Success, isAdd ? t('FAVORITE_ADDED', 'Favorite added') : t('FAVORITE_REMOVED', 'Favorite removed'))
       } else {
-        setProduct({
-          ...product,
-          loading: false,
-          error: content.result
-        })
         showToast(ToastType.Error, content.result)
       }
     } catch (error) {
-      setProduct({
-        ...product,
-        loading: false,
-        error: [error.message]
-      })
       showToast(ToastType.Error, [error.message])
     }
   }

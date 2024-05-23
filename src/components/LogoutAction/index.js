@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useConfig } from '../../contexts/ConfigContext'
+import { useOrder } from '../../contexts/OrderContext'
 
 /**
  * Component to manage logout behavior without UI component
@@ -20,6 +21,7 @@ export const LogoutAction = (props) => {
   const [ordering] = useApi()
   const [formState, setFormState] = useState({ loading: false, result: { error: false } })
 
+  const [, { setStateInitialValues }] = useOrder()
   const [data, { logout }] = useSession()
   const [{ configs }] = useConfig()
 
@@ -97,7 +99,8 @@ export const LogoutAction = (props) => {
           loading: false
         })
         if (useDefualtSessionManager) {
-          logout()
+          await logout()
+          await setStateInitialValues()
         }
         if (handleSuccessLogout) {
           handleSuccessLogout()

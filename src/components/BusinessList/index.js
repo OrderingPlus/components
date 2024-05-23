@@ -70,7 +70,6 @@ export const BusinessList = (props) => {
   const showCities = (!orderingTheme?.business_listing_view?.components?.cities?.hidden && orderState?.options?.type === 2 && !props.disabledCities) ?? false
   const unaddressedTypes = configs?.unaddressed_order_types_allowed?.value.split('|').map(value => Number(value)) || []
   const isAllowUnaddressOrderType = unaddressedTypes.includes(orderState?.options?.type)
-  const avoidFetchData = !token || isKiosk
 
   const sortBusinesses = (array, option) => {
     if (option === 'review') {
@@ -105,7 +104,7 @@ export const BusinessList = (props) => {
               ? (isAllowUnaddressOrderType && !orderState.options?.address?.location)
                   ? defaultLocation
                   : `${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`
-              : `${customLocation.lat},${customLocation.lng}`,
+              : `${customLocation?.lat},${customLocation?.lng}`,
             type: !initialOrderType ? (orderState.options?.type || 1) : initialOrderType
           }
       if (isCustomerMode) {
@@ -391,7 +390,12 @@ export const BusinessList = (props) => {
    * Listening order option and filter changes
    */
   useEffect(() => {
-    if ((orderState.loading || ((!orderState.options?.address?.location && !isAllowUnaddressOrderType) && !asDashboard && !customLocation)) || (auth && !orderState?.options?.user_id)) return
+    if (
+      (orderState.loading ||
+        ((!orderState.options?.address?.location && !isAllowUnaddressOrderType) && !asDashboard && !customLocation)) ||
+      (auth && !orderState?.options?.user_id)
+    ) return
+
     if (!isDoordash && !franchiseId) {
       getBusinesses(true, currentPageParam)
     }
@@ -423,7 +427,17 @@ export const BusinessList = (props) => {
     if (isDoordash || franchiseEnabled) {
       getBusinesses(true)
     }
-  }, [JSON.stringify(orderState.options), franchiseEnabled, businessTypeSelected, searchValue, priceLevelSelected, timeLimitValue, orderByValue, maxDeliveryFee, businessId])
+  }, [
+    JSON.stringify(orderState.options),
+    franchiseEnabled,
+    businessTypeSelected,
+    searchValue,
+    priceLevelSelected,
+    timeLimitValue,
+    orderByValue,
+    maxDeliveryFee,
+    businessId
+  ])
 
   useLayoutEffect(() => {
     if (isDoordash) {
@@ -633,7 +647,7 @@ export const BusinessList = (props) => {
       if (!content.error) {
         setPaginationProps({
           currentPage: content.pagination.current_page,
-          pageSize: content.pagination.page_size,
+          pageSize: content.pagination.page_size || paginationSettings.pageSize,
           totalPages: content.pagination.total_pages,
           total: content.pagination.total,
           from: content.pagination.from,
@@ -650,8 +664,8 @@ export const BusinessList = (props) => {
           conector: 'AND'
         }
         let fetchEndpoint = `${ordering.root}/business?where=${JSON.stringify(where)}`
-        if (location) fetchEndpoint = `${fetchEndpoint}&location=${`${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`}`
         if (propsToFetch) fetchEndpoint = `${fetchEndpoint}&params=${propsToFetch}`
+        fetchEndpoint = `${fetchEndpoint}&location=${`${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`}`
         fetchEndpoint = `${fetchEndpoint}&type=${orderState?.options?.type}`
         const _response = await fetch(fetchEndpoint)
         const { error, result } = await _response.json()
@@ -683,10 +697,10 @@ export const BusinessList = (props) => {
       })
     }
   }
+
   useEffect(() => {
-    if (avoidFetchData) return
-    refreshUserInfo()
-  }, [auth])
+    token && !isKiosk && refreshUserInfo()
+  }, [token, isKiosk])
 
   return (
     <>

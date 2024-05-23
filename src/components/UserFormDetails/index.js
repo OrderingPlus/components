@@ -309,12 +309,7 @@ export const UserFormDetails = (props) => {
       setUserState({ ...userState, loadingDriver: true })
       const response = await ordering
         .users(session?.user?.id)
-        .save(
-          { available: newValue },
-          {
-            accessToken
-          }
-        )
+        .save({ available: newValue }, { accessToken })
 
       if (response.content.error) {
         setUserState({
@@ -328,7 +323,7 @@ export const UserFormDetails = (props) => {
         setUserState({
           ...userState,
           loadingDriver: false,
-          result: { ...response.content }
+          result: response.content
         })
         changeUser({
           ...session.user,
@@ -341,8 +336,8 @@ export const UserFormDetails = (props) => {
           ...userState,
           loadingDriver: false,
           result: {
-            error: true,
-            result: err.message
+            ...userState.result,
+            error: err?.message ?? err
           }
         })
       }

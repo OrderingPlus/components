@@ -27,7 +27,9 @@ export const BusinessAndProductList = (props) => {
     isApp,
     isFetchAllProducts,
     isCustomerMode,
-    notLoadProducts
+    notLoadProducts,
+    isSlugRequired,
+    onChangeBusinessSelected
   } = props
 
   const [orderState, { removeProduct }] = useOrder()
@@ -57,7 +59,6 @@ export const BusinessAndProductList = (props) => {
     pagination: { currentPage: 0, pageSize: isApp ? 5 : 20, totalItems: null, totalPages: 0, nextPageItems: 10 },
     products: []
   }
-
   let [categoryState, setCategoryState] = useState(categoryStateDefault)
   const [errors, setErrors] = useState(null)
   const [errorQuantityProducts, setErrorQuantityProducts] = useState(false)
@@ -701,6 +702,10 @@ export const BusinessAndProductList = (props) => {
 
   const getBusiness = async () => {
     try {
+      if (!slug && isSlugRequired) {
+        setBusinessState({ ...businessState, loading: false })
+        return
+      }
       setBusinessState({ ...businessState, loading: true })
       const source = {}
       requestsState.business = source
@@ -738,7 +743,7 @@ export const BusinessAndProductList = (props) => {
         business: result,
         loading: false
       }
-
+      onChangeBusinessSelected && onChangeBusinessSelected(result)
       if (menusProps && isGetMenus) {
         const { content: { result: menus } } = await ordering
           .businesses(result.id)
@@ -884,7 +889,7 @@ export const BusinessAndProductList = (props) => {
     if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !businessState.loading && props.avoidBusinessLoading) {
       getBusiness()
     }
-  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected])
+  }, [JSON.stringify(orderOptions), orderState.loading, languageState.loading, slug, filterByMenus, professionalSelected])
 
   /**
    * getBusiness if orderState is loading the first time when is rendered

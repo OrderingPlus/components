@@ -65,11 +65,11 @@ export const FavoriteList = (props) => {
           'X-Socket-Id-X': socket?.getId()
         }
       }
-      let params = {}
+      let params
       if (franchiseId) {
         params = params + `&franchise_id=${franchiseId}`
       }
-      const url = `${ordering.root}/users/${user?.id}/${favoriteURL}?page=${page}&page_size=${pageSize}${params}`
+      const url = `${ordering.root}/users/${user?.id}/${favoriteURL}?page=${page}&page_size=${pageSize}${params || ''}`
       const response = await fetch(url, requestOptions)
       const content = await response.json()
 
@@ -85,7 +85,7 @@ export const FavoriteList = (props) => {
         if (isProduct) {
           const updatedProducts = content?.result.map(item => {
             return item?.product
-          }).filter(product => !businessId || product?.category?.business_id === businessId)
+          }).filter(product => !businessId || product?.businesses?.some(business => business?.id === businessId))
           setFavoriteList({
             loading: false,
             favorites: [...favoriteList?.favorites, ...updatedProducts],

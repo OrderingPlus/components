@@ -131,7 +131,7 @@ export const OrderProvider = ({
       const localOptions = await strategy.getItem('options', true)
       if (localOptions) {
         const options = {}
-        if (Object.keys(localOptions.address).length > 0) {
+        if (Object.keys(localOptions?.address || {})?.length > 0) {
           const conditions = [
             { attribute: 'address', value: localOptions?.address?.address }
           ]
@@ -1230,6 +1230,29 @@ export const OrderProvider = ({
     setState({ ...state, loading: false })
   }
 
+  const setStateInitialValues = () => {
+    setState({
+      loading: false,
+      options: isDisabledDefaultOpts
+        ? { type: null, moment: null, city_id: null }
+        : {
+            type: orderTypes[configState?.configs?.default_order_type?.value],
+            moment: null,
+            city_id: null
+          },
+      carts: {},
+      confirmAlert,
+      alert
+    })
+  }
+
+  const handleOrderStateLoading = (loading) => {
+    setState({
+      ...state,
+      loading
+    })
+  }
+
   useEffect(() => {
     if (session.loading || languageState.loading) return
     if (session.auth) {
@@ -1248,6 +1271,9 @@ export const OrderProvider = ({
     if (configTypes?.length > 0 && state.options.type && !configTypes.includes(state.options.type)) {
       const validDefaultValue = configTypes.includes(configState?.configs?.default_order_type?.type)
       updateOrderOptions(validDefaultValue ? { type: configState?.configs?.default_order_type?.type } : { type: configTypes[0] })
+      if (!session.auth && !state?.loading) {
+        changeType(validDefaultValue ? configState?.configs?.default_order_type?.type : configTypes[0])
+      }
     }
   }, [configTypes?.length, state.options.type])
 
@@ -1348,7 +1374,9 @@ export const OrderProvider = ({
     getLastOrderHasNoReview,
     changeCityFilter,
     confirmMultiCarts,
-    addMultiProduct
+    addMultiProduct,
+    setStateInitialValues,
+    handleOrderStateLoading
   }
 
   const copyState = JSON.parse(JSON.stringify(state))

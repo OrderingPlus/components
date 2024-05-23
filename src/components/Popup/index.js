@@ -12,7 +12,8 @@ export const Popup = (props) => {
     backdropClassName,
     closeOnBackdrop,
     onClose,
-    isSideBar
+    isSideBar,
+    disableDefaultStyleOnRender
   } = props
 
   const modalRef = useRef(null)
@@ -65,8 +66,10 @@ export const Popup = (props) => {
           modalRoot.remove()
         }
       }
-      window.document.body.style.overflow = defaultOverflow
-      window.document.body.style.paddingRight = defaultPaddingRight
+      if (!disableDefaultStyleOnRender) {
+        window.document.body.style.overflow = defaultOverflow
+        window.document.body.style.paddingRight = defaultPaddingRight
+      }
     }
   }
 

@@ -887,7 +887,7 @@ export const BusinessAndProductList = (props) => {
     if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !businessState.loading && props.avoidBusinessLoading) {
       getBusiness()
     }
-  }, [JSON.stringify(orderOptions), orderState.loading, languageState.loading, slug, filterByMenus, professionalSelected])
+  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected])
 
   /**
    * getBusiness if orderState is loading the first time when is rendered

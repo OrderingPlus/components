@@ -38,7 +38,8 @@ export const BusinessList = (props) => {
     actualSlug,
     searchValueCustom,
     isKiosk,
-    isCustomerMode
+    isCustomerMode,
+    avoidRefreshUserInfo
   } = props
 
   const [businessesList, setBusinessesList] = useState({ businesses: [], loading: true, error: null })
@@ -699,8 +700,10 @@ export const BusinessList = (props) => {
   }
 
   useEffect(() => {
-    token && !isKiosk && refreshUserInfo()
-  }, [token, isKiosk])
+    if (!avoidRefreshUserInfo) {
+      token && !isKiosk && refreshUserInfo()
+    }
+  }, [token, isKiosk, avoidRefreshUserInfo])
 
   return (
     <>

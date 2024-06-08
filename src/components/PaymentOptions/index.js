@@ -125,7 +125,7 @@ export const PaymentOptions = (props) => {
       paymethodsCustom(paymethod)
     }
     setPaymethodsSelected(paymethod)
-    setIsOpenMethod({ paymethod })
+    setIsOpenMethod({ ...isOpenMethod, paymethod })
     handlePaymethodDataChange({})
   }
 

@@ -37,19 +37,37 @@ export const PaymentOptions = (props) => {
   const [paymethodData, setPaymethodData] = useState({})
   const [isOpenMethod, setIsOpenMethod] = useState({ paymethod: null })
 
+  const filterPaymentMethods = (paymentMethods) => {
+    const validations = {
+      stripe: (data) => !data?.publishable,
+      paypal: (data) => !Object.keys(data).length || !data?.client_id,
+      stripe_connect: (data) => !data?.stripe?.publishable,
+      google_pay: (data) => !Object.keys(data).length,
+      apple_pay: (data) => !Object.keys(data).length,
+      global_google_pay: (data) => !data?.publishable,
+      global_apple_pay: (data) => !data?.publishable
+    }
+
+    return paymentMethods.filter(method => {
+      const validation = validations?.[method?.paymethod?.gateway]
+      return validation ? !validation(method?.data) : true
+    })
+  }
+
   const parsePaymethods = (paymethods) => {
-    const _paymethods = paymethods && paymethods
-      .filter(credentials => isCustomerMode
-        ? !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway) &&
-          paymethodsCallcenterMode.includes(credentials?.paymethod?.gateway)
-        : !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway))
-      .map(credentials => {
-        return {
-          ...credentials?.paymethod,
-          sandbox: credentials?.sandbox,
-          credentials: credentials?.data
-        }
-      })
+    const _paymethods = paymethods &&
+      filterPaymentMethods(paymethods)
+        .filter(credentials => isCustomerMode
+          ? !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway) &&
+            paymethodsCallcenterMode.includes(credentials?.paymethod?.gateway)
+          : !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway))
+        .map(credentials => {
+          return {
+            ...credentials?.paymethod,
+            sandbox: credentials?.sandbox,
+            credentials: credentials?.data
+          }
+        })
     return _paymethods
   }
 

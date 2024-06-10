@@ -42,8 +42,8 @@ export const PaymentOptions = (props) => {
       stripe: (data) => !data?.publishable,
       paypal: (data) => !Object.keys(data).length || !data?.client_id,
       stripe_connect: (data) => !data?.stripe?.publishable,
-      google_pay: (data) => !Object.keys(data).length,
-      apple_pay: (data) => !Object.keys(data).length,
+      google_pay: (data) => !data?.publishable,
+      apple_pay: (data) => !data?.publishable,
       global_google_pay: (data) => !data?.publishable,
       global_apple_pay: (data) => !data?.publishable
     }

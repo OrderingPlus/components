@@ -26,7 +26,7 @@ export const WebsocketProvider = ({ settings, children, strategy }) => {
       const _socket = new Socket({
         ...configs,
         accessToken: session.token,
-        url: 'https://socket-v3.ordering.co'
+        url: 'https://sockets.orderingplus.com'
       })
       setSocket(_socket)
     }

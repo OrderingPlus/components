@@ -10,7 +10,7 @@ export const Popup = (props) => {
     UIComponent,
     open,
     backdropClassName,
-    closeOnBackdrop,
+    closeOnBackdrop = true,
     onClose,
     isSideBar,
     disableDefaultStyleOnRender
@@ -163,10 +163,4 @@ Popup.propTypes = {
    * Function when close popup
    */
   onClose: PropTypes.func
-}
-
-Popup.defaultProps = {
-  open: false,
-  closeOnBackdrop: true,
-  closeWithKeyboard: true
 }

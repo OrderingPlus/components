@@ -118,6 +118,16 @@ export const OrderListGroups = (props) => {
   const accessToken = useDefualtSessionManager ? session.token : props.accessToken
   const requestsState = {}
 
+  const handleSelectCurrentTab = (value) => {
+    setOrdersGroup({
+      ...ordersGroup,
+      [value]: {
+        ...ordersGroup[value],
+        loading: true
+      }
+    })
+    setCurrentTabSelected(value)
+  }
   const getOrders = async ({
     page,
     pageSize = paginationSettings.pageSize,
@@ -1207,7 +1217,7 @@ export const OrderListGroups = (props) => {
           currentFilters={currentFilters}
           setCurrentFilters={setCurrentFilters}
           currentTabSelected={currentTabSelected}
-          setCurrentTabSelected={setCurrentTabSelected}
+          setCurrentTabSelected={handleSelectCurrentTab}
           ordersGroup={ordersGroup}
           setOrdersGroup={setOrdersGroup}
           logisticOrders={logisticOrders}

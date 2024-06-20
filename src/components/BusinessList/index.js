@@ -394,7 +394,7 @@ export const BusinessList = (props) => {
    */
   useEffect(() => {
     if (
-      (orderState.loading ||
+      (orderState.loading || (asDashboard && !auth) ||
         ((!orderState.options?.address?.location && !isAllowUnaddressOrderType) && !asDashboard && !customLocation)) ||
       (auth && !orderState?.options?.user_id)
     ) return

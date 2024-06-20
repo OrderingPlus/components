@@ -102,10 +102,40 @@ export const OrderListGroups = (props) => {
   const [orderLogisticAdded, setOrderLogisticAdded] = useState(null)
   const [orderLogisticUpdated, setOrderLogisticUpdated] = useState(null)
   const [recentlyReceivedMessage, setRecentlyReceivedMessage] = useState(null)
+  const [ordersFiltered, setOrdersFiltered] = useState({
+    orders: [],
+    loading: false,
+    error: null,
+    pagination: {
+      currentPage: (paginationSettings.controlType === 'pages' && paginationSettings.initialPage && paginationSettings.initialPage >= 1)
+        ? paginationSettings.initialPage - 1
+        : 0,
+      pageSize: paginationSettings.pageSize ?? 10,
+      total: null
+    }
+  })
 
   const accessToken = useDefualtSessionManager ? session.token : props.accessToken
   const requestsState = {}
 
+  const handleSelectCurrentTab = (value) => {
+    if (!isDriverApp) {
+      setOrdersGroup({
+        ...ordersGroup,
+        [value]: {
+          ...ordersGroup[value],
+          loading: true
+        }
+      })
+    }
+    if (value === 'logisticOrders') {
+      setlogisticOrders({
+        ...logisticOrders,
+        loading: true
+      })
+    }
+    setCurrentTabSelected(value)
+  }
   const getOrders = async ({
     page,
     pageSize = paginationSettings.pageSize,
@@ -311,7 +341,7 @@ export const OrderListGroups = (props) => {
     }
   }
 
-  const loadOrders = async ({ newFetch, newFetchCurrent } = {}) => {
+  const loadOrders = async ({ newFetch, newFetchCurrent } = {}, options = {}) => {
     if (
       !(newFetch || newFetchCurrent) &&
       ordersGroup[currentTabSelected].pagination.currentPage === ordersGroup[currentTabSelected].pagination.totalPages &&
@@ -346,17 +376,24 @@ export const OrderListGroups = (props) => {
     const pageSize = paginationSettings.pageSize
 
     try {
-      setOrdersGroup({
-        ...ordersGroup,
-        [currentTabSelected]: {
-          ...ordersGroup[currentTabSelected],
+      if (options?.allStatusses) {
+        setOrdersFiltered({
+          ...ordersFiltered,
           loading: true
-        }
-      })
+        })
+      } else {
+        setOrdersGroup({
+          ...ordersGroup,
+          [currentTabSelected]: {
+            ...ordersGroup[currentTabSelected],
+            loading: true
+          }
+        })
+      }
       const { content: { error, result, pagination } } = await getOrders({
         page: 1,
         pageSize,
-        orderStatus: ordersGroup[currentTabSelected]?.currentFilter,
+        orderStatus: options?.allStatusses ? null : ordersGroup[currentTabSelected]?.currentFilter,
         newFetch: (newFetch || newFetchCurrent)
       })
 
@@ -367,6 +404,23 @@ export const OrderListGroups = (props) => {
         : (newFetch || newFetchCurrent)
             ? sortOrders(result)
             : sortOrders(ordersGroup[currentTabSelected]?.orders.concat(result))
+      if (options?.allStatusses) {
+        setOrdersFiltered({
+          error,
+          orders: formatOrdersGrouped(_ordersCleaned, { allStatusses: true }),
+          pagination: {
+            ...ordersFiltered.pagination,
+            currentPage: pagination.current_page,
+            pageSize: pagination.page_size,
+            totalPages: pagination.total_pages,
+            total: pagination.total,
+            from: pagination.from,
+            to: pagination.to
+          },
+          loading: false
+        })
+        return
+      }
 
       setOrdersGroup({
         ...ordersGroup,
@@ -389,37 +443,72 @@ export const OrderListGroups = (props) => {
       })
     } catch (err) {
       if (err.constructor.name !== 'Cancel') {
-        setOrdersGroup({
-          ...ordersGroup,
-          [currentTabSelected]: {
-            ...ordersGroup[currentTabSelected],
+        if (options?.allStatusses) {
+          setOrdersFiltered({
+            ...ordersFiltered,
             loading: false,
             error: [err?.message ?? 'ERROR']
-          }
-        })
+          })
+        } else {
+          setOrdersGroup({
+            ...ordersGroup,
+            [currentTabSelected]: {
+              ...ordersGroup[currentTabSelected],
+              loading: false,
+              error: [err?.message ?? 'ERROR']
+            }
+          })
+        }
       }
     }
   }
 
-  const loadMoreOrders = async () => {
-    setOrdersGroup({
-      ...ordersGroup,
-      [currentTabSelected]: {
-        ...ordersGroup[currentTabSelected],
+  const loadMoreOrders = async (options = {}) => {
+    if (!options?.allStatusses) {
+      setOrdersGroup({
+        ...ordersGroup,
+        [currentTabSelected]: {
+          ...ordersGroup[currentTabSelected],
+          loading: true
+        }
+      })
+    } else {
+      setOrdersFiltered({
+        ...ordersFiltered,
         loading: true
-      }
-    })
+      })
+    }
     try {
       const { content: { error, result, pagination } } = await getOrders({
-        page: ordersGroup[currentTabSelected].pagination.currentPage + 1,
-        orderStatus: ordersGroup[currentTabSelected]?.currentFilter,
+        page: options?.allStatusses ? ordersFiltered.pagination.currentPage + 1 : ordersGroup[currentTabSelected].pagination.currentPage + 1,
+        orderStatus: options?.allStatusses ? null : ordersGroup[currentTabSelected]?.currentFilter,
         newFetch: true
       })
+
+      if (options?.allStatusses) {
+        setOrdersFiltered({
+          error,
+          orders: formatOrdersGrouped([
+            ...ordersFiltered?.orders,
+            ...sortOrders(result)
+          ], { allStatusses: true }),
+          pagination: {
+            ...ordersFiltered.pagination,
+            currentPage: pagination.current_page,
+            pageSize: pagination.page_size,
+            totalPages: pagination.total_pages,
+            total: pagination.total,
+            from: pagination.from,
+            to: pagination.to
+          },
+          loading: false
+        })
+        return
+      }
 
       const _ordersCleaned = error
         ? sortOrders(ordersGroup[currentTabSelected]?.orders)
         : sortOrders(ordersGroup[currentTabSelected]?.orders?.concat(result))
-
       setOrdersGroup({
         ...ordersGroup,
         [currentTabSelected]: {
@@ -591,7 +680,7 @@ export const OrderListGroups = (props) => {
     }).filter((item) => Array.isArray(item) ? item.length : item)
   }
 
-  const formatOrdersGrouped = (orders) => {
+  const formatOrdersGrouped = (orders, options = {}) => {
     let totalOrders = orders
     const ordersGroupids = []
 
@@ -607,7 +696,7 @@ export const OrderListGroups = (props) => {
         if (_item) ordersGroupids.push(item?.cart_group_id)
         return _item
       }).filter(item => item)
-    return filterByIdUnique(totalOrders)
+    return options?.allStatusses ? totalOrders : filterByIdUnique(totalOrders)
   }
 
   const getStatusById = (id) => {
@@ -852,7 +941,7 @@ export const OrderListGroups = (props) => {
 
   useEffect(() => {
     if (!filtered) return
-    loadOrders({ newFetch: true })
+    loadOrders({ newFetch: true }, { allStatusses: true })
   }, [filtered])
 
   const handleActionEvent = (event, value) => {
@@ -1136,7 +1225,7 @@ export const OrderListGroups = (props) => {
           currentFilters={currentFilters}
           setCurrentFilters={setCurrentFilters}
           currentTabSelected={currentTabSelected}
-          setCurrentTabSelected={setCurrentTabSelected}
+          setCurrentTabSelected={handleSelectCurrentTab}
           ordersGroup={ordersGroup}
           setOrdersGroup={setOrdersGroup}
           logisticOrders={logisticOrders}
@@ -1158,6 +1247,7 @@ export const OrderListGroups = (props) => {
           handleSendCustomerReview={handleSendCustomerReview}
           ordersFormatted={formatOrdersGrouped(ordersGroup[currentTabSelected]?.orders)}
           isLogisticActivated={isLogisticActivated}
+          ordersFiltered={ordersFiltered}
         />
       )}
     </>

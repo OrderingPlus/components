@@ -128,6 +128,12 @@ export const OrderListGroups = (props) => {
         }
       })
     }
+    if (value === 'logisticOrders') {
+      setlogisticOrders({
+        ...logisticOrders,
+        loading: true
+      })
+    }
     setCurrentTabSelected(value)
   }
   const getOrders = async ({

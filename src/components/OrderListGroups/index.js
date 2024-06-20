@@ -119,13 +119,15 @@ export const OrderListGroups = (props) => {
   const requestsState = {}
 
   const handleSelectCurrentTab = (value) => {
-    setOrdersGroup({
-      ...ordersGroup,
-      [value]: {
-        ...ordersGroup[value],
-        loading: true
-      }
-    })
+    if (!isDriverApp) {
+      setOrdersGroup({
+        ...ordersGroup,
+        [value]: {
+          ...ordersGroup[value],
+          loading: true
+        }
+      })
+    }
     setCurrentTabSelected(value)
   }
   const getOrders = async ({

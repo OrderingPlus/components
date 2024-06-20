@@ -83,6 +83,7 @@ export const BusinessList = (props) => {
    * @param {boolean} newFetch Make a new request or next page
    */
   const getBusinesses = async (newFetch, specificPagination, prev, options = {}) => {
+    const prevBusinesses = businessesList.businesses
     try {
       setBusinessesList({
         ...businessesList,
@@ -308,7 +309,7 @@ export const BusinessList = (props) => {
         ...businessesList,
         loading: false,
         error,
-        businesses,
+        businesses: businesses.length ? businesses : prevBusinesses,
         result,
         fetched: true
       })
@@ -318,6 +319,7 @@ export const BusinessList = (props) => {
         setBusinessesList({
           ...businessesList,
           loading: false,
+          businesses: prevBusinesses,
           error: true,
           fetched: true,
           result: [err.message]

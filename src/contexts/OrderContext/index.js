@@ -1255,6 +1255,27 @@ export const OrderProvider = ({
     })
   }
 
+  const handleLogEvent = async (events) => {
+    try {
+      const countryCode = await strategy.getItem('country-code')
+      const headers = {
+        'X-Socket-Id-X': socket?.getId(),
+        'X-Country-Code-X': countryCode
+      }
+      await fetch(`${ordering.root}/tracking_events`, {
+        method: 'POST',
+        body: JSON.stringify({
+          events
+        }),
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${session.token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    } catch (err) {}
+  }
+
   useEffect(() => {
     if (session.loading || languageState.loading) return
     if (session.auth) {
@@ -1381,7 +1402,8 @@ export const OrderProvider = ({
     confirmMultiCarts,
     addMultiProduct,
     setStateInitialValues,
-    handleOrderStateLoading
+    handleOrderStateLoading,
+    handleLogEvent
   }
 
   const copyState = JSON.parse(JSON.stringify(state))

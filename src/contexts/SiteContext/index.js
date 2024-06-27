@@ -33,7 +33,7 @@ export const SiteProvider = ({ appId, children }) => {
 
       let error = sites?.error ?? null
       let result = sites?.result ?? null
-      if (!sites) {
+      if (!result) {
         const response = await fetch(`${ordering.root}/sites/current`, requestOptions)
         const res = await response.json()
         error = res?.error

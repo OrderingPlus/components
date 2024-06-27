@@ -36,7 +36,7 @@ export const OrderingProvider = ({ Alert, settings, children, isDisableToast, is
     countryCode: settings.countryCode,
     useOptimizeLoad: settings?.useOptimizeLoad,
     force_update_lang: settings?.force_update_lang,
-    app_internal_name: settings?.app_internal_name
+    appInternalName: settings?.app_internal_name
   }
   return (
     <OrderingContext.Provider value={{}}>

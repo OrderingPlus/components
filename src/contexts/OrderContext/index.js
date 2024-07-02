@@ -51,7 +51,9 @@ export const OrderProvider = ({
     pickup: 2,
     eatin: 3,
     curbside: 4,
-    drivethru: 5
+    drivethru: 5,
+    catering_delivery: 7,
+    catering_pickup: 8
   }
 
   const [state, setState] = useState({
@@ -1280,6 +1282,27 @@ export const OrderProvider = ({
     })
   }
 
+  const handleLogEvent = async (events) => {
+    try {
+      const countryCode = await strategy.getItem('country-code')
+      const headers = {
+        'X-Socket-Id-X': socket?.getId(),
+        'X-Country-Code-X': countryCode
+      }
+      await fetch(`${ordering.root}/tracking_events`, {
+        method: 'POST',
+        body: JSON.stringify({
+          events
+        }),
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${session.token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    } catch (err) {}
+  }
+
   useEffect(() => {
     if (session.loading || languageState.loading) return
     if (session.auth) {
@@ -1299,6 +1322,9 @@ export const OrderProvider = ({
       const validDefaultValue = configTypes.includes(configState?.configs?.default_order_type?.type)
       updateOrderOptions(validDefaultValue ? { type: configState?.configs?.default_order_type?.type } : { type: configTypes[0] })
       if (!session.auth && !state?.loading) {
+        changeType(validDefaultValue ? configState?.configs?.default_order_type?.type : configTypes[0])
+      }
+      if (!session.auth) {
         changeType(validDefaultValue ? configState?.configs?.default_order_type?.type : configTypes[0])
       }
     }
@@ -1404,7 +1430,8 @@ export const OrderProvider = ({
     addMultiProduct,
     setStateInitialValues,
     handleOrderStateLoading,
-    createReservation
+    createReservation,
+    handleLogEvent
   }
 
   const copyState = JSON.parse(JSON.stringify(state))

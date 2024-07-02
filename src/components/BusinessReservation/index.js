@@ -44,7 +44,7 @@ export const BusinessReservation = (props) => {
   const businessConfig = business?.configs?.find(config => config?.key === 'reservation_setting')
   const reservationSetting = businessConfig ? JSON.parse(businessConfig?.value || '{}') : JSON.parse(configs?.reservation_setting?.value || '{}')
   const currentDate = new Date()
-  const timeRange = 60
+  const timeRange = 30
   const getValidationFieldOrderTypes = async () => {
     try {
       setCheckoutFieldsState({ ...checkoutFieldsState, loading: true })

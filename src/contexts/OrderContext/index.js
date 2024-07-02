@@ -652,6 +652,33 @@ export const OrderProvider = ({
     }
   }
 
+  const createReservation = async (body) => {
+    try {
+      const response = await fetch(`${ordering.root}/carts/add_reservation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.token}`,
+          'X-App-X': ordering.appId,
+          'X-Socket-Id-X': socket?.getId()
+        },
+        body: JSON.stringify(body)
+      })
+      const { result, error } = await response.json()
+      if (!error) {
+        state.carts[`businessId:${result.business_id}`] = result
+        events.emit('cart_added', result)
+        setState({ ...state, loading: false })
+      } else {
+        setAlert({ show: true, content: result })
+      }
+      return { error, result }
+    } catch (err) {
+      setState({ ...state, loading: false })
+      return { error: true, result: [err.message] }
+    }
+  }
+
   /**
    * Apply coupon to cart
    */
@@ -1376,7 +1403,8 @@ export const OrderProvider = ({
     confirmMultiCarts,
     addMultiProduct,
     setStateInitialValues,
-    handleOrderStateLoading
+    handleOrderStateLoading,
+    createReservation
   }
 
   const copyState = JSON.parse(JSON.stringify(state))

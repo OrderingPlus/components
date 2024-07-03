@@ -9,6 +9,7 @@ import { BusinessInformation } from '../src/components/BusinessInformation'
 import { BusinessMenuListing } from '../src/components/BusinessMenuListing'
 import { BusinessProductsCategories } from '../src/components/BusinessProductsCategories'
 import { BusinessProductsSearch } from '../src/components/BusinessProductsSearch'
+import { BusinessReservation } from '../src/components/BusinessReservation'
 import { BusinessReviews } from '../src/components/BusinessReviews'
 import { BusinessSortControl } from '../src/components/BusinessSortControl'
 import { BusinessTypeFilter } from '../src/components/BusinessTypeFilter'
@@ -123,6 +124,7 @@ export {
   BusinessMenuListing,
   BusinessProductsCategories,
   BusinessProductsSearch,
+  BusinessReservation,
   BusinessReviews,
   BusinessSortControl,
   BusinessTypeFilter,

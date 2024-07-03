@@ -25,7 +25,7 @@ export const BusinessReservation = (props) => {
   const [, { showToast }] = useToast()
   const is12hours = configs?.general_hour_format?.value?.includes('hh:mm')
   const [checkoutFieldsState, setCheckoutFieldsState] = useState({ fields: [], loading: false, error: null })
-  const [orderingMethod, setOrderingMethod] = useState(cart?.products?.length === 0 ? 1 : 2)
+  const [orderingMethod, setOrderingMethod] = useState(!cart?.products?.length ? 1 : 2)
   const [reservationState, setReservationState] = useState({
     loading: false,
     changes: {
@@ -34,8 +34,8 @@ export const BusinessReservation = (props) => {
     }
   })
   const [reserveDate, setReserveDate] = useState({
-    time: moment(cart?.reservation?.reserve_date).format('HH:mm'),
-    date: moment(cart?.reservation?.reserve_date).format('YYYY-MM-DD')
+    time: cart?.reservation?.reserve_date ? moment(cart?.reservation?.reserve_date).format('HH:mm') : null,
+    date: cart?.reservation?.reserve_date ? moment(cart?.reservation?.reserve_date).format('YYYY-MM-DD') : null
   })
   const [hoursList, setHourList] = useState([])
   const [datesList, setDatesList] = useState([])

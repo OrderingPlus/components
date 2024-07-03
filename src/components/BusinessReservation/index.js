@@ -136,13 +136,13 @@ export const BusinessReservation = (props) => {
     const datesList = []
     const minDate = dayjs().add(reservationSetting?.min_time_reserve_minutes, 'minute')
     const maxDate = dayjs().add(reservationSetting?.max_time_reserve_days, 'day')
-
     const diff = parseInt(calculateDiffDay(validDate(maxDate)), validDate(minDate))
 
     for (let i = 0; i < diff + 1; i++) {
       datesList.push(dayjs(validDate(minDate)).add(i, 'd').format('YYYY-MM-DD'))
     }
-    if (dayjs(reservationState?.changes?.reserve_date).format('YYYY-MM-DD') === minDate.format('YYYY-MM-DD') || !reserveDate.date) {
+
+    if (!reserveDate.date) {
       setReserveDate({
         time: null,
         date: dayjs(validDate(minDate)).format('YYYY-MM-DD')

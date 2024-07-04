@@ -19,7 +19,8 @@ export const OrderDetails = (props) => {
     driverAndBusinessId,
     sendCustomMessage,
     isDisabledOrdersRoom,
-    isDriverNotification
+    isDriverNotification,
+    isBusinessApp
   } = props
 
   const [{ user, token, loading }] = useSession()
@@ -41,6 +42,7 @@ export const OrderDetails = (props) => {
   const [forceUpdate, setForceUpdate] = useState(null)
   const [reorderState, setReorderState] = useState({ loading: false, result: [], error: null })
   const [cartState, setCartState] = useState({ loading: false, error: null })
+  const [showReservationAlert, setShowReservationAlert] = useState(false)
   /**
    * Method to accept or reject a logistic order
    */
@@ -198,6 +200,9 @@ export const OrderDetails = (props) => {
           order: Object.assign(orderState.order, result),
           loading: false
         })
+        if (result?.status === 7 && result?.reservation && isBusinessApp) {
+          setShowReservationAlert(true)
+        }
         return Object.assign(orderState.order, result)
       }
       if (error) {
@@ -633,6 +638,8 @@ export const OrderDetails = (props) => {
           cartState={cartState}
           handleClickLogisticOrder={handleClickLogisticOrder}
           loadMessages={loadMessages}
+          showReservationAlert={showReservationAlert}
+          setShowReservationAlert={setShowReservationAlert}
         />
       )}
     </>

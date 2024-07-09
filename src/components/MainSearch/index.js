@@ -32,9 +32,7 @@ export const MainSearch = (props) => {
     try {
       const { response } = await ordering.countries().get()
       setAllListValues({ ...allListValues, countries: response?.data?.result })
-    } catch (error) {
-      console.log(error)
-    }
+    } catch {}
   }
   /**
    * Method to handle change values when searchByAddres is false

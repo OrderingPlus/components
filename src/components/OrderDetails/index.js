@@ -367,9 +367,7 @@ export const OrderDetails = (props) => {
 
       setMessagesReadList(result)
       events.emit('order_message_read', orderState.order?.id)
-    } catch (e) {
-      console.log(e.message)
-    }
+    } catch {}
   }
 
   const getDrivers = async (orderId) => {

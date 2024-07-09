@@ -101,8 +101,7 @@ export const FacebookLoginButton = (props) => {
     if (window.FB) {
       setFormState({ ...formState, loading: true })
       window.FB.login((response) => {
-        window.FB.api('/me/permissions', (response) => { // only for tests
-          console.log(response)
+        window.FB.api('/me/permissions', (response) => { // only for test
         })
         if (response.status === 'connected') {
           setFormState({ loading: false, result: { error: false } })

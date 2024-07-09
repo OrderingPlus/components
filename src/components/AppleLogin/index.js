@@ -109,9 +109,7 @@ export const AppleLogin = (props) => {
     try {
       const data = await window.AppleID.auth.signIn()
       handleAppleLoginClick(data?.authorization)
-    } catch (err) {
-      console.log('error', err)
-    }
+    } catch {}
   }
 
   return <>{UIComponent && <UIComponent {...props} initLoginApple={initLoginApple} />}</>

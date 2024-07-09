@@ -44,7 +44,6 @@ export const ProductComponent = (props) => {
   }
 
   const initOptions = () => {
-    // console.log('===== Init options =====');
     const optionList = []
     const extras = product.extras
     for (let eIdx = 0; eIdx < extras.length; eIdx++) {
@@ -77,7 +76,6 @@ export const ProductComponent = (props) => {
   }
 
   useEffect(() => {
-    // console.log('===== use effect =====');
     initIngredients()
     initOptions()
   }, [])
@@ -95,7 +93,6 @@ export const ProductComponent = (props) => {
   }
 
   const onChangedIngredient = (index) => {
-    // console.log('===== On changed ingredient =====');
     ingredients[index].isChecked = !ingredients[index].isChecked
     dispatchIngredients({
       type: PRODUCT_ACTIONS.CHANGE_INGREDIENTS,
@@ -104,7 +101,6 @@ export const ProductComponent = (props) => {
   }
 
   const onChangedOption = (optionIndex, subOptionIndex, optionType) => {
-    // console.log("===== On changed option =====");
     if (optionType) { // radio button
       for (let sIdx = 0; sIdx < options[optionIndex].suboptions.length; sIdx++) {
         options[optionIndex].suboptions[sIdx].isChecked = false
@@ -157,13 +153,11 @@ export const ProductComponent = (props) => {
   }
 
   const onClickedButtonPlus = () => {
-    // console.log('===== on click button plus =====');
     setProductCount(productCount + 1)
     calculatePrice(productCount + 1, options)
   }
 
   const onClickedButtonMinus = () => {
-    // console.log('===== on click button minues =====');
     if (productCount > 1) {
       setProductCount(productCount - 1)
       calculatePrice(productCount - 1, options)

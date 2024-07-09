@@ -289,7 +289,6 @@ export const UserFormDetails = (props) => {
         }
       })
     }
-    reader.onerror = error => console.log(error)
   }
 
   /**

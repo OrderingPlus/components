@@ -291,9 +291,7 @@ export const DashboardBusinessList = (props) => {
       if (!response.content.error) {
         setInActiveBusinesses(response?.content?.result)
       }
-    } catch (err) {
-      console.log(err)
-    }
+    } catch {}
   }
 
   /**

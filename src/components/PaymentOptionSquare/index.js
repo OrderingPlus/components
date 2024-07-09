@@ -219,13 +219,11 @@ export const PaymentOptionSquare = (props) => {
         label: t('TOTAL', 'Total')
       }
     })
-    console.log(paymentRequest)
     setPaymentRequest(paymentRequest)
   }
 
   const applePay = async () => {
     const applePay = await payments.applePay(paymentRequest)
-    console.log(applePay)
     setIsLoadingMethod(false)
     const eventHandler = async (e) => {
       e.preventDefault()
@@ -234,7 +232,6 @@ export const PaymentOptionSquare = (props) => {
         if (result.status === 'OK') {
           params.paymethod_data = { token: result.token }
           const { error, result: resultApi } = await placeCart(body.cartUuid, params)
-          console.log(resultApi)
           if (!error) {
             onPlaceOrderClick(null, null, resultApi)
           }
@@ -252,7 +249,6 @@ export const PaymentOptionSquare = (props) => {
 
   const googlePay = async () => {
     const googlePay = await payments.googlePay(paymentRequest)
-    console.log(googlePay)
     await googlePay.attach('#google-pay-button')
 
     setIsLoadingMethod(false)
@@ -263,7 +259,6 @@ export const PaymentOptionSquare = (props) => {
         if (result.status === 'OK') {
           params.paymethod_data = { token: result.token }
           const { error, result: resultApi } = await placeCart(body.cartUuid, params)
-          console.log(resultApi)
           if (!error) {
             onPlaceOrderClick(null, null, resultApi)
           }

@@ -196,9 +196,7 @@ export const OrderDetails = (props) => {
       const { result } = await response.json()
 
       setMessagesReadList(result)
-    } catch (e) {
-      console.log(e.message)
-    }
+    } catch {}
   }
 
   const handleRefundPaymentsStripe = async () => {

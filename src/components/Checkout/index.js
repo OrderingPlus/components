@@ -264,9 +264,7 @@ export const Checkout = (props) => {
           ? t('ERROR', result[0])
           : t('SPOT_CHANGE_SUCCESS_CONTENT', 'Changes applied correctly')
       )
-    } catch (err) {
-      console.log(err)
-    }
+    } catch {}
   }
 
   const onChangeSpot = async () => {

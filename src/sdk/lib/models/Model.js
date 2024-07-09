@@ -71,7 +71,6 @@ const Model = /** @class */ (function () {
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
-            // console.log(this.getId())
             this.api.setModelId(this.getId())
             if (!this.api) {
               throw new Error('You must provide the `api` to use `save` function. Example: const newModel = new Model(model, api) or newModel.setApi(api)')

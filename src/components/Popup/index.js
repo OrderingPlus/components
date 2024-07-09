@@ -158,7 +158,7 @@ Popup.propTypes = {
   /**
    * Function when cancel popup
    */
-  onCancel: PropTypes.func,
+  onCancel: PropTypes.any,
   /**
    * Function when close popup
    */

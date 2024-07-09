@@ -359,9 +359,7 @@ export const BusinessProductsListing = (props) => {
       if (!error) {
         setBusinessTypes(result)
       }
-    } catch (error) {
-      console.log(error?.message)
-    }
+    } catch {}
   }
 
   useEffect(() => {

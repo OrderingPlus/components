@@ -52,31 +52,12 @@ export const MapView = (props) => {
         .users(session.user.id)
         .driverLocations()
         .save(location)
-    } catch (error) {
-      console.log(error?.message)
-    }
+    } catch {}
   }
 
   useEffect(() => {
     const handleUpdateOrder = (order) => {
       getBusinessLocations()
-      // setIsLoadingBusinessMakers(true)
-      // console.log('emited', order)
-      // console.log('same driver', order?.driver_id, session?.user?.id)
-      // const markers = markerGroups?.[order?.business_id] ?? []
-      // const customerMakers = customerMarkerGroups?.[order?.customer_id] ?? []
-      // console.log('groups', markerGroups)
-      // setMarkerGroups({
-      //   ...markerGroups,
-      //   [order?.business_id]: order?.driver_id !== session?.user?.id ? markers.filter(_order => order?.id === _order?.id) : [...markers, order]
-      // })
-      // markerGroups[order?.business_id] = order?.driver_id !== session?.user?.id ? markers.filter(_order => order?.id === _order?.id) : [...markers, order]
-      // setCustomerMarkerGroups({
-      //   ...customerMarkerGroups,
-      //   [order?.customer_id]: order?.driver_id !== session?.user?.id ? customerMakers.filter(_order => order?.id === _order?.id) : [...customerMakers, order]
-      // })
-      // customerMarkerGroups[order?.customer_id] = order?.driver_id !== session?.user?.id ? customerMakers.filter(_order => order?.id === _order?.id) : [...customerMakers, order]
-      // setIsLoadingBusinessMakers(false)
     }
     events.on('order_updated', handleUpdateOrder)
     events.on('order_added', handleUpdateOrder)

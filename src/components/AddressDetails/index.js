@@ -8,6 +8,7 @@ import { useConfig } from '../../contexts/ConfigContext'
  * Component to manage address details behavior without UI component
  */
 export const AddressDetails = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     apiKey,
     UIComponent,
@@ -122,6 +123,6 @@ AddressDetails.propTypes = {
   businessId: PropTypes.number
 }
 
-AddressDetails.defaultProps = {
+const defaultProps = {
   primaryColor: 'red'
 }

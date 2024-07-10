@@ -12,6 +12,7 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
  * Component to manage Checkout page behavior without UI component
  */
 export const Checkout = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     cartState,
     propsToFetch,
@@ -557,6 +558,6 @@ Checkout.propTypes = {
   // handlerValues: PropTypes.func,
 }
 
-Checkout.defaultProps = {
+const defaultProps = {
   propsToFetch: ['id', 'name', 'email', 'cellphone', 'address', 'address_notes', 'paymethods', 'logo', 'location', 'configs']
 }

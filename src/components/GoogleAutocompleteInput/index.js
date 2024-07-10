@@ -7,6 +7,7 @@ import { useGoogleMaps } from '../../hooks/useGoogleMaps'
  * @param {object} props Props of AutocompleteInput component
  */
 export const AutocompleteInput = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     apiKey,
     onChangeAddress,
@@ -146,7 +147,7 @@ AutocompleteInput.propTypes = {
   onChangeAddress: PropTypes.func
 }
 
-AutocompleteInput.defaultProps = {
+const defaultProps = {
   types: [],
   fields: ['ALL'],
   countryCode: '*'

@@ -11,6 +11,7 @@ import { useEvent } from '../../contexts/EventContext'
 import dayjs from 'dayjs'
 
 export const OrderList = props => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     orders,
@@ -748,7 +749,7 @@ OrderList.propTypes = {
   })
 }
 
-OrderList.defaultProps = {
+const defaultProps = {
   orderBy: 'id',
   orderDirection: 'desc',
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },

@@ -13,6 +13,7 @@ import parsePhoneNumber from 'libphonenumber-js'
  * Component to manage signup behavior without UI component
  */
 export const SignupForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     useChekoutFileds,
@@ -528,6 +529,6 @@ SignupForm.propTypes = {
   elementLinkToLogin: PropTypes.element
 }
 
-SignupForm.defaultProps = {
+const defaultProps = {
   useChekoutFileds: false
 }

@@ -90,4 +90,3 @@ FirebaseGoogleLoginButton.propTypes = {
    */
   handleSuccessGoogleLogin: PropTypes.func
 }
-FirebaseGoogleLoginButton.defaultProps = {}

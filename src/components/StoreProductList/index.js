@@ -5,6 +5,7 @@ import { useToast, ToastType } from '../../contexts/ToastContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 export const StoreProductList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     isSearchByName,
     isSearchByDescription,
@@ -286,7 +287,7 @@ StoreProductList.propTypes = {
   isSearchByDescription: PropTypes.bool
 }
 
-StoreProductList.defaultProps = {
+const defaultProps = {
   isSearchByName: true,
   isSearchByDescription: true,
   paginationSettings: { initialPage: 1, pageSize: 15, controlType: 'infinity' }

@@ -8,6 +8,7 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
 import { useEvent } from '../../contexts/EventContext'
 
 export const ReviewProduct = (props) => {
+  props = { ...defaultProps, ...props }
   const { UIComponent, order, isToast, hashKey } = props
 
   const [ordering] = useApi()
@@ -133,6 +134,6 @@ ReviewProduct.propTypes = {
   isToast: PropTypes.bool
 }
 
-ReviewProduct.defaultProps = {
+const defaultProps = {
   order: {}
 }

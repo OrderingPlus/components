@@ -8,6 +8,7 @@ import { useConfig } from '../../contexts/ConfigContext'
  * Component to manage driver tips behavior without UI component
  */
 export const DriverTips = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     businessId,
@@ -114,6 +115,6 @@ DriverTips.propTypes = {
   handlerChangeDriverOption: PropTypes.func
 }
 
-DriverTips.defaultProps = {
+const defaultProps = {
   useOrderContext: true
 }

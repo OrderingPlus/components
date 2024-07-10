@@ -10,6 +10,7 @@ import { useCustomer } from '../../contexts/CustomerContext'
  * @param {object} props Props of AddressList component
  */
 export const AddressList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     changeOrderAddressWithDefault,
@@ -183,6 +184,6 @@ AddressList.propTypes = {
   accessToken: PropTypes.string
 }
 
-AddressList.defaultProps = {
+const defaultProps = {
   changeOrderAddressWithDefault: true
 }

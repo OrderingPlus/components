@@ -5,6 +5,7 @@ import { useApi } from '../../contexts/ApiContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const Contacts = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     firstFetch,
@@ -469,7 +470,7 @@ Contacts.propTypes = {
   conditionsConector: PropTypes.string
 }
 
-Contacts.defaultProps = {
+const defaultProps = {
   paginationSettings: { page: 1, pageSize: 6, controlType: 'infinity' },
   firstFetch: 'businesses',
   orderProps: [

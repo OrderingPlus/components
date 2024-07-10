@@ -3,6 +3,7 @@ import PropTypes, { string } from 'prop-types'
 import { useApi } from '../../contexts/ApiContext'
 
 export const BusinessBasicInformation = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     business,
@@ -90,6 +91,6 @@ BusinessBasicInformation.propTypes = {
   businessParams: PropTypes.arrayOf(string)
 }
 
-BusinessBasicInformation.defaultProps = {
+const defaultProps = {
   businessParams: ['header', 'logo', 'name', 'today', 'delivery_price', 'minimum', 'description', 'distance', 'delivery_time', 'pickup_time', 'reviews']
 }

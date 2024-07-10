@@ -989,6 +989,3 @@ BusinessAndProductList.propTypes = {
    */
   UIComponent: PropTypes.elementType
 }
-
-BusinessAndProductList.defaultProps = {
-}

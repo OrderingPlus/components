@@ -7,6 +7,7 @@ import { useToast, ToastType } from '../../../contexts/ToastContext'
 import { useLanguage } from '../../../contexts/LanguageContext'
 
 export const DriversList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     drivers,
     UIComponent,
@@ -419,6 +420,6 @@ DriversList.propTypes = {
   propsToFetch: PropTypes.arrayOf(string)
 }
 
-DriversList.defaultProps = {
+const defaultProps = {
   propsToFetch: ['id', 'name', 'lastname', 'assigned_orders_count', 'available', 'phone', 'cellphone', 'location', 'photo', 'qualification', 'last_order_assigned_at']
 }

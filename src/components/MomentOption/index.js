@@ -11,6 +11,7 @@ dayjs.extend(utc)
  * Component to manage moment option behavior without UI component
  */
 export const MomentOption = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     minDate,
     maxDate,
@@ -290,7 +291,7 @@ MomentOption.propTypes = {
   onChangeMoment: PropTypes.func
 }
 
-MomentOption.defaultProps = {
+const defaultProps = {
   useOrderContext: true,
   preorderSlotInterval: 15,
   preorderLeadTime: 0,

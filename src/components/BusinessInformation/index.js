@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
 export const BusinessInformation = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     googleMapsControls,
     business,
@@ -64,6 +65,6 @@ BusinessInformation.propTypes = {
   optionToShow: PropTypes.string
 }
 
-BusinessInformation.defaultProps = {
+const defaultProps = {
   business: {}
 }

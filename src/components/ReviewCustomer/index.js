@@ -8,6 +8,7 @@ import { useEvent } from '../../contexts/EventContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const ReviewCustomer = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     order
@@ -88,6 +89,6 @@ ReviewCustomer.propTypes = {
   UIComponent: PropTypes.elementType
 }
 
-ReviewCustomer.defaultProps = {
+const defaultProps = {
   order: {}
 }

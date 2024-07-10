@@ -114,5 +114,3 @@ Analytics.propTypes = {
    */
   trackId: PropTypes.string.isRequired
 }
-
-Analytics.defaultProps = {}

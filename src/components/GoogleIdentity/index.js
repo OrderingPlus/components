@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useApi } from '../../contexts/ApiContext'
 
 export const GoogleIdentityButton = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     handleSuccessGoogleLogin,
@@ -115,6 +116,6 @@ GoogleIdentityButton.propTypes = {
   handleGoogleLoginClick: PropTypes.func
 }
 
-GoogleIdentityButton.defaultProps = {
+const defaultProps = {
   responseType: ''
 }

@@ -6,6 +6,7 @@ import { useProduct, PRODUCT_ACTIONS } from '../../contexts/ProductContext'
  * Component to manage login behavior without UI component
  */
 export const ProductComponent = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     product,
     UIComponent
@@ -237,6 +238,6 @@ ProductComponent.propTypes = {
   onClickedButtonAdd: PropTypes.func
 }
 
-ProductComponent.defaultProps = {
+const defaultProps = {
   productName: ''
 }

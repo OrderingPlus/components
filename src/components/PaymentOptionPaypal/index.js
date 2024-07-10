@@ -7,6 +7,7 @@ import { useOrder } from '../../contexts/OrderContext'
  * Component to manage payment option paypal behavior without UI component
  */
 export const PaymentOptionPaypal = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     body,
     clientId,
@@ -116,7 +117,7 @@ PaymentOptionPaypal.propTypes = {
   handlerChangePaypal: PropTypes.func
 }
 
-PaymentOptionPaypal.defaultProps = {
+const defaultProps = {
   body: {},
   currency: 'USD'
 }

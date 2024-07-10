@@ -11,6 +11,7 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
 dayjs.extend(utc)
 
 export const BusinessList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     initialBuisnessType,
@@ -755,7 +756,7 @@ BusinessList.propTypes = {
   onBusinessClick: PropTypes.func
 }
 
-BusinessList.defaultProps = {
+const defaultProps = {
   propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'featured', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id'],
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

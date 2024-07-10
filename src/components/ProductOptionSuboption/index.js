@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
  * Component to render product option suboption
  */
 export const ProductOptionSuboption = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     balance,
@@ -173,7 +174,7 @@ ProductOptionSuboption.propTypes = {
   onChange: PropTypes.func
 }
 
-ProductOptionSuboption.defaultProps = {
+const defaultProps = {
   state: {},
   balance: 0
 }

@@ -123,5 +123,3 @@ PurchaseGiftCard.propTypes = {
    */
   UIComponent: PropTypes.elementType
 }
-
-PurchaseGiftCard.defaultProps = {}

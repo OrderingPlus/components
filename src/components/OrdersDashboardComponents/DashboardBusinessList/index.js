@@ -10,6 +10,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 dayjs.extend(utc)
 
 export const DashboardBusinessList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     asDashboard,
     UIComponent,
@@ -608,7 +609,7 @@ DashboardBusinessList.propTypes = {
   propsToFetch: PropTypes.arrayOf(string)
 }
 
-DashboardBusinessList.defaultProps = {
+const defaultProps = {
   loadMorePageSize: 10,
   propsToFetch: ['id', 'alcohol', 'city', 'delivery_price', 'distance', 'delivery_time', 'ribbon', 'enabled', 'featured', 'food', 'groceries', 'header', 'laundry', 'logo', 'minimum', 'name', 'pickup_time', 'slug', 'reviews'],
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }

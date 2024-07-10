@@ -6,6 +6,7 @@ import { useWebsocket } from '../../../contexts/WebsocketContext'
 import { useEvent } from '../../../contexts/EventContext'
 
 export const DashboardOrdersList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     propsToFetch,
@@ -912,7 +913,7 @@ DashboardOrdersList.propTypes = {
   })
 }
 
-DashboardOrdersList.defaultProps = {
+const defaultProps = {
   orderBy: 'id',
   orderDirection: 'desc',
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }

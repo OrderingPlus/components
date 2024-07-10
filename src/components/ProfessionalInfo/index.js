@@ -5,6 +5,7 @@ import { useApi } from '../../contexts/ApiContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const ProfessionalInfo = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     userId,
     propsToFetch,
@@ -122,7 +123,7 @@ ProfessionalInfo.propTypes = {
   user: PropTypes.object
 }
 
-ProfessionalInfo.defaultProps = {
+const defaultProps = {
   propsToFetch: [
     'name', 'lastname', 'email', 'phone', 'photo', 'cellphone', 'country_phone_code', 'city_id', 'city', 'address',
     'addresses', 'address_notes', 'driver_zone_restriction', 'dropdown_option_id', 'dropdown_option', 'location', 'loyalty_level',

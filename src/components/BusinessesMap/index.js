@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useEvent } from '../../contexts/EventContext'
 
 export const BusinessesMap = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     businessList,
@@ -83,6 +84,6 @@ BusinessesMap.propTypes = {
   onBusinessCustomClick: PropTypes.func
 }
 
-BusinessesMap.defaultProps = {
+const defaultProps = {
   businessList: []
 }

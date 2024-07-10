@@ -3,6 +3,7 @@ import PropTypes, { string } from 'prop-types'
 import { useApi } from '../../../contexts/ApiContext'
 
 export const CityList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     cities,
     propsToFetch,
@@ -69,6 +70,6 @@ CityList.propTypes = {
   propsToFetch: PropTypes.arrayOf(string)
 }
 
-CityList.defaultProps = {
+const defaultProps = {
   propsToFetch: ['id', 'name', 'enabled', 'cities']
 }

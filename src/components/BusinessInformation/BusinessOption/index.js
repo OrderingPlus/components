@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 export const BusinessOption = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     optionToShow,
     UIComponent
@@ -57,6 +58,6 @@ BusinessOption.propTypes = {
   locationData: PropTypes.object
 }
 
-BusinessOption.defaultProps = {
+const defaultProps = {
   contentData: []
 }

@@ -4,6 +4,7 @@ import { useApi } from '../../contexts/ApiContext'
 import { useOrder } from '../../contexts/OrderContext'
 
 export const ProductsListing = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     useCategorySelectedForProducts,
     isSearchByName,
@@ -141,7 +142,7 @@ ProductsListing.propTypes = {
   isSearchByDescription: PropTypes.bool
 }
 
-ProductsListing.defaultProps = {
+const defaultProps = {
   isSearchByName: true,
   isSearchByDescription: true
 }

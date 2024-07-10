@@ -10,6 +10,7 @@ import { TIMEZONES } from '../../constants/timezones'
 import { useConfig } from '../../contexts/ConfigContext'
 
 export const PhoneAutocomplete = (props) => {
+  props = { ...defaultProps, ...props }
   const { UIComponent, isIos, businessSlug, urlPhone, propsToFetch, isFromUrlPhone } = props
 
   const [ordering] = useApi()
@@ -289,6 +290,6 @@ PhoneAutocomplete.propTypes = {
   UIComponent: PropTypes.elementType
 }
 
-PhoneAutocomplete.defaultProps = {
+const defaultProps = {
   propsToFetch: ['name', 'lastname', 'email', 'phone', 'photo', 'cellphone', 'country_phone_code', 'city_id', 'city', 'address', 'addresses', 'address_notes', 'dropdown_option_id', 'dropdown_option', 'location', 'zipcode', 'level', 'enabled', 'middle_name', 'second_lastname', 'metadata']
 }

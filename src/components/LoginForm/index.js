@@ -12,6 +12,7 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
  * Component to manage login behavior without UI component
  */
 export const LoginForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     handleButtonLoginClick,
@@ -505,7 +506,7 @@ LoginForm.propTypes = {
   elementLinkToForgotPassword: PropTypes.element
 }
 
-LoginForm.defaultProps = {
+const defaultProps = {
   defaultLoginTab: 'email',
   useLoginByEmail: true,
   useDefualtSessionManager: true

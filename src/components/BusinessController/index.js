@@ -16,6 +16,7 @@ dayjs.extend(timezone)
 dayjs.extend(isBetween)
 
 export const BusinessController = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     business,
     businessId,
@@ -322,6 +323,6 @@ BusinessController.propTypes = {
   handleCustomClick: PropTypes.func
 }
 
-BusinessController.defaultProps = {
+const defaultProps = {
   minutesToCloseSoon: 30
 }

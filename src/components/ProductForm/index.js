@@ -11,6 +11,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const ProductForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     useOrderContext,
@@ -1063,7 +1064,7 @@ ProductForm.propTypes = {
   onSave: PropTypes.func
 }
 
-ProductForm.defaultProps = {
+const defaultProps = {
   productCart: {},
   useOrderContext: true,
   balance: 0

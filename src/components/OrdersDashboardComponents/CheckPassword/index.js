@@ -4,6 +4,7 @@ import { useApi } from '../../../contexts/ApiContext'
 import { useSession } from '../../../contexts/SessionContext'
 
 export const CheckPassword = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     defaultConfirmTab
@@ -148,6 +149,6 @@ CheckPassword.propTypes = {
   UIComponent: PropTypes.elementType
 }
 
-CheckPassword.defaultProps = {
+const defaultProps = {
   defaultConfirmTab: 'password'
 }

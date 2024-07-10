@@ -7,6 +7,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const ReviewDriver = (props) => {
+  props = { ...defaultProps, ...props }
   const { UIComponent, order, isToast, isProfessional, hashKey } = props
 
   const [ordering] = useApi()
@@ -128,6 +129,6 @@ ReviewDriver.propTypes = {
   isToast: PropTypes.bool
 }
 
-ReviewDriver.defaultProps = {
+const defaultProps = {
   order: {}
 }

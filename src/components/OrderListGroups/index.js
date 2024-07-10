@@ -8,6 +8,7 @@ import { useEvent } from '../../contexts/EventContext'
 import { useConfig } from '../../contexts/ConfigContext'
 
 export const OrderListGroups = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     orderBy,
@@ -1254,7 +1255,7 @@ export const OrderListGroups = (props) => {
   )
 }
 
-OrderListGroups.defaultProps = {
+const defaultProps = {
   orderBy: '-id',
   orderDirection: 'desc',
   isNetConnected: true,

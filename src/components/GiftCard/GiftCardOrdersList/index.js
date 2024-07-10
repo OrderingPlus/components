@@ -4,6 +4,7 @@ import { useSession } from '../../../contexts/SessionContext'
 import { useApi } from '../../../contexts/ApiContext'
 
 export const GiftCardOrdersList = props => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     paginationSettings,
@@ -150,6 +151,6 @@ GiftCardOrdersList.propTypes = {
  */
   UIComponent: PropTypes.elementType
 }
-GiftCardOrdersList.defaultProps = {
+const defaultProps = {
   paginationSettings: { initialPage: 1, pageSize: 10 }
 }

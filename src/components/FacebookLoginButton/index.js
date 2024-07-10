@@ -6,6 +6,7 @@ import { useApi } from '../../contexts/ApiContext'
  * Component to manage Facebook login behavior without UI component
  */
 export const FacebookLoginButton = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     appId,
@@ -182,7 +183,7 @@ FacebookLoginButton.propTypes = {
   domain: PropTypes.string
 }
 
-FacebookLoginButton.defaultProps = {
+const defaultProps = {
   version: 'v7.0',
   language: 'en_US',
   domain: 'connect.facebook.net'

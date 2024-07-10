@@ -73,5 +73,3 @@ WebsocketStatus.propTypes = {
    */
   UIComponent: PropTypes.elementType
 }
-
-WebsocketStatus.defaultProps = {}

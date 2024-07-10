@@ -8,6 +8,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useToast, ToastType } from '../../../contexts/ToastContext'
 
 export const OrdersManage = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     statusGroup,
@@ -844,6 +845,6 @@ OrdersManage.propTypes = {
   UIComponent: PropTypes.elementType
 }
 
-OrdersManage.defaultProps = {
+const defaultProps = {
   driversPropsToFetch: ['id', 'name', 'lastname', 'assigned_orders_count', 'available', 'phone', 'cellphone', 'location', 'photo', 'qualification', 'last_order_assigned_at']
 }

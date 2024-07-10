@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
  * Component to render product options
  */
 export const ProductOption = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent
   } = props
@@ -37,6 +38,6 @@ ProductOption.propTypes = {
   error: PropTypes.bool
 }
 
-ProductOption.defaultProps = {
+const defaultProps = {
   error: false
 }

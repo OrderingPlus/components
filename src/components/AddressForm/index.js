@@ -15,6 +15,7 @@ import { ToastType, useToast } from '../../contexts/ToastContext'
 dayjs.extend(utc)
 
 export const AddressForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     addressId,
@@ -502,6 +503,6 @@ AddressForm.propTypes = {
   onSaveCustomAddress: PropTypes.func
 }
 
-AddressForm.defaultProps = {
+const defaultProps = {
   useValidationFileds: false
 }

@@ -8,6 +8,7 @@ import { useValidationFields as useValidationsFieldsController } from '../../../
  * Component to manage user form details behavior without UI component
  */
 export const UserFormDetails = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     useSessionUser,
@@ -431,7 +432,7 @@ UserFormDetails.propTypes = {
   elementLinkToLogin: PropTypes.element
 }
 
-UserFormDetails.defaultProps = {
+const defaultProps = {
   useValidationFields: false,
   validationFieldsType: 'checkout',
   useDefualtSessionManager: true

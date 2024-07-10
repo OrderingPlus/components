@@ -7,6 +7,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useEvent } from '../../../contexts/EventContext'
 
 export const ReviewCustomer = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     order
@@ -84,6 +85,6 @@ ReviewCustomer.propTypes = {
   UIComponent: PropTypes.elementType
 }
 
-ReviewCustomer.defaultProps = {
+const defaultProps = {
   order: {}
 }

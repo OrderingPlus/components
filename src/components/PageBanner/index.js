@@ -103,5 +103,3 @@ PageBanner.propTypes = {
    */
   UIComponent: PropTypes.elementType
 }
-
-PageBanner.defaultProps = {}

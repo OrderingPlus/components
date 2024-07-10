@@ -73,5 +73,3 @@ GoogleMapsApiKeySetting.propTypes = {
    */
   UIComponent: PropTypes.elementType
 }
-
-GoogleMapsApiKeySetting.defaultProps = {}

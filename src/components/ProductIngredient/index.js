@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
  * Component to render product ingredient
  */
 export const ProductIngredient = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     ingredient,
@@ -67,6 +68,6 @@ ProductIngredient.propTypes = {
   onChange: PropTypes.func
 }
 
-ProductIngredient.defaultProps = {
+const defaultProps = {
   state: {}
 }

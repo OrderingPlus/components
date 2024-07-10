@@ -7,6 +7,7 @@ import { useOrderingTheme } from '../../contexts/OrderingThemeContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const BusinessSearchList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     paginationSettings,
@@ -317,6 +318,6 @@ BusinessSearchList.propTypes = {
   UIComponent: PropTypes.elementType
 }
 
-BusinessSearchList.defaultProps = {
+const defaultProps = {
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

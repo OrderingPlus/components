@@ -8,6 +8,7 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
  * Component to manage Multi carts paymethods and wallets behavior without UI component
  */
 export const MultiCartsPaymethodsAndWallets = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     openCarts,
@@ -196,6 +197,6 @@ MultiCartsPaymethodsAndWallets.propTypes = {
   UIComponent: PropTypes.elementType
 }
 
-MultiCartsPaymethodsAndWallets.defaultProps = {
+const defaultProps = {
   propsToFetch: ['id', 'name', 'email', 'cellphone', 'address', 'paymethods', 'logo', 'location', 'configs']
 }

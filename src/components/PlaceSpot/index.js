@@ -8,6 +8,7 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
 import { useCustomer } from '../../contexts/CustomerContext'
 
 export const PlaceSpot = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     cart,
@@ -178,6 +179,6 @@ export const PlaceSpot = (props) => {
   )
 }
 
-PlaceSpot.defaultProps = {
+const defaultProps = {
   showToastMsg: true
 }

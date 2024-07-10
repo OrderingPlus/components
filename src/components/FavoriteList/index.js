@@ -6,6 +6,7 @@ import { useOrder } from '../../contexts/OrderContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const FavoriteList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     paginationSettings,
@@ -251,6 +252,6 @@ FavoriteList.propTypes = {
   location: PropTypes.string
 }
 
-FavoriteList.defaultProps = {
+const defaultProps = {
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

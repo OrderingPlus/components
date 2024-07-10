@@ -6,6 +6,7 @@ import { useApi } from '../../contexts/ApiContext'
  * Component to manage drivers behavior without UI component
  */
 export const DriverList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     drivers,
     UIComponent,
@@ -83,6 +84,6 @@ DriverList.propTypes = {
   propsToFetch: PropTypes.arrayOf(string)
 }
 
-DriverList.defaultProps = {
+const defaultProps = {
   propsToFetch: ['name', 'lastname', 'email', 'phone', 'photo', 'cellphone', 'country_phone_code', 'city_id', 'city', 'address', 'addresses', 'address_notes', 'dropdown_option_id', 'dropdown_option', 'location', 'zipcode', 'level', 'enabled', 'middle_name', 'second_lastname']
 }

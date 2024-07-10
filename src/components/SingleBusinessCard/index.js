@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 export const SingleBusinessCard = (props) => {
+  props = { ...defaultProps, ...props }
   const { UIComponent } = props
   return (
     <>
@@ -49,7 +50,7 @@ SingleBusinessCard.propTypes = {
   pickup_time: PropTypes.string
 }
 
-SingleBusinessCard.defaultProps = {
+const defaultProps = {
   id: 0,
   name: '',
   minimun: 0,

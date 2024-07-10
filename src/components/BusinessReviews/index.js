@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useApi } from '../../contexts/ApiContext'
 
 export const BusinessReviews = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     businessId,
     reviews,
@@ -158,6 +159,6 @@ BusinessReviews.propTypes = {
   businessId: PropTypes.number
 }
 
-BusinessReviews.defaultProps = {
+const defaultProps = {
   reviews: []
 }

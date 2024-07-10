@@ -10,6 +10,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
  * Component to manage logout behavior without UI component
  */
 export const LogoutAction = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     handleSuccessLogout,
@@ -211,6 +212,6 @@ LogoutAction.propTypes = {
   handleCustomLogoutClick: PropTypes.func
 }
 
-LogoutAction.defaultProps = {
+const defaultProps = {
   useDefualtSessionManager: true
 }

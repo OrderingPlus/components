@@ -144,14 +144,28 @@ export const OrderList = props => {
     }
     if (noGiftCardOrders) {
       options.query.where.push({
-        attribute: 'products',
-        conditions: [{
-          attribute: 'type',
-          value: {
-            condition: '=',
-            value: 'item'
-          }
-        }]
+        conector: 'OR',
+        conditions: [
+          {
+            attribute: 'products',
+            conditions: [{
+              attribute: 'type',
+              value: {
+                condition: '=',
+                value: 'item'
+              }
+            }]
+          },
+          {
+            attribute: 'products',
+            conditions: [{
+              attribute: 'type',
+              value: {
+                condition: '=',
+                value: 'service'
+              }
+            }]
+          }]
       })
     }
 

@@ -11,8 +11,10 @@ export const LanguageContext = createContext()
  * Custom provider to languages manager
  * This provider has a reducer for manage languages state
  * @param {props} props
+ * {restOfProps} props
+ * This prop doesn't need permission from sdk put extra settings there.
  */
-export const LanguageProvider = ({ settings, children, strategy }) => {
+export const LanguageProvider = ({ settings, children, strategy, restOfProps }) => {
   const [state, setState] = useState({
     loading: true,
     dictionary: {}
@@ -61,7 +63,7 @@ export const LanguageProvider = ({ settings, children, strategy }) => {
       !state.loading && setState({ ...state, loading: true })
       let params = {}
       const conditons = []
-      const appInternalName = settings?.app_internal_name ?? null
+      const appInternalName = restOfProps?.app_internal_name ?? null
       if (appInternalName) {
         conditons.push({
           attribute: 'product',
@@ -139,7 +141,7 @@ export const LanguageProvider = ({ settings, children, strategy }) => {
 
   const t = (key, fallback = null) => {
     let originalKey = key
-    const appInternalName = settings.app_internal_name ?? null
+    const appInternalName = restOfProps.app_internal_name ?? null
     if (appInternalName !== null) {
       const prefix = `${appInternalName.toUpperCase()}_`
       if (!key?.startsWith(prefix)) {

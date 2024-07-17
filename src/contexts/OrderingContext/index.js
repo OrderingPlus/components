@@ -26,6 +26,8 @@ export const OrderingContext = createContext()
  * Custom provider to languages manager
  * This provider has a reducer for manage languages state
  * @param {props} props
+ * Use restOfProps on contexts that requiere extra settings that aren't in the sdk
+ * This prop doesn't need permission from sdk.
  */
 export const OrderingProvider = ({ Alert, settings, children }) => {
   const webStrategy = new WebStrategy()
@@ -34,15 +36,14 @@ export const OrderingProvider = ({ Alert, settings, children }) => {
     appId: settings.app_id,
     countryCode: settings.countryCode,
     useOptimizeLoad: settings.useOptimizeLoad,
-    use_root_point: settings.use_root_point,
-    appInternalName: settings?.app_internal_name
+    use_root_point: settings.use_root_point
   }
   return (
     <OrderingContext.Provider value={{}}>
       <EventProvider>
         <ApiProvider settings={Object.assign(settings.api, restOfSettings)}>
           <OptimizationLoadProvider settings={Object.assign(settings.api, restOfSettings)} strategy={webStrategy}>
-            <LanguageProvider settings={Object.assign(settings.api, restOfSettings)} strategy={webStrategy}>
+            <LanguageProvider settings={Object.assign(settings.api, restOfSettings)} restOfProps={settings} strategy={webStrategy}>
               <ConfigProvider strategy={webStrategy}>
                 <OrderingThemeProvider settings={Object.assign(settings.api, restOfSettings)}>
                   <SiteProvider appId={settings.app_id}>

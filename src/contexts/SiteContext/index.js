@@ -55,7 +55,7 @@ export const SiteProvider = ({ appId, children }) => {
   }
 
   useEffect(() => {
-    if (languageState.loading || optimizationLoad.loading) return
+    if (languageState.loading || optimizationLoad.loading || !ordering.project) return
     const _sites = optimizationLoad.result
       ? {
           error: optimizationLoad.error,

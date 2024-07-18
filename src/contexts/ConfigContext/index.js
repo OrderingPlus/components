@@ -175,6 +175,14 @@ export const ConfigProvider = ({ children, strategy }) => {
 
   useEffect(() => {
     if (languageState.loading || optimizationLoad.loading) return
+    if (!ordering.project) {
+      setState({
+        ...state,
+        loading: false,
+        configs: {}
+      })
+      return
+    }
     const _configs = optimizationLoad.result
       ? {
           error: optimizationLoad.error,

@@ -44,7 +44,7 @@ export const ValidationFieldsProvider = ({ children, appId }) => {
   }
 
   useEffect(() => {
-    if (optimizationLoad.loading) return
+    if (optimizationLoad.loading || !ordering.project) return
     const _fields = optimizationLoad.result
       ? {
           error: optimizationLoad.error,
@@ -52,7 +52,7 @@ export const ValidationFieldsProvider = ({ children, appId }) => {
         }
       : null
     loadOriginalValidationFields(null, _fields)
-  }, [optimizationLoad])
+  }, [optimizationLoad, ordering.project])
 
   return (
     <ValidationFieldsContext.Provider value={[state, functions]}>

@@ -26,6 +26,10 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
   const setLanguageFromLocalStorage = async () => {
     const language = await strategy.getItem('language', true)
     if (!language) {
+      if (restOfProps?.use_project_domain) {
+        setState({ ...state, loading: false })
+        return
+      }
       loadDefaultLanguage()
     } else {
       setState({ ...state, language })
@@ -121,7 +125,9 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
    */
   useEffect(() => {
     const checkLanguage = async () => {
-      if (state.language?.code && state.language?.code === ordering.language) {
+      const isValidLanguage = !!(state?.language?.code && state?.language?.code === ordering?.language)
+      const isProjectDomain = restOfProps?.use_project_domain
+      if ((!isProjectDomain && isValidLanguage) || (isProjectDomain && !!ordering?.project && isValidLanguage)) {
         const token = await strategy.getItem('token')
         settings?.use_root_point && settings?.force_update_lang && !token ? updateLanguageContext() : refreshTranslations()
       }

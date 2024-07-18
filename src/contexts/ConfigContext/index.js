@@ -175,7 +175,7 @@ export const ConfigProvider = ({ children, strategy }) => {
 
   useEffect(() => {
     if (languageState.loading || optimizationLoad.loading) return
-    if (!ordering.project) {
+    if (!ordering?.project) {
       setState({
         ...state,
         loading: false,

@@ -73,7 +73,7 @@ export const OptimizationLoadProvider = ({ settings, children, strategy }) => {
   useEffect(() => {
     if (!ordering?.project) return
     getData()
-  }, [settings?.useOptimizeLoad, ordering.project])
+  }, [settings?.useOptimizeLoad, ordering?.project])
 
   const functions = {
     getData,

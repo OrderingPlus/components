@@ -69,7 +69,7 @@ export const OrderingThemeProvider = ({ children, settings }) => {
   }
 
   useEffect(() => {
-    if (optimizationLoad.loading || !ordering.project) return
+    if (optimizationLoad.loading || !ordering?.project) return
     const _themes = optimizationLoad.result && !!optimizationLoad.result?.theme
       ? {
           error: optimizationLoad.error,
@@ -77,7 +77,7 @@ export const OrderingThemeProvider = ({ children, settings }) => {
         }
       : null
     getThemes(_themes)
-  }, [optimizationLoad])
+  }, [optimizationLoad, ordering?.project])
 
   const functions = {
     refreshTheme

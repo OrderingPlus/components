@@ -127,7 +127,7 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
     const checkLanguage = async () => {
       const isValidLanguage = !!(state?.language?.code && state?.language?.code === ordering?.language)
       const isProjectDomain = restOfProps?.use_project_domain
-      if ((!isProjectDomain && isValidLanguage) || (isProjectDomain && !!ordering.project && isValidLanguage)) {
+      if ((!isProjectDomain && isValidLanguage) || (isProjectDomain && !!ordering?.project && isValidLanguage)) {
         const token = await strategy.getItem('token')
         settings?.use_root_point && settings?.force_update_lang && !token ? updateLanguageContext() : refreshTranslations()
       }

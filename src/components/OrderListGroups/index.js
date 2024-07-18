@@ -296,12 +296,27 @@ export const OrderListGroups = (props) => {
 
     if (!isDriverApp) {
       options.query.where.push({
-        attribute: 'products',
+        conector: 'OR',
         conditions: [{
-          attribute: 'type',
+          attribute: 'products',
+          conditions: [{
+            attribute: 'type',
+            value: {
+              condition: '=',
+              value: 'item'
+            }
+          }]
+        }, {
+          attribute: 'cloned_order_id',
+          value: {
+            condition: '!=',
+            value: null
+          }
+        }, {
+          attribute: 'delivery_type',
           value: {
             condition: '=',
-            value: 'item'
+            value: 9
           }
         }]
       })

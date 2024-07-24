@@ -23,6 +23,29 @@ export const OrderingThemeProvider = ({ children, settings }) => {
   const [ordering] = useApi()
   const [optimizationLoad] = useOptimizationLoad()
 
+  const isValidColor = (color) => {
+    const s = new Option().style
+    s.color = color
+    return s.color !== ''
+  }
+
+  const validateFixColors = (obj) => {
+    const newObj = JSON.parse(JSON.stringify(obj))
+
+    const validateColors = (currentObj) => {
+      Object.keys(currentObj).forEach(key => {
+        if (typeof currentObj[key] === 'object' && currentObj[key] !== null) {
+          validateColors(currentObj[key])
+        } else if (key.toLowerCase().includes('color') && !isValidColor(currentObj[key])) {
+          currentObj[key] = ''
+        }
+      })
+    }
+
+    validateColors(newObj)
+    return newObj
+  }
+
   const getThemes = async (themes = null) => {
     const requestOptions = {
       method: 'GET',
@@ -40,6 +63,7 @@ export const OrderingThemeProvider = ({ children, settings }) => {
         result = res?.result
       }
       if (!error) {
+        result = validateFixColors(result)
         setState({
           ...state,
           theme: result.values,

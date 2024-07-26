@@ -3,23 +3,29 @@ import PropTypes from 'prop-types'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useConfig } from '../../contexts/ConfigContext'
+import { useOrder } from '../../contexts/OrderContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 /**
  * Component to manage logout behavior without UI component
  */
 export const LogoutAction = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     handleSuccessLogout,
     token,
     isNative,
     useDefualtSessionManager,
-    handleCustomLogoutClick
+    handleCustomLogoutClick,
+    isDriverApp
   } = props
 
   const [ordering] = useApi()
+  const [, t] = useLanguage()
   const [formState, setFormState] = useState({ loading: false, result: { error: false } })
 
+  const [, { setStateInitialValues }] = useOrder()
   const [data, { logout }] = useSession()
   const [{ configs }] = useConfig()
 
@@ -79,6 +85,21 @@ export const LogoutAction = (props) => {
     }
     try {
       setFormState({ ...formState, loading: true })
+      if (isDriverApp) {
+        const response = await getActiveOrders()
+        if (response?.content?.error || response?.content?.result?.[0]?.id) {
+          setFormState({
+            result: {
+              error: true,
+              result: response?.content?.error
+                ? response?.content?.result
+                : t('ERROR_USER_LOGOUT_YOU_HAVE_ASSIGNED_ORDERS', 'Can\'t logout, You have assigned orders')
+            },
+            loading: false
+          })
+          return
+        }
+      }
       const accessToken = token || data.token
       const body = bodyParams && bodyParams?.notification_token
         ? {
@@ -97,7 +118,8 @@ export const LogoutAction = (props) => {
           loading: false
         })
         if (useDefualtSessionManager) {
-          logout()
+          await logout()
+          await setStateInitialValues()
         }
         if (handleSuccessLogout) {
           handleSuccessLogout()
@@ -118,6 +140,34 @@ export const LogoutAction = (props) => {
         loading: false
       })
       return false
+    }
+  }
+
+  const getActiveOrders = async () => {
+    try {
+      const options = {
+        query: {
+          page: 1,
+          page_size: 1
+        }
+      }
+      const accessToken = token || data.token
+      const orderStatus = [0, 3, 4, 7, 8, 9, 13, 14, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+      options.query.where = []
+      if (orderStatus) {
+        options.query.where.push({ attribute: 'status', value: orderStatus })
+      }
+      const propsToFetch = ['id', 'status']
+      const functionFetch = ordering.setAccessToken(accessToken).orders().asDashboard().select(propsToFetch)
+      return await functionFetch.get(options)
+    } catch (err) {
+      setFormState({
+        result: {
+          error: true,
+          result: err.message
+        },
+        loading: false
+      })
     }
   }
 
@@ -162,6 +212,6 @@ LogoutAction.propTypes = {
   handleCustomLogoutClick: PropTypes.func
 }
 
-LogoutAction.defaultProps = {
+const defaultProps = {
   useDefualtSessionManager: true
 }

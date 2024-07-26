@@ -10,7 +10,7 @@ export const UpsellingPage = (props) => {
   const [upsellingProducts, setUpsellingProducts] = useState({ products: [], loading: true, error: false })
   const [businessProducts, setBusinessProducts] = useState([])
   const [ordering] = useApi()
-  const [orderState] = useOrder()
+  const [orderState, { removeOffer }] = useOrder()
 
   const businessId = props.uuid
     ? Object.values(orderState.carts).find(_cart => _cart?.uuid === props.uuid)?.business_id ?? {}
@@ -91,11 +91,21 @@ export const UpsellingPage = (props) => {
     onSave(product)
   }
 
+  const handleRemoveOfferClick = (id, userId) => {
+    const dataOffer = {
+      business_id: businessId,
+      offer_id: id
+    }
+    if (userId) dataOffer.user_id = userId
+    removeOffer(dataOffer)
+  }
+
   return (
     <UIComponent
       {...props}
       upsellingProducts={upsellingProducts}
       handleFormProduct={handleFormProduct}
+      handleRemoveOfferClick={handleRemoveOfferClick}
     />
   )
 }

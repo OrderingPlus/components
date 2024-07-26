@@ -8,6 +8,7 @@ import { useEvent } from '../../contexts/EventContext'
 import { useOrder } from '../../contexts/OrderContext'
 
 export const OrderVerticalList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     orderBy,
@@ -410,12 +411,8 @@ export const OrderVerticalList = (props) => {
   )
 }
 
-OrderVerticalList.defaultProps = {
+const defaultProps = {
   orderBy: '-id',
   orderDirection: 'desc',
-  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

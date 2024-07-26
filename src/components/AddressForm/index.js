@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import { v4 } from 'uuid'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useOrder } from '../../contexts/OrderContext'
 import { useValidationFields } from '../../contexts/ValidationsFieldsContext'
 import { useCustomer } from '../../contexts/CustomerContext'
+import { useConfig } from '../../contexts/ConfigContext'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { ToastType, useToast } from '../../contexts/ToastContext'
+
+dayjs.extend(utc)
 
 export const AddressForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     addressId,
@@ -15,22 +24,35 @@ export const AddressForm = (props) => {
     onSaveAddress,
     isSelectedAfterAdd,
     onSaveCustomAddress,
-    franchiseId
+    franchiseId,
+    handleGoToLogin,
+    avoidRefreshUserInfo
   } = props
 
   const [ordering] = useApi()
   const [validationFields] = useValidationFields()
+  const [{ configs }] = useConfig()
   const [addressState, setAddressState] = useState({ loading: false, error: null, address: address || {} })
   const [formState, setFormState] = useState({ loading: false, changes: {}, error: null })
+  const [userByToken, setUserByToken] = useState(null)
+  const [mapBoxSuggestCount, setMapBoxSuggestCount] = useState(0)
+  const [uuidv4, setUuidv4] = useState(null)
+  const [mapBoxSuggests, setMapBoxSuggest] = useState([])
   const [{ auth, user, token }, { refreshUserInfo }] = useSession()
   const requestsState = {}
   const [{ options }, { changeAddress }] = useOrder()
+  const [languageState, t] = useLanguage()
+  const [, { showToast }] = useToast()
   const userId = props.userId || user?.id
   const accessToken = props.accessToken || token
   const [, { setUserCustomer }] = useCustomer()
 
   const [isEdit, setIsEdit] = useState(false)
   const [businessesList, setBusinessesList] = useState({ businesses: [], loading: true, error: null })
+  const [businessNearestState, setBusinessNearestState] = useState({ business: null, loading: false, error: null })
+
+  const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
+  const useAlternativeMap = configs?.use_alternative_to_google_maps?.value === '1'
 
   /**
    * Load an address by id
@@ -113,7 +135,7 @@ export const AddressForm = (props) => {
       onSaveCustomAddress(values)
       return
     }
-    if (!auth) {
+    if (!auth && !userByToken?.session?.token) {
       changeAddress(
         { ...values, ...formState.changes },
         { country_code: values?.country_code ?? formState.changes?.country_code }
@@ -121,15 +143,13 @@ export const AddressForm = (props) => {
       onSaveAddress && onSaveAddress(formState.changes)
       return
     }
-    if (userCustomerSetup) {
-      setUserCustomer(userCustomerSetup, true)
-    }
+
     setFormState({ ...formState, loading: true })
     try {
       const { content } = await ordering
-        .users(userId)
+        .users(userByToken?.id || userId)
         .addresses(addressState.address?.id)
-        .save({ ...values, ...formState.changes }, { accessToken })
+        .save({ ...values, ...formState.changes }, { accessToken: userByToken?.session?.token || accessToken })
       setFormState({
         ...formState,
         loading: false,
@@ -151,7 +171,12 @@ export const AddressForm = (props) => {
           })
         }
       }
-      refreshUserInfo()
+      if (userCustomerSetup) {
+        await setUserCustomer(userCustomerSetup, true)
+      }
+      if (!avoidRefreshUserInfo) {
+        refreshUserInfo()
+      }
     } catch (err) {
       setFormState({
         ...formState,
@@ -174,7 +199,9 @@ export const AddressForm = (props) => {
       const conditions = []
       const parameters = {
         location: `${location?.lat},${location?.lng}`,
-        type: options?.type
+        type: 2,
+        page: 1,
+        page_size: 20
       }
       if (franchiseId) {
         conditions.push({ attribute: 'franchise_id', value: franchiseId })
@@ -185,7 +212,11 @@ export const AddressForm = (props) => {
       }
       const source = {}
       requestsState.businesses = source
-      const fetchEndpoint = ordering.businesses().select(['delivery_zone', 'name', 'id', 'location', 'logo', 'slug', 'zones']).parameters(parameters).where(where)
+      const fetchEndpoint = ordering
+        .businesses()
+        .select(['delivery_zone', 'name', 'id', 'location', 'logo', 'slug', 'zones'])
+        .parameters(parameters)
+        .where(where)
       const { content: { error, result } } = await fetchEndpoint.get({ cancelToken: source })
       setBusinessesList({
         ...businessesList,
@@ -200,6 +231,7 @@ export const AddressForm = (props) => {
         result,
         fetched: true
       })
+      return result
     } catch (err) {
       if (err.constructor.name !== 'Cancel') {
         setBusinessesList({
@@ -212,6 +244,163 @@ export const AddressForm = (props) => {
       }
     }
   }
+
+  const getNearestBusiness = async (location) => {
+    try {
+      setBusinessNearestState({
+        ...businessNearestState,
+        loading: true
+      })
+      const defaultLatitude = Number(configs?.location_default_latitude?.value)
+      const defaultLongitude = Number(configs?.location_default_longitude?.value)
+      const isInvalidDefaultLocation = isNaN(defaultLatitude) || isNaN(defaultLongitude)
+      const defaultLocation = {
+        lat: !isInvalidDefaultLocation ? defaultLatitude : 40.7744146,
+        lng: !isInvalidDefaultLocation ? defaultLongitude : -73.9678064
+      }
+      const propsToFetch = ['name', 'address', 'location', 'distance', 'open', 'schedule', 'slug']
+      let parameters = {
+        location: location || defaultLocation,
+        type: options?.type || 1,
+        orderBy: 'distance'
+      }
+      const paginationParams = {
+        page: 1,
+        page_size: 5
+      }
+      if (options?.moment && isValidMoment(options?.moment, 'YYYY-MM-DD HH:mm:ss')) {
+        const moment = dayjs.utc(options?.moment, 'YYYY-MM-DD HH:mm:ss').local().unix()
+        parameters.timestamp = moment
+      }
+      parameters = { ...parameters, ...paginationParams }
+      const source = {}
+      requestsState.businesses = source
+
+      const { content: { error, result } } = await ordering.businesses().select(propsToFetch).parameters(parameters).get({ cancelToken: source })
+      if (!error) {
+        const firstNearestOpenBusiness = result?.find(business => business?.open)
+        setBusinessNearestState({
+          business: firstNearestOpenBusiness,
+          error: firstNearestOpenBusiness ? null : t('NO_BUSINESS_NEAR_LOCATION', 'No business near of you location') || error,
+          loading: false
+        })
+        return
+      }
+      setBusinessNearestState({
+        business: null,
+        error,
+        loading: false
+      })
+    } catch (err) {
+      setBusinessNearestState({
+        ...businessNearestState,
+        error: err?.message,
+        loading: false
+      })
+    }
+  }
+
+  const getUserByToken = async () => {
+    try {
+      const requestOptions = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${props.accessToken}`
+        }
+      }
+      const response = await fetch(`${ordering.root}/users/me`, requestOptions)
+      const { error, result } = await response.json()
+      if (!error) {
+        setUserByToken(result)
+        return
+      }
+      handleGoToLogin && handleGoToLogin()
+    } catch (err) {
+      handleGoToLogin && handleGoToLogin()
+    }
+  }
+
+  const getSuggestedResult = async (search) => {
+    if (!search) return
+    try {
+      const mapBoxToken = configs?.map_box_token?.value
+      const params = {
+        q: search,
+        limit: 5,
+        language: languageState?.language?.code?.slice?.(0, 2),
+        access_token: mapBoxToken,
+        session_token: uuidv4
+      }
+
+      let paramsFormatted = ''
+      Object.keys(params)?.map((param, i, hash) => {
+        (i + 1) === hash?.length
+          ? paramsFormatted = paramsFormatted + `${param}=${params[param]}`
+          : paramsFormatted = paramsFormatted + `${param}=${params[param]}&`
+      })
+      const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?${paramsFormatted}`)
+      const result = await response.json()
+      if (result?.suggestions) {
+        setMapBoxSuggest(result?.suggestions)
+      }
+      setMapBoxSuggestCount((count) => count + 1)
+    } catch (err) {
+      showToast(ToastType.error, err?.message)
+    }
+  }
+
+  const retrieveSuggestResult = async (mapboxId, callback) => {
+    if (!mapboxId) return
+    const mapBoxToken = configs?.map_box_token?.value
+    const params = {
+      language: languageState?.language?.code?.slice?.(0, 2),
+      access_token: mapBoxToken,
+      session_token: uuidv4
+    }
+
+    let paramsFormatted = ''
+    Object.keys(params)?.map((param, i, hash) => {
+      (i + 1) === hash?.length
+        ? paramsFormatted = paramsFormatted + `${param}=${params[param]}`
+        : paramsFormatted = paramsFormatted + `${param}=${params[param]}&`
+    })
+    const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/retrieve/${mapboxId}?${paramsFormatted}`)
+    const result = await response.json()
+    const firstRetrieve = result?.features?.[0]
+    const coordinates = firstRetrieve?.geometry?.coordinates
+    const properties = firstRetrieve?.properties
+    const location = { lat: coordinates?.[1], lng: coordinates?.[0] }
+    const address = {
+      location,
+      address: properties?.full_address || properties?.address || properties?.name,
+      country: properties?.country?.name,
+      country_code: properties?.country?.country_code,
+      locality: properties?.locality?.name,
+      region: properties?.context?.region?.name,
+      street: properties?.context?.street?.name,
+      mapbox_id: properties?.mapbox_id
+    }
+    callback && callback(address)
+  }
+
+  const resetMapBoxSessionToken = () => {
+    if (!v4) return
+    setUuidv4(v4())
+    setMapBoxSuggestCount(0)
+  }
+
+  useEffect(() => {
+    if (mapBoxSuggestCount >= 50 && useAlternativeMap) {
+      resetMapBoxSessionToken()
+    }
+  }, [mapBoxSuggestCount, useAlternativeMap])
+
+  useEffect(() => {
+    if (formState?.changes?.location?.lat && useAlternativeMap) {
+      resetMapBoxSessionToken()
+    }
+  }, [JSON.stringify(formState?.changes?.location), useAlternativeMap])
 
   useEffect(() => {
     setAddressState({
@@ -244,6 +433,12 @@ export const AddressForm = (props) => {
     }
   }, [requestsState.businesses])
 
+  useEffect(() => {
+    if (props.confirmAddress) {
+      getUserByToken()
+    }
+  }, [])
+
   return (
     <>
       {
@@ -260,6 +455,11 @@ export const AddressForm = (props) => {
             setIsEdit={(val) => setIsEdit(val)}
             businessesList={businessesList}
             getBusinessDeliveryZones={getBusinessDeliveryZones}
+            getNearestBusiness={getNearestBusiness}
+            getSuggestedResult={getSuggestedResult}
+            retrieveSuggestResult={retrieveSuggestResult}
+            businessNearestState={businessNearestState}
+            mapBoxSuggests={mapBoxSuggests}
           />
         )
       }
@@ -300,33 +500,9 @@ AddressForm.propTypes = {
   /**
    * Custom function
    */
-  onSaveCustomAddress: PropTypes.func,
-  /**
-   * Components types before address form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after address form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before address form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after address form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  onSaveCustomAddress: PropTypes.func
 }
 
-AddressForm.defaultProps = {
-  useValidationFileds: false,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  useValidationFileds: false
 }

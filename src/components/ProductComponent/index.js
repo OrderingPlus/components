@@ -6,6 +6,7 @@ import { useProduct, PRODUCT_ACTIONS } from '../../contexts/ProductContext'
  * Component to manage login behavior without UI component
  */
 export const ProductComponent = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     product,
     UIComponent
@@ -44,7 +45,6 @@ export const ProductComponent = (props) => {
   }
 
   const initOptions = () => {
-    // console.log('===== Init options =====');
     const optionList = []
     const extras = product.extras
     for (let eIdx = 0; eIdx < extras.length; eIdx++) {
@@ -77,7 +77,6 @@ export const ProductComponent = (props) => {
   }
 
   useEffect(() => {
-    // console.log('===== use effect =====');
     initIngredients()
     initOptions()
   }, [])
@@ -95,7 +94,6 @@ export const ProductComponent = (props) => {
   }
 
   const onChangedIngredient = (index) => {
-    // console.log('===== On changed ingredient =====');
     ingredients[index].isChecked = !ingredients[index].isChecked
     dispatchIngredients({
       type: PRODUCT_ACTIONS.CHANGE_INGREDIENTS,
@@ -104,7 +102,6 @@ export const ProductComponent = (props) => {
   }
 
   const onChangedOption = (optionIndex, subOptionIndex, optionType) => {
-    // console.log("===== On changed option =====");
     if (optionType) { // radio button
       for (let sIdx = 0; sIdx < options[optionIndex].suboptions.length; sIdx++) {
         options[optionIndex].suboptions[sIdx].isChecked = false
@@ -157,13 +154,11 @@ export const ProductComponent = (props) => {
   }
 
   const onClickedButtonPlus = () => {
-    // console.log('===== on click button plus =====');
     setProductCount(productCount + 1)
     calculatePrice(productCount + 1, options)
   }
 
   const onClickedButtonMinus = () => {
-    // console.log('===== on click button minues =====');
     if (productCount > 1) {
       setProductCount(productCount - 1)
       calculatePrice(productCount - 1, options)
@@ -240,29 +235,9 @@ ProductComponent.propTypes = {
   /**
    * Custom function to add the product to the cart
    */
-  onClickedButtonAdd: PropTypes.func,
-  /**
-   * Components types before login form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after login form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  onClickedButtonAdd: PropTypes.func
 }
 
-ProductComponent.defaultProps = {
+const defaultProps = {
   productName: ''
 }

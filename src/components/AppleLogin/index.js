@@ -109,9 +109,7 @@ export const AppleLogin = (props) => {
     try {
       const data = await window.AppleID.auth.signIn()
       handleAppleLoginClick(data?.authorization)
-    } catch (err) {
-      console.log('error', err)
-    }
+    } catch {}
   }
 
   return <>{UIComponent && <UIComponent {...props} initLoginApple={initLoginApple} />}</>
@@ -133,32 +131,5 @@ AppleLogin.propTypes = {
   /**
    * handilng the response of login apple when login
    */
-  handleLoginApple: PropTypes.func,
-  /**
-   * Components types before Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-AppleLogin.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  handleLoginApple: PropTypes.func
 }

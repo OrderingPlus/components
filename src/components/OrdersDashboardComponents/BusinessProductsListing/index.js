@@ -359,9 +359,7 @@ export const BusinessProductsListing = (props) => {
       if (!error) {
         setBusinessTypes(result)
       }
-    } catch (error) {
-      console.log(error?.message)
-    }
+    } catch {}
   }
 
   useEffect(() => {
@@ -619,11 +617,4 @@ BusinessProductsListing.propTypes = {
    */
   isInitialRender: PropTypes.bool
 
-}
-
-BusinessProductsListing.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
 }

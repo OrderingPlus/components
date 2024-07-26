@@ -4,22 +4,26 @@ import { useSession } from '../../contexts/SessionContext'
 import { useOrder } from '../../contexts/OrderContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useCustomer } from '../../contexts/CustomerContext'
-
+import { useWebsocket } from '../../contexts/WebsocketContext'
 /**
  * Component to control a address list
  * @param {object} props Props of AddressList component
  */
 export const AddressList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     changeOrderAddressWithDefault,
     handleClickSetDefault,
-    handleClickDelete
+    handleClickDelete,
+    userCustomerSetup,
+    setUserConfirmPhone
   } = props
 
   const [ordering] = useApi()
-  const [{ user, token }] = useSession()
+  const [{ user, token, auth }] = useSession()
   const [, { setUserCustomer }] = useCustomer()
+  const socket = useWebsocket()
   const userId = props.userId || user?.id
   const accessToken = props.accessToken || token
 
@@ -134,6 +138,44 @@ export const AddressList = (props) => {
     }
   }
 
+  const handleAddressRegister = async (address) => {
+    if (address?.user_id !== userCustomerSetup?.id) return
+    try {
+      await setAddressList((prevProps) => ({
+        ...prevProps,
+        loading: false,
+        addresses: [
+          ...prevProps?.addresses,
+          address
+        ],
+        addedBySocket: true
+      }))
+      setUserConfirmPhone && setUserConfirmPhone({ open: false, result: null })
+    } catch (err) {
+      setAddressList({ ...addressList, loading: false, error: [err.message] })
+    }
+  }
+
+  useEffect(() => {
+    if (!userCustomerSetup?.id || !socket?.socket || !auth) return
+    const room = {
+      room: 'addresses',
+      project: ordering.project,
+      role: 'agent',
+      user_id: user?.id
+    }
+    socket.on('addresses_register', handleAddressRegister)
+
+    socket.socket.on('connect', () => {
+      socket.join(room)
+    })
+    socket.join(room)
+    return () => {
+      socket.leave(room)
+      socket.off('addresses_register', handleAddressRegister)
+    }
+  }, [socket?.socket, user?.id, userCustomerSetup?.id])
+
   return (
     <>
       {UIComponent && (
@@ -180,33 +222,9 @@ AddressList.propTypes = {
    * Access token to get addresses
    * If you don't provide one it is used by the current session by default
    */
-  accessToken: PropTypes.string,
-  /**
-   * Components types before addresses list
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after addresses list
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before addresses list
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after addresses list
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  accessToken: PropTypes.string
 }
 
-AddressList.defaultProps = {
-  changeOrderAddressWithDefault: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  changeOrderAddressWithDefault: true
 }

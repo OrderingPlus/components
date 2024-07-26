@@ -4,6 +4,7 @@ import { useApi } from '../../contexts/ApiContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useOrder } from '../../contexts/OrderContext'
 import { useEvent } from '../../contexts/EventContext'
+import { useCustomer } from '../../contexts/CustomerContext'
 
 export const CartStoresListing = (props) => {
   const {
@@ -19,6 +20,7 @@ export const CartStoresListing = (props) => {
   const [orderState, { setStateValues }] = useOrder()
   const [{ token }] = useSession()
   const [events] = useEvent()
+  const [customerState] = useCustomer()
 
   const [searchValue, setSearchValue] = useState(null)
   const [businessIdSelect, setBusinessIdSelect] = useState(null)
@@ -31,10 +33,13 @@ export const CartStoresListing = (props) => {
       setState({ ...state, loading: true })
       const source = {}
       requestsState.businesses = source
+      const query = customerState?.user?.id
+        ? { query: { user_id: customerState?.user?.id } }
+        : {}
       const { content: { error, result } } = await ordering
         .setAccessToken(token)
         .carts(cartuuid)
-        .getBusinesses({ cancelToken: source })
+        .getBusinesses({ cancelToken: source, ...query })
 
       setState({
         ...state,

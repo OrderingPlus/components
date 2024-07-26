@@ -132,32 +132,5 @@ LanguageSelector.propTypes = {
   /**
    * handlerCustomChangeLanguage, handler change behavior
    */
-  handlerCustomChangeLanguage: PropTypes.func,
-  /**
-   * Components types before language selector
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after language selector
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before language selector
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after language selector
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-LanguageSelector.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  handlerCustomChangeLanguage: PropTypes.func
 }

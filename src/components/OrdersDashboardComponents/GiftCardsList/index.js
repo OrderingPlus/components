@@ -7,6 +7,7 @@ import { useSession } from '../../../contexts/SessionContext'
  * Component to manage gift cards without UI component
  */
 export const GiftCardsList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     paginationSettings,
@@ -184,6 +185,6 @@ GiftCardsList.propTypes = {
  */
   UIComponent: PropTypes.elementType
 }
-GiftCardsList.defaultProps = {
+const defaultProps = {
   paginationSettings: { initialPage: 1, pageSize: 10 }
 }

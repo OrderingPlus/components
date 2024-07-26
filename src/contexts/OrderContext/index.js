@@ -23,7 +23,16 @@ export const OrderContext = createContext()
  * This provider has a reducer for manage order state
  * @param {props} props
  */
-export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToast, franchiseId, isDisabledDefaultOpts, businessSlug, userAgent }) => {
+export const OrderProvider = ({
+  Alert,
+  children,
+  strategy,
+  isDisableToast,
+  franchiseId,
+  isDisabledDefaultOpts,
+  businessSlug,
+  userAgent
+}) => {
   const [confirmAlert, setConfirm] = useState({ show: false })
   const [alert, setAlert] = useState({ show: false })
   const [ordering] = useApi()
@@ -42,7 +51,9 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
     pickup: 2,
     eatin: 3,
     curbside: 4,
-    drivethru: 5
+    drivethru: 5,
+    catering_delivery: 7,
+    catering_pickup: 8
   }
 
   const [state, setState] = useState({
@@ -122,7 +133,7 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
       const localOptions = await strategy.getItem('options', true)
       if (localOptions) {
         const options = {}
-        if (Object.keys(localOptions.address).length > 0) {
+        if (Object.keys(localOptions?.address || {})?.length > 0) {
           const conditions = [
             { attribute: 'address', value: localOptions?.address?.address }
           ]
@@ -643,6 +654,33 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
     }
   }
 
+  const createReservation = async (body) => {
+    try {
+      const response = await fetch(`${ordering.root}/carts/add_reservation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.token}`,
+          'X-App-X': ordering.appId,
+          'X-Socket-Id-X': socket?.getId()
+        },
+        body: JSON.stringify(body)
+      })
+      const { result, error } = await response.json()
+      if (!error) {
+        state.carts[`businessId:${result.business_id}`] = result
+        events.emit('cart_added', result)
+        setState({ ...state, loading: false })
+      } else {
+        setAlert({ show: true, content: result })
+      }
+      return { error, result }
+    } catch (err) {
+      setState({ ...state, loading: false })
+      return { error: true, result: [err.message] }
+    }
+  }
+
   /**
    * Apply coupon to cart
    */
@@ -660,31 +698,6 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
     try {
       setState({ ...state, loading: true })
       const countryCode = await strategy.getItem('country-code')
-      if (customParams && isAlsea) {
-        const response = await fetch('https://alsea-plugins.ordering.co/alseaplatform/vcoupon2.php', {
-          method: 'POST',
-          body: JSON.stringify({
-            userId: customParams.userId,
-            businessId: customParams.businessId,
-            couponId: couponData.coupon
-          }),
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Access-Control-Allow-Origin': '*',
-            'X-App-X': ordering.appId,
-            'X-Socket-Id-X': socket?.getId(),
-            'X-Country-Code-X': countryCode
-          }
-        })
-        const result = await response.json()
-
-        if (result.message !== 'Cup\u00f3n v\u00e1lido') {
-          setAlert({ show: true, content: result.message === 'Not found' ? ['ERROR_INVALID_COUPON'] : [result.message] })
-          setState({ ...state, loading: false })
-          return
-        }
-      }
       const customerFromLocalStorage = await strategy.getItem('user-customer', true)
       const userCustomerId = customerFromLocalStorage?.id
       const body = {
@@ -885,6 +898,8 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
       setState({ ...state, loading: false })
       return !error
     } catch (err) {
+      refreshOrderOptions()
+      setState({ ...state, loading: false })
       return false
     }
   }
@@ -1244,6 +1259,50 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
     setState({ ...state, loading: false })
   }
 
+  const setStateInitialValues = () => {
+    setState({
+      loading: false,
+      options: isDisabledDefaultOpts
+        ? { type: null, moment: null, city_id: null }
+        : {
+            type: orderTypes[configState?.configs?.default_order_type?.value],
+            moment: null,
+            city_id: null
+          },
+      carts: {},
+      confirmAlert,
+      alert
+    })
+  }
+
+  const handleOrderStateLoading = (loading) => {
+    setState({
+      ...state,
+      loading
+    })
+  }
+
+  const handleLogEvent = async (events) => {
+    try {
+      const countryCode = await strategy.getItem('country-code')
+      const headers = {
+        'X-Socket-Id-X': socket?.getId(),
+        'X-Country-Code-X': countryCode
+      }
+      await fetch(`${ordering.root}/tracking_events`, {
+        method: 'POST',
+        body: JSON.stringify({
+          events
+        }),
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${session.token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    } catch (err) {}
+  }
+
   useEffect(() => {
     if (session.loading || languageState.loading) return
     if (session.auth) {
@@ -1262,7 +1321,12 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
     if (configTypes?.length > 0 && state.options.type && !configTypes.includes(state.options.type)) {
       const validDefaultValue = configTypes.includes(configState?.configs?.default_order_type?.type)
       updateOrderOptions(validDefaultValue ? { type: configState?.configs?.default_order_type?.type } : { type: configTypes[0] })
-      setAlert({ show: true, title: t('INFORMATION', 'Information'), content: t('ORDER_TYPE_CHANGED', 'the order type config has changed') })
+      if (!session.auth && !state?.loading) {
+        changeType(validDefaultValue ? configState?.configs?.default_order_type?.type : configTypes[0])
+      }
+      if (!session.auth) {
+        changeType(validDefaultValue ? configState?.configs?.default_order_type?.type : configTypes[0])
+      }
     }
   }, [configTypes?.length, state.options.type])
 
@@ -1363,7 +1427,11 @@ export const OrderProvider = ({ Alert, children, strategy, isAlsea, isDisableToa
     getLastOrderHasNoReview,
     changeCityFilter,
     confirmMultiCarts,
-    addMultiProduct
+    addMultiProduct,
+    setStateInitialValues,
+    handleOrderStateLoading,
+    createReservation,
+    handleLogEvent
   }
 
   const copyState = JSON.parse(JSON.stringify(state))

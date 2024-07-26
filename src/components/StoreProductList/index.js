@@ -5,6 +5,7 @@ import { useToast, ToastType } from '../../contexts/ToastContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 export const StoreProductList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     isSearchByName,
     isSearchByDescription,
@@ -19,12 +20,11 @@ export const StoreProductList = (props) => {
   const [ordering] = useApi()
   const [, { showToast }] = useToast()
   const [, t] = useLanguage()
-
   const [productSearch, setProductSearch] = useState(null)
   const [categorySearch, setCategorySearch] = useState('')
   const [category, setCategory] = useState(null)
   const [businessState, setBusinessState] = useState({ business: {}, loading: true, error: false })
-  const [categories, setCategories] = useState([])
+  const [categoriesState, setCategoriesState] = useState({ categories: [], loading: true })
   const [productsList, setProductsList] = useState({
     products: [],
     loading: false,
@@ -36,6 +36,15 @@ export const StoreProductList = (props) => {
       totalPages: null
     }
   })
+
+  const handleChangeCategory = (value) => {
+    setProductsList({
+      ...productsList,
+      products: [],
+      loading: true
+    })
+    setCategory(value)
+  }
 
   /**
    * Method to get products from API
@@ -220,15 +229,21 @@ export const StoreProductList = (props) => {
   }, [category, productSearch])
 
   useEffect(() => {
+    if (businessState.loading) return
+    let updateCategories = null
     if (businessState?.business?.categories?.length > 0) {
       const lowerCaseSearchVal = categorySearch.toLowerCase()
-      const updateCategories = businessState?.business?.categories?.filter(cat => {
+      updateCategories = businessState?.business?.categories?.filter(cat => {
         if (cat?.name?.toLowerCase()?.includes(lowerCaseSearchVal)) return true
         return validCategory(cat, lowerCaseSearchVal)
       })
-      setCategories(updateCategories)
     }
-  }, [categorySearch, businessState?.business])
+    setCategoriesState({
+      ...categoriesState,
+      loading: false,
+      categories: updateCategories ?? []
+    })
+  }, [categorySearch, businessState?.business, businessState.loading])
 
   return (
     <>
@@ -239,13 +254,14 @@ export const StoreProductList = (props) => {
           productsList={productsList}
           productSearch={productSearch}
           categorySearch={categorySearch}
-          handleChangeCategory={setCategory}
+          handleChangeCategory={handleChangeCategory}
           handleChangeProductSearch={setProductSearch}
           handleChangeCategorySearch={setCategorySearch}
           updateStoreProduct={updateStoreProduct}
           updateStoreCategory={updateStoreCategory}
           getCategoryProducts={getCategoryProducts}
-          categories={categories}
+          categories={categoriesState.categories}
+          categoriesState={categoriesState}
         />
       )}
     </>
@@ -268,35 +284,11 @@ StoreProductList.propTypes = {
   /**
    * Enable/disable search by description
    */
-  isSearchByDescription: PropTypes.bool,
-  /**
-   * Components types before products listing
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after products listing
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before products listing
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after products listing
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  isSearchByDescription: PropTypes.bool
 }
 
-StoreProductList.defaultProps = {
+const defaultProps = {
   isSearchByName: true,
   isSearchByDescription: true,
-  paginationSettings: { initialPage: 1, pageSize: 15, controlType: 'infinity' },
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  paginationSettings: { initialPage: 1, pageSize: 15, controlType: 'infinity' }
 }

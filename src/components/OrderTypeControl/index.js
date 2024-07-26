@@ -3,6 +3,7 @@ import PropTypes, { object } from 'prop-types'
 import { useOrder } from '../../contexts/OrderContext'
 
 export const OrderTypeControl = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent
   } = props
@@ -43,33 +44,9 @@ OrderTypeControl.propTypes = {
   /**
    * Custom function to control order type changes
    */
-  handleChangeOrderType: PropTypes.func,
-  /**
-   * Components types before order type control
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after order type control
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before order type control
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after order type control
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  handleChangeOrderType: PropTypes.func
 }
 
-OrderTypeControl.defaultProps = {
-  orderTypes: [1, 2, 3, 4, 5],
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  orderTypes: [1, 2, 3, 4, 5]
 }

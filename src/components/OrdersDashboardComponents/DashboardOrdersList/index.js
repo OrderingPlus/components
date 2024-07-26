@@ -6,6 +6,7 @@ import { useWebsocket } from '../../../contexts/WebsocketContext'
 import { useEvent } from '../../../contexts/EventContext'
 
 export const DashboardOrdersList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     propsToFetch,
@@ -909,35 +910,11 @@ DashboardOrdersList.propTypes = {
     initialPage: PropTypes.number,
     pageSize: PropTypes.number,
     controlType: PropTypes.oneOf(['infinity', 'pages'])
-  }),
-  /**
-   * Components types before Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  })
 }
 
-DashboardOrdersList.defaultProps = {
+const defaultProps = {
   orderBy: 'id',
   orderDirection: 'desc',
-  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

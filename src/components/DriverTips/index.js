@@ -8,6 +8,7 @@ import { useConfig } from '../../contexts/ConfigContext'
  * Component to manage driver tips behavior without UI component
  */
 export const DriverTips = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     businessId,
@@ -111,33 +112,9 @@ DriverTips.propTypes = {
   /**
    * method to get option selected
    */
-  handlerChangeDriverOption: PropTypes.func,
-  /**
-   * Components types before driver tips
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after driver tips
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before driver tips
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after driver tips
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  handlerChangeDriverOption: PropTypes.func
 }
 
-DriverTips.defaultProps = {
-  useOrderContext: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  useOrderContext: true
 }

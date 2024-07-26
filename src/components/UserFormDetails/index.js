@@ -6,12 +6,14 @@ import { useCustomer } from '../../contexts/CustomerContext'
 import { useValidationFields as useValidationsFieldsController } from '../../contexts/ValidationsFieldsContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 import parsePhoneNumber from 'libphonenumber-js'
+import { ToastType, useToast } from '../../contexts/ToastContext'
 const CONDITIONAL_CODES = ['1787']
 
 /**
  * Component to manage user form details behavior without UI component
  */
 export const UserFormDetails = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     useSessionUser,
@@ -25,9 +27,9 @@ export const UserFormDetails = (props) => {
     isCustomerMode,
     isSuccess,
     onClose,
-    dontToggleEditMode,
     isOrderTypeValidationField,
-    checkoutFields
+    checkoutFields,
+    setUserConfirmPhone
   } = props
 
   const [ordering] = useApi()
@@ -35,6 +37,7 @@ export const UserFormDetails = (props) => {
   const [session, { changeUser }] = useSession()
   const [customer, { setUserCustomer }] = useCustomer()
   const [validationFields] = useValidationsFieldsController()
+  const [, { showToast }] = useToast()
   const [isEdit, setIsEdit] = useState(!!props?.isEdit)
   const [userState, setUserState] = useState({ loading: false, loadingDriver: false, result: { error: false } })
   const [formState, setFormState] = useState({ loading: false, changes: {}, result: { error: false } })
@@ -42,6 +45,7 @@ export const UserFormDetails = (props) => {
   const [singleNotifications, setSingleNotifications] = useState({ loading: false, changes: {}, result: { error: false } })
   const [verifyPhoneState, setVerifyPhoneState] = useState({ loading: false, result: { error: false } })
   const [removeAccountState, setAccountState] = useState({ loading: false, error: null, result: null })
+  const [cellphoneStartZero, setCellphoneStartZero] = useState(null)
 
   const requestsState = {}
   const accessToken = useDefualtSessionManager ? session.token : props.accessToken
@@ -104,7 +108,7 @@ export const UserFormDetails = (props) => {
   /**
    * Default fuction for user profile workflow
    */
-  const handleUpdateClick = async (changes, isImage, image) => {
+  const handleUpdateClick = async (changes, isImage, image, options = {}) => {
     if (handleButtonUpdateClick) {
       return handleButtonUpdateClick(userState.result.result, formState.changes)
     }
@@ -113,18 +117,26 @@ export const UserFormDetails = (props) => {
       setFormState({ ...formState, loading: true })
       const _changes = { ...formState.changes, ...(changes ?? {}) }
 
+      if (userState.result.result?.guest_id) {
+        _changes.guest_cellphone = _changes?.cellphone
+        _changes.guest_email = _changes.email
+      }
+
       if (!_changes?.country_code && _changes?.country_phone_code && _changes?.cellphone) {
         const parsedNumber = parsePhoneNumber(`+${_changes?.country_phone_code}${_changes?.cellphone}`)
-        _changes.country_code = parsedNumber.country
+        _changes.country_code = parsedNumber?.country
       }
 
       if (CONDITIONAL_CODES.includes(_changes?.country_phone_code)) {
         if (_changes?.country_code === 'PR') {
           _changes.cellphone = `787${_changes.cellphone}`
           _changes.country_phone_code = '1'
+          !!userState.result.result?.guest_id && (_changes.guest_cellphone = `787${_changes.cellphone}`)
         }
       }
-
+      if (cellphoneStartZero) {
+        _changes.cellphone = cellphoneStartZero
+      }
       formState.changes = _changes
 
       if (isImage) {
@@ -141,14 +153,32 @@ export const UserFormDetails = (props) => {
           loading: false
         })
       } else {
-        response = await ordering.users(props?.userData?.id || userState.result.result.id).save(formState.changes, {
+        let _changes = formState.changes
+        if (props?.userData?.guest_id || userState.result.result?.guest_id) {
+          if (formState.changes.email) {
+            _changes = {
+              ..._changes,
+              guest_email: formState.changes.email
+            }
+          }
+          if (formState.changes.cellphone) {
+            _changes = {
+              ..._changes,
+              guest_cellphone: formState.changes.cellphone
+            }
+          }
+
+          delete _changes.email
+          delete _changes.cellphone
+        }
+        response = await ordering.users(props?.userData?.id || userState.result.result.id).save(_changes, {
           accessToken
         })
         setFormState({
           ...formState,
           changes: response.content.error ? formState.changes : {},
           result: response.content,
-          loading: false
+          loading: !!changes?.confirmDataLayout || false
         })
       }
 
@@ -177,9 +207,15 @@ export const UserFormDetails = (props) => {
           handleSuccessUpdate(response.content.result)
         }
 
-        onClose && onClose()
+        if (changes?.confirmDataLayout) {
+          handleRequestCustomerAddress()
+        }
 
-        if (!image && !dontToggleEditMode) {
+        if (!changes?.confirmDataLayout) {
+          onClose && onClose()
+        }
+
+        if (!image && !options?.dontToggleEditMode) {
           setIsEdit(!isEdit)
         }
       }
@@ -236,7 +272,6 @@ export const UserFormDetails = (props) => {
         }
       })
     }
-    reader.onerror = error => console.log(error)
   }
 
   /**
@@ -275,12 +310,7 @@ export const UserFormDetails = (props) => {
       setUserState({ ...userState, loadingDriver: true })
       const response = await ordering
         .users(session?.user?.id)
-        .save(
-          { available: newValue },
-          {
-            accessToken
-          }
-        )
+        .save({ available: newValue }, { accessToken })
 
       if (response.content.error) {
         setUserState({
@@ -294,7 +324,7 @@ export const UserFormDetails = (props) => {
         setUserState({
           ...userState,
           loadingDriver: false,
-          result: { ...response.content }
+          result: response.content
         })
         changeUser({
           ...session.user,
@@ -307,8 +337,8 @@ export const UserFormDetails = (props) => {
           ...userState,
           loadingDriver: false,
           result: {
-            error: true,
-            result: err.message
+            ...userState.result,
+            error: err?.message ?? err
           }
         })
       }
@@ -321,7 +351,7 @@ export const UserFormDetails = (props) => {
    */
   const sendVerifyPhoneCode = async (values) => {
     const body = {
-      cellphone: values.cellphone,
+      cellphone: cellphoneStartZero || values.cellphone,
       country_phone_code: parseInt(values.country_phone_code)
     }
     try {
@@ -463,12 +493,53 @@ export const UserFormDetails = (props) => {
         result: res?.result,
         error: res?.error
       })
+      return res.result
     } catch (error) {
       setAccountState({
         ...removeAccountState,
         loading: false,
         error: error.message
       })
+    }
+  }
+
+  const handleRequestCustomerAddress = async () => {
+    try {
+      setFormState({
+        ...formState,
+        loading: true
+      })
+      const response = await fetch(`${ordering.root}/actions/run/custom`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+          'X-App-X': ordering.appId,
+          'X-Socket-Id-X': socket?.getId()
+        },
+        body: JSON.stringify({
+          action: 'request_customer_address',
+          user_token_required: true,
+          user_id: props?.userData?.id || userState.result.result.id,
+          user_token_expiration_time: 10
+        })
+      })
+      const { result, error } = await response.json()
+      if (error) {
+        showToast(ToastType.Error, result, 5000)
+        setFormState({
+          ...formState,
+          loading: false
+        })
+        return
+      }
+      setFormState({
+        ...formState,
+        loading: false
+      })
+      setUserConfirmPhone && setUserConfirmPhone({ result, open: false })
+    } catch (err) {
+      showToast(ToastType.Error, err.message, 5000)
     }
   }
 
@@ -532,6 +603,8 @@ export const UserFormDetails = (props) => {
           handleChangePromotions={handleChangePromotions}
           handleRemoveAccount={handleRemoveAccount}
           handleChangeNotifications={handleChangeNotifications}
+          handleRequestCustomerAddress={handleRequestCustomerAddress}
+          setCellphoneStartZero={setCellphoneStartZero}
         />
       )}
     </>
@@ -628,26 +701,6 @@ UserFormDetails.propTypes = {
     }
   },
   /**
-   * Components types before user details form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after user details form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before user details form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after user details form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element),
-  /**
    * Url to login page
    * Url to create element link to login page
    */
@@ -659,12 +712,8 @@ UserFormDetails.propTypes = {
   elementLinkToLogin: PropTypes.element
 }
 
-UserFormDetails.defaultProps = {
+const defaultProps = {
   useValidationFields: false,
   validationFieldsType: 'checkout',
-  useDefualtSessionManager: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  useDefualtSessionManager: true
 }

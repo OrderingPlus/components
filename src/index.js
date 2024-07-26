@@ -11,6 +11,7 @@ import { BusinessInformation } from './components/BusinessInformation'
 import { BusinessMenuListing } from './components/BusinessMenuListing'
 import { BusinessProductsCategories } from './components/BusinessProductsCategories'
 import { BusinessProductsSearch } from './components/BusinessProductsSearch'
+import { BusinessReservation } from './components/BusinessReservation'
 import { BusinessReviews } from './components/BusinessReviews'
 import { BusinessSortControl } from './components/BusinessSortControl'
 import { BusinessTypeFilter } from './components/BusinessTypeFilter'
@@ -31,9 +32,11 @@ import { FirebaseGoogleLoginButton } from './components/FirebaseGoogleLoginButto
 import { ForgotPasswordForm } from './components/ForgotPasswordForm'
 import { GiftCardOrdersList } from './components/GiftCard/GiftCardOrdersList'
 import { GoogleLoginButton } from './components/GoogleLoginButton'
-import { GoogleAutocompleteInput } from './components/GoogleAutocompleteInput'
-import { GoogleMaps, GoogleMapsMap } from './components/GoogleMaps'
-import { GpsButton, GoogleGpsButton } from './components/GpsButton'
+import { AutocompleteInput as GoogleAutocompleteInput } from './components/GoogleAutocompleteInput'
+import { GoogleMaps } from './components/GoogleMaps'
+import { GoogleMaps as GoogleMapsMap } from './components/GoogleMaps'
+import { GpsButton } from './components/GpsButton'
+import { GpsButton as GoogleGpsButton } from './components/GpsButton'
 import { GoogleIdentityButton } from './components/GoogleIdentity'
 import { LanguageSelector } from './components/LanguageSelector'
 import { LoginForm } from './components/LoginForm'
@@ -60,6 +63,7 @@ import { ProductForm } from './components/ProductForm'
 import { ProductShare } from './components/ProductShare'
 import { ProductImages } from './components/ProductImages'
 import { ProductIngredient } from './components/ProductIngredient'
+import { ProductItemAccordion } from './components/ProductItemAccordion'
 import { ProductOption } from './components/ProductOption'
 import { ProductOptionSuboption } from './components/ProductOptionSuboption'
 import { ProductsList } from './components/ProductsList'
@@ -81,7 +85,6 @@ import { SmartAppBanner } from './components/SmartAppBanner'
 import { StoreProductList } from './components/StoreProductList'
 import { UserFormDetails } from './components/UserFormDetails'
 import { UpsellingPage } from './components/UpsellingPage'
-import { WrapperGoogleMaps } from './components/WrapperGoogleMaps'
 import { OrderDetails } from './components/OrderDetails'
 import { OrderVerticalList } from './components/OrderVerticalList'
 import { OrderReview } from './components/OrderReview'
@@ -180,6 +183,7 @@ export {
   BusinessMenuListing,
   BusinessProductsCategories,
   BusinessProductsSearch,
+  BusinessReservation,
   BusinessReviews,
   BusinessSortControl,
   BusinessTypeFilter,
@@ -236,6 +240,7 @@ export {
   ProductShare,
   ProductImages,
   ProductIngredient,
+  ProductItemAccordion,
   ProductOption,
   ProductOptionSuboption,
   ProductsList,
@@ -256,7 +261,6 @@ export {
   StoreProductList,
   UserFormDetails,
   UpsellingPage,
-  WrapperGoogleMaps,
   OrderDetails,
   OrderReview,
   PaymentOptionCash,

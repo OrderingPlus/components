@@ -73,5 +73,3 @@ RedeemGiftCard.propTypes = {
    */
   UIComponent: PropTypes.elementType
 }
-
-RedeemGiftCard.defaultProps = {}

@@ -11,6 +11,7 @@ import { useEvent } from '../../contexts/EventContext'
 import dayjs from 'dayjs'
 
 export const OrderList = props => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     orders,
@@ -745,37 +746,13 @@ OrderList.propTypes = {
     initialPage: PropTypes.number,
     pageSize: PropTypes.number,
     controlType: PropTypes.oneOf(['infinity', 'pages'])
-  }),
-  /**
-   * Components types before Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  })
 }
 
-OrderList.defaultProps = {
+const defaultProps = {
   orderBy: 'id',
   orderDirection: 'desc',
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: [],
   isAsCustomer: false,
   propsToFetchBusiness: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'featured', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id']
 }

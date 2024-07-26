@@ -12,6 +12,7 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
  * Component to manage login behavior without UI component
  */
 export const LoginForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     handleButtonLoginClick,
@@ -27,33 +28,16 @@ export const LoginForm = (props) => {
   const [ordering] = useApi()
   const socket = useWebsocket()
   let { defaultLoginTab } = props
-  const [formState, setFormState] = useState({
-    loading: false,
-    result: { error: false }
-  })
-  const [credentials, setCredentials] = useState({
-    email: '',
-    cellphone: '',
-    password: ''
-  })
-  const [verifyPhoneState, setVerifyPhoneState] = useState({
-    loading: false,
-    result: { error: false }
-  })
-  const [checkPhoneCodeState, setCheckPhoneCodeState] = useState({
-    loading: false,
-    result: { error: false }
-  })
+  const [formState, setFormState] = useState({ loading: false, result: { error: false } })
+  const [credentials, setCredentials] = useState({ email: '', cellphone: '', password: '' })
+  const [verifyPhoneState, setVerifyPhoneState] = useState({ loading: false, result: { error: false } })
+  const [checkPhoneCodeState, setCheckPhoneCodeState] = useState({ loading: false, result: { error: false } })
   const [events] = useEvent()
   const [{ configs }] = useConfig()
-  const [reCaptchaValue, setReCaptchaValue] = useState({
-    code: '',
-    version: ''
-  })
+  const [reCaptchaValue, setReCaptchaValue] = useState({ code: '', version: '' })
   const [isReCaptchaEnable, setIsReCaptchaEnable] = useState(false)
-
-  const useLoginByCellphone =
-    configs?.phone_password_login_enabled?.value === '1'
+  const [cellphoneStartZero, setCellphoneStartZero] = useState(null)
+  const useLoginByCellphone = configs?.phone_password_login_enabled?.value === '1'
   const useLoginOtpEmail = configs?.opt_email_enabled?.value === '1'
   const useLoginOtpCellphone = configs?.otp_cellphone_enabled?.value === '1'
   const useLoginByEmail =
@@ -62,18 +46,11 @@ export const LoginForm = (props) => {
       : true
   const useLoginSpoonity = configs?.spoonity_enabled?.value === '1'
   const useLoginOtp = useLoginOtpEmail || useLoginOtpCellphone
-  const isDeviceLoginEnabled =
-    configs?.device_code_login_enabled?.value === '1'
+  const isDeviceLoginEnabled = configs?.device_code_login_enabled?.value === '1'
 
-  defaultLoginTab = useLoginByEmail
-    ? 'email'
-    : useLoginByCellphone
-      ? 'cellphone'
-      : 'otp'
+  defaultLoginTab = useLoginByEmail ? 'email' : useLoginByCellphone ? 'cellphone' : 'otp'
   const [loginTab, setLoginTab] = useState(defaultLoginTab)
-  const [otpType, setOtpType] = useState(
-    !useLoginOtpEmail && useLoginOtpCellphone ? 'cellphone' : 'email'
-  )
+  const [otpType, setOtpType] = useState((!useLoginOtpEmail && useLoginOtpCellphone) ? 'cellphone' : 'email')
   const [otpState, setOtpState] = useState('')
 
   const [{ user }, { login, logout }] = useSession()
@@ -119,10 +96,7 @@ export const LoginForm = (props) => {
           setFormState({
             result: {
               error: true,
-              result: t(
-                'RECAPTCHA_VALIDATION_IS_REQUIRED',
-                'The captcha validation is required'
-              )
+              result: t('RECAPTCHA_VALIDATION_IS_REQUIRED', 'The captcha validation is required')
             },
             loading: false
           })
@@ -137,8 +111,10 @@ export const LoginForm = (props) => {
       if (_credentials?.cellphone?.includes('+')) {
         const parsedNumber = parsePhoneNumber(_credentials.cellphone)
         const cellphone = parsedNumber?.nationalNumber
-
         _credentials.cellphone = cellphone
+        if (cellphoneStartZero) {
+          _credentials.cellphone = cellphoneStartZero
+        }
       }
 
       if (notificationState?.notification_token) {
@@ -148,9 +124,7 @@ export const LoginForm = (props) => {
 
       if (isGuest && user?.guest_id) _credentials.guest_token = user?.guest_id
 
-      const {
-        content: { error, result }
-      } = await ordering.users().auth(_credentials)
+      const { content: { error, result } } = await ordering.users().auth(_credentials)
 
       if (isReCaptchaEnable && window?.grecaptcha) {
         _credentials.recaptcha_type === 'v2' && window.grecaptcha.reset()
@@ -164,22 +138,14 @@ export const LoginForm = (props) => {
             const accessToken = session?.access_token
             if (!allowedLevels.includes(level)) {
               try {
-                const { content: logoutResp } = await ordering
-                  .setAccessToken(accessToken)
-                  .users()
-                  .logout()
+                const { content: logoutResp } = await ordering.setAccessToken(accessToken).users().logout()
                 if (!logoutResp.error) {
                   logout()
                 }
                 setFormState({
                   result: {
                     error: true,
-                    result: [
-                      t(
-                        'YOU_DO_NOT_HAVE_PERMISSION',
-                        'Your session have been closed'
-                      )
-                    ]
+                    result: [t('YOU_DO_NOT_HAVE_PERMISSION', 'Your session have been closed')]
                   },
                   loading: false
                 })
@@ -238,19 +204,12 @@ export const LoginForm = (props) => {
   }
 
   useEffect(() => {
-    setIsReCaptchaEnable(
-      props.isRecaptchaEnable &&
-        configs &&
-        Object.keys(configs).length > 0 &&
-        configs?.security_recaptcha_auth?.value === '1'
-    )
+    setIsReCaptchaEnable(props.isRecaptchaEnable && configs &&
+      Object.keys(configs).length > 0 &&
+      configs?.security_recaptcha_auth?.value === '1')
 
-    setOtpType(
-      !useLoginOtpEmail && useLoginOtpCellphone ? 'cellphone' : 'email'
-    )
-    setLoginTab(
-      useLoginByEmail ? 'email' : useLoginByCellphone ? 'cellphone' : 'otp'
-    )
+    setOtpType((!useLoginOtpEmail && useLoginOtpCellphone) ? 'cellphone' : 'email')
+    setLoginTab(useLoginByEmail ? 'email' : useLoginByCellphone ? 'cellphone' : 'otp')
   }, [configs])
 
   /**
@@ -278,10 +237,7 @@ export const LoginForm = (props) => {
    */
   const sendVerifyPhoneCode = async (values) => {
     try {
-      setCheckPhoneCodeState({
-        ...checkPhoneCodeState,
-        result: { error: false }
-      })
+      setCheckPhoneCodeState({ ...checkPhoneCodeState, result: { error: false } })
       setVerifyPhoneState({ ...verifyPhoneState, loading: true })
       const response = await fetch(`${ordering.root}/auth/sms/twilio/verify`, {
         method: 'POST',
@@ -291,7 +247,7 @@ export const LoginForm = (props) => {
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify({
-          cellphone: values.cellphone,
+          cellphone: cellphoneStartZero || values.cellphone,
           country_phone_code: `+${values.country_phone_code}`
         })
       })
@@ -373,11 +329,8 @@ export const LoginForm = (props) => {
       size: 6
     }
     const email = values?.email || credentials?.email
-    const cellphone = values?.cellphone || credentials?.cellphone
-    const countryPhoneCode =
-      values?.countryPhoneCode ||
-      values?.country_phone_code ||
-      credentials.country_phone_code
+    const cellphone = cellphoneStartZero || values?.cellphone || credentials?.cellphone
+    const countryPhoneCode = values?.countryPhoneCode || values?.country_phone_code || credentials.country_phone_code
 
     try {
       if (otpType === 'cellphone') {
@@ -404,21 +357,12 @@ export const LoginForm = (props) => {
       })
       const { result, error } = await response.json()
       if (!error) {
-        setCheckPhoneCodeState({
-          ...checkPhoneCodeState,
-          result: { result, error: null }
-        })
+        setCheckPhoneCodeState({ ...checkPhoneCodeState, result: { result, error: null } })
         return
       }
-      setCheckPhoneCodeState({
-        ...checkPhoneCodeState,
-        result: { error: result }
-      })
+      setCheckPhoneCodeState({ ...checkPhoneCodeState, result: { error: result } })
     } catch (err) {
-      setCheckPhoneCodeState({
-        ...checkPhoneCodeState,
-        result: { error: err.message }
-      })
+      setCheckPhoneCodeState({ ...checkPhoneCodeState, result: { error: err.message } })
     }
   }
 
@@ -501,6 +445,7 @@ export const LoginForm = (props) => {
           useLoginOtpCellphone={useLoginOtpCellphone}
           useLoginSpoonity={useLoginSpoonity}
           handleLoginSpoonity={handleLoginSpoonity}
+          setCellphoneStartZero={setCellphoneStartZero}
         />
       )}
     </>
@@ -540,26 +485,6 @@ LoginForm.propTypes = {
    */
   defaultLoginTab: PropTypes.string,
   /**
-   * Components types before login form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after login form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after login form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element),
-  /**
    * Url to signup page
    * Url to create element link to signup page
    */
@@ -581,12 +506,8 @@ LoginForm.propTypes = {
   elementLinkToForgotPassword: PropTypes.element
 }
 
-LoginForm.defaultProps = {
+const defaultProps = {
   defaultLoginTab: 'email',
   useLoginByEmail: true,
-  useDefualtSessionManager: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  useDefualtSessionManager: true
 }

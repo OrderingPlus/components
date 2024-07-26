@@ -8,6 +8,7 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
 import { useEvent } from '../../contexts/EventContext'
 
 export const ReviewProduct = (props) => {
+  props = { ...defaultProps, ...props }
   const { UIComponent, order, isToast, hashKey } = props
 
   const [ordering] = useApi()
@@ -130,33 +131,9 @@ ReviewProduct.propTypes = {
   /**
    * Enable to show/hide toast
    */
-  isToast: PropTypes.bool,
-  /**
-   * Components types before payment option cash
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after payment option cash
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before payment option cash
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after payment option cash
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  isToast: PropTypes.bool
 }
 
-ReviewProduct.defaultProps = {
-  order: {},
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  order: {}
 }

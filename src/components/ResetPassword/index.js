@@ -80,32 +80,5 @@ ResetPassword.propTypes = {
   /**
    * handleCustomClick, function to get click event and return data without default behavior
    */
-  handleCustomResetPassword: PropTypes.func,
-  /**
-   * Components types before products list
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after products list
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before products list
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after products list
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-ResetPassword.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  handleCustomResetPassword: PropTypes.func
 }

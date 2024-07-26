@@ -7,6 +7,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const ReviewDriver = (props) => {
+  props = { ...defaultProps, ...props }
   const { UIComponent, order, isToast, isProfessional, hashKey } = props
 
   const [ordering] = useApi()
@@ -125,33 +126,9 @@ ReviewDriver.propTypes = {
   /**
    * Enable to show/hide toast
    */
-  isToast: PropTypes.bool,
-  /**
-   * Components types before payment option cash
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after payment option cash
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before payment option cash
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after payment option cash
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  isToast: PropTypes.bool
 }
 
-ReviewDriver.defaultProps = {
-  order: {},
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  order: {}
 }

@@ -4,11 +4,14 @@ import { useApi } from '../../contexts/ApiContext'
 import { useOrder } from '../../contexts/OrderContext'
 
 export const ProductsListing = (props) => {
+  props = { ...defaultProps, ...props }
   const {
+    useCategorySelectedForProducts,
     isSearchByName,
     isSearchByDescription,
     businessId,
-    UIComponent
+    UIComponent,
+    categorySelected
   } = props
 
   const [ordering] = useApi()
@@ -21,7 +24,7 @@ export const ProductsListing = (props) => {
   /**
    * This must be contains category selected by user
    */
-  const [categoryValue, setCategoryValue] = useState(null)
+  const [categoryValue, setCategoryValue] = useState(categorySelected)
   /**
    * Object to save products, loading and error values
    */
@@ -61,13 +64,16 @@ export const ProductsListing = (props) => {
         ...productsList,
         loading: true
       })
-      const { content: { result } } = await ordering
-        .businesses(businessId)
-        .products()
+      const businessesFetch = ordering.businesses(businessId)
+      const fetchFunction =
+        useCategorySelectedForProducts && categoryValue
+          ? businessesFetch.categories(categoryValue?.id).products()
+          : businessesFetch
+      const { content: { result } } = await fetchFunction
         .parameters({ type: orderState.options?.type || 1 })
         .get()
 
-      const productsFiltered = searchValue || categoryValue
+      const productsFiltered = (searchValue || categoryValue) && !useCategorySelectedForProducts
         ? result.filter(product => isMatchSearch(product.name, product.description) && isMatchCategory(product.category_id))
         : result
 
@@ -133,34 +139,10 @@ ProductsListing.propTypes = {
   /**
    * Enable/disable search by description
    */
-  isSearchByDescription: PropTypes.bool,
-  /**
-   * Components types before products listing
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after products listing
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before products listing
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after products listing
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  isSearchByDescription: PropTypes.bool
 }
 
-ProductsListing.defaultProps = {
+const defaultProps = {
   isSearchByName: true,
-  isSearchByDescription: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  isSearchByDescription: true
 }

@@ -1,4 +1,4 @@
-# OrderingX - Components
+# OrderingPlus - Components
 
 ## Description
 
@@ -15,3 +15,8 @@ To use these components, simply import them into your project and pass in the ne
 ## Installation
 
 These components can be used as a submodule in another repository. To do so, add this repository as a submodule to your project. Once added, you can import the components directly from the submodule. This allows you to keep your project and these components separate, making updates and maintenance easier.
+
+## Format code
+
+run `yarn lint` to execute the linter.
+

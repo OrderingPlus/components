@@ -13,6 +13,7 @@ import parsePhoneNumber from 'libphonenumber-js'
  * Component to manage signup behavior without UI component
  */
 export const SignupForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     useChekoutFileds,
@@ -45,6 +46,7 @@ export const SignupForm = (props) => {
   const [reCaptchaValue, setReCaptchaValue] = useState({ code: '', version: '' })
   const [isReCaptchaEnable, setIsReCaptchaEnable] = useState(false)
   const [promotionsEnabled, setPromotionsEnabled] = useState(false)
+  const [cellphoneStartZero, setCellphoneStartZero] = useState(null)
 
   const useSignUpOtpEmail = configs?.email_otp_signup_enabled?.value === '1' && !isCustomerMode
   const useSignUpOtpCellphone = configs?.phone_otp_signup_enabled?.value === '1' && !isCustomerMode
@@ -104,6 +106,10 @@ export const SignupForm = (props) => {
         newData.cellphone = `787${newData.cellphone}`
         newData.country_phone_code = '1'
       }
+    }
+
+    if (cellphoneStartZero) {
+      newData.cellphone = cellphoneStartZero
     }
 
     try {
@@ -206,7 +212,7 @@ export const SignupForm = (props) => {
         },
         body: JSON.stringify({
           ...values,
-          cellphone: values.cellphone,
+          cellphone: cellphoneStartZero || values.cellphone,
           country_phone_code: `+${values.country_phone_code}`
         })
       })
@@ -245,7 +251,7 @@ export const SignupForm = (props) => {
       size: 6
     }
     const email = values?.email || signupData?.email
-    const cellphone = values?.cellphone || signupData?.cellphone
+    const cellphone = cellphoneStartZero || values?.cellphone || signupData?.cellphone
     const countryPhoneCode = values?.country_phone_code || signupData.country_phone_code
 
     setSignupData({
@@ -313,6 +319,7 @@ export const SignupForm = (props) => {
     const body = {
       ...values
     }
+    if (isGuest && user?.guest_id) body.guest_token = user?.guest_id
     try {
       setCheckPhoneCodeState({ ...checkPhoneCodeState, loading: true })
       if (notificationState?.notification_token) {
@@ -374,6 +381,7 @@ export const SignupForm = (props) => {
         _credentials.verification_code = reCaptchaValue
       }
     }
+    if (isGuest && user?.guest_id) _credentials.guest_token = user?.guest_id
 
     try {
       setCheckPhoneCodeState({ ...checkPhoneCodeState, loading: true, result: { error: false } })
@@ -468,6 +476,7 @@ export const SignupForm = (props) => {
           setSignUpTab={setSignUpTab}
           signUpTab={signUpTab}
           setWillVerifyOtpState={setWillVerifyOtpState}
+          setCellphoneStartZero={setCellphoneStartZero}
           willVerifyOtpState={willVerifyOtpState}
           useSignUpFullDetails={useSignUpFullDetails}
           useSignUpOtpEmail={useSignUpOtpEmail}
@@ -509,26 +518,6 @@ SignupForm.propTypes = {
    */
   handleCustomSendReview: PropTypes.func,
   /**
-   * Components types before signup form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after signup form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before signup form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after signup form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element),
-  /**
    * Url to login page
    * Url to create element link to login page
    */
@@ -540,10 +529,6 @@ SignupForm.propTypes = {
   elementLinkToLogin: PropTypes.element
 }
 
-SignupForm.defaultProps = {
-  useChekoutFileds: false,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  useChekoutFileds: false
 }

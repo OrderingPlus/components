@@ -1,14 +1,15 @@
 import React, { useEffect, useRef } from 'react'
 import PropTypes, { string } from 'prop-types'
-import { WrapperGoogleMaps } from '../WrapperGoogleMaps'
+import { useGoogleMaps } from '../../hooks/useGoogleMaps'
 
 /**
  * Component to make an input with Google Autocomplete
  * @param {object} props Props of AutocompleteInput component
  */
-const AutocompleteInput = (props) => {
+export const AutocompleteInput = (props) => {
+  props = { ...defaultProps, ...props }
   const {
-    googleReady,
+    apiKey,
     onChangeAddress,
     types,
     fields,
@@ -16,6 +17,7 @@ const AutocompleteInput = (props) => {
     childRef
   } = props
 
+  const [googleReady] = useGoogleMaps(apiKey)
   const inputRef = useRef()
 
   const inputProps = {}
@@ -108,7 +110,7 @@ const AutocompleteInput = (props) => {
     <input
       {...inputProps}
       autoComplete='new-field'
-      disabled={!props.googleReady}
+      disabled={!googleReady}
       ref={(e) => {
         inputRef.current = e
         childRef && childRef(e)
@@ -145,10 +147,8 @@ AutocompleteInput.propTypes = {
   onChangeAddress: PropTypes.func
 }
 
-AutocompleteInput.defaultProps = {
+const defaultProps = {
   types: [],
   fields: ['ALL'],
   countryCode: '*'
 }
-
-export const GoogleAutocompleteInput = WrapperGoogleMaps(AutocompleteInput)

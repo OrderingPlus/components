@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import moment from 'moment'
-import * as Sentry from '@sentry/react'
 import { useOrder } from '../../contexts/OrderContext'
 import { useConfig } from '../../contexts/ConfigContext'
 import { useApi } from '../../contexts/ApiContext'
@@ -12,6 +11,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const ProductForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     useOrderContext,
@@ -154,11 +154,6 @@ export const ProductForm = (props) => {
   const maxProductQuantity = Math.min(maxCartProductConfig, maxCartProductInventory)
 
   /**
-   * alsea validation
-   */
-  const isAlsea = ['alsea', 'alsea-staging'].includes(ordering.project)
-
-  /**
    * Init product cart status
    * @param {object} product Product to init product cart status
    */
@@ -221,7 +216,6 @@ export const ProductForm = (props) => {
     if (!product || !user) return
     showToast(ToastType.Info, t('LOADING', 'loading'))
     try {
-      setProduct({ ...product, loading: true, error: null })
       const productId = productFav?.id
       const changes = { object_id: productId }
       const requestOptions = {
@@ -240,23 +234,15 @@ export const ProductForm = (props) => {
       const response = await fetch(fetchEndpoint, requestOptions)
       const content = await response.json()
       if (!content.error) {
-        loadProductWithOptions()
         handleUpdateProducts && handleUpdateProducts(productId, { favorite: isAdd })
+        const newProductCart = JSON.parse(JSON.stringify(productCart))
+        newProductCart.favorite = isAdd
+        setProductCart(newProductCart)
         showToast(ToastType.Success, isAdd ? t('FAVORITE_ADDED', 'Favorite added') : t('FAVORITE_REMOVED', 'Favorite removed'))
       } else {
-        setProduct({
-          ...product,
-          loading: false,
-          error: content.result
-        })
         showToast(ToastType.Error, content.result)
       }
     } catch (error) {
-      setProduct({
-        ...product,
-        loading: false,
-        error: [error.message]
-      })
       showToast(ToastType.Error, [error.message])
     }
   }
@@ -422,9 +408,7 @@ export const ProductForm = (props) => {
           price: state?.id === cartSuboption?.id ? state.price : price,
           quantity: state?.id === cartSuboption?.id
             ? state.quantity
-            : preselectedOptions[i]?.name?.toLowerCase() === 'queso y salsa' && isAlsea
-              ? cartSuboption?.quantity ?? 1
-              : cartSuboption?.quantity || 1,
+            : cartSuboption?.quantity || 1,
           selected: true,
           total: state?.id === cartSuboption?.id ? state.total : price
         }
@@ -572,7 +556,10 @@ export const ProductForm = (props) => {
         handleCustomSave && handleCustomSave()
       }
       const errors = checkErrors()
-      if (Object.keys(errors).length === 0 || isService) {
+      const isMultiProduct = JSON.parse(product?.product?.meta || '{}')?.external_type === 'coupon'
+      const hasAlreadyCoupon = cart?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value && isMultiProduct
+
+      if ((Object.keys(errors).length === 0 || isService) && !hasAlreadyCoupon) {
         let successful = true
         if (useOrderContext) {
           successful = false
@@ -613,10 +600,15 @@ export const ProductForm = (props) => {
         } else {
           showToast(
             ToastType.Error,
-            !props.productCart?.code ? t('FAILED_TO_ADD_PRODUCT', 'Failed to add product') : t('FAILED_TO_UPDATE_PRODUCT', 'Failed to update product'),
-            5000
+            !props.productCart?.code ? t('FAILED_TO_ADD_PRODUCT', 'Failed to add product') : t('FAILED_TO_UPDATE_PRODUCT', 'Failed to update product')
           )
         }
+      }
+      if (hasAlreadyCoupon) {
+        showToast(
+          ToastType.Error,
+          t('COUPON_ALREADY_ADDED', 'You have a coupon already added')
+        )
       }
       setProductLoading && setProductLoading(false)
     } catch (err) {
@@ -752,15 +744,10 @@ export const ProductForm = (props) => {
             ...newPizzaState,
             [`option:${option?.id}`]: {
               ...newPizzaState?.[`option:${option?.id}`],
-              [`suboption:${preselectedSuboptions[i]?.id}`]:
-                isAlsea
-                  ? (states[i]?.position === 'whole' ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0)
-                  : (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
+              [`suboption:${preselectedSuboptions[i]?.id}`]: (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
             }
           }
-          const suboptionValue = isAlsea
-            ? ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0))
-            : ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity)
+          const suboptionValue = (states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity
 
           const value = suboptionValue + (newPizzaState[`option:${option?.id}`].value || 0)
           newPizzaState[`option:${option?.id}`].value = value
@@ -811,7 +798,6 @@ export const ProductForm = (props) => {
 
   const checkSuboptionsSelected = (suboptionId, _selectedSuboptions, _dependsSuboptions, count = 0) => {
     if (count > 100) {
-      Sentry.captureMessage('Suboptions selected bucle, more than 100 iterations')
       return false
     }
     if (!_selectedSuboptions[`suboption:${suboptionId}`]) {
@@ -912,14 +898,10 @@ export const ProductForm = (props) => {
             ...newPizzaState,
             [`option:${option?.id}`]: {
               ...newPizzaState?.[`option:${option?.id}`],
-              [`suboption:${preselectedSuboptions[i]?.id}`]: isAlsea
-                ? (states[i]?.position === 'whole' ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0)
-                : (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
+              [`suboption:${preselectedSuboptions[i]?.id}`]: (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
             }
           }
-          const suboptionValue = isAlsea
-            ? ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) + (states[i].quantity >= 2 ? 0.5 : 0))
-            : ((states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity)
+          const suboptionValue = (states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity
 
           const value = suboptionValue + (newPizzaState[`option:${option?.id}`].value || 0)
           newPizzaState[`option:${option?.id}`].value = value
@@ -1040,7 +1022,6 @@ export const ProductForm = (props) => {
             handleChangeCommentState={handleChangeCommentState}
             professionalListState={professionalListState}
             cart2={props.productCart}
-            isAlsea={isAlsea}
           />
         )
       }
@@ -1083,7 +1064,7 @@ ProductForm.propTypes = {
   onSave: PropTypes.func
 }
 
-ProductForm.defaultProps = {
+const defaultProps = {
   productCart: {},
   useOrderContext: true,
   balance: 0

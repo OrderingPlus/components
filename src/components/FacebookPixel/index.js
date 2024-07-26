@@ -56,7 +56,6 @@ export const FacebookPixel = (props) => {
     })
   }
 
-  
   const handleProductEdited = (product) => {
     fbq('track', 'CustomizeProduct', {
       content_category: product?.category?.name,
@@ -144,5 +143,3 @@ FacebookPixel.propTypes = {
    */
   trackId: PropTypes.string.isRequired
 }
-
-FacebookPixel.defaultProps = {}

@@ -37,19 +37,37 @@ export const PaymentOptions = (props) => {
   const [paymethodData, setPaymethodData] = useState({})
   const [isOpenMethod, setIsOpenMethod] = useState({ paymethod: null })
 
+  const filterPaymentMethods = (paymentMethods) => {
+    const validations = {
+      stripe: (data) => !data?.publishable,
+      paypal: (data) => !Object.keys(data).length || !data?.client_id,
+      stripe_connect: (data) => !data?.stripe?.publishable,
+      google_pay: (data) => !data?.publishable,
+      apple_pay: (data) => !data?.publishable,
+      global_google_pay: (data) => !data?.publishable,
+      global_apple_pay: (data) => !data?.publishable
+    }
+
+    return paymentMethods.filter(method => {
+      const validation = validations?.[method?.paymethod?.gateway]
+      return validation ? !validation(method?.data) : true
+    })
+  }
+
   const parsePaymethods = (paymethods) => {
-    const _paymethods = paymethods && paymethods
-      .filter(credentials => isCustomerMode
-        ? !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway) &&
-          paymethodsCallcenterMode.includes(credentials?.paymethod?.gateway)
-        : !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway))
-      .map(credentials => {
-        return {
-          ...credentials?.paymethod,
-          sandbox: credentials?.sandbox,
-          credentials: credentials?.data
-        }
-      })
+    const _paymethods = paymethods &&
+      filterPaymentMethods(paymethods)
+        .filter(credentials => isCustomerMode
+          ? !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway) &&
+            paymethodsCallcenterMode.includes(credentials?.paymethod?.gateway)
+          : !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway))
+        .map(credentials => {
+          return {
+            ...credentials?.paymethod,
+            sandbox: credentials?.sandbox,
+            credentials: credentials?.data
+          }
+        })
     return _paymethods
   }
 
@@ -107,7 +125,7 @@ export const PaymentOptions = (props) => {
       paymethodsCustom(paymethod)
     }
     setPaymethodsSelected(paymethod)
-    setIsOpenMethod({ paymethod })
+    setIsOpenMethod({ ...isOpenMethod, paymethod })
     handlePaymethodDataChange({})
   }
 
@@ -230,32 +248,5 @@ PaymentOptions.propTypes = {
   /**
    * Get option selected
    */
-  onPaymentChange: PropTypes.func,
-  /**
-   * Components types before Payment Options
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Payment Options
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Payment Options
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Payment Options
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-PaymentOptions.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  onPaymentChange: PropTypes.func
 }

@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 export const BusinessOption = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     optionToShow,
     UIComponent
@@ -54,33 +55,9 @@ BusinessOption.propTypes = {
   /**
    * This must be containt all location info
    */
-  locationData: PropTypes.object,
-  /**
-   * Components types before business opening time
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after business opening time
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before business opening time
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after business opening time
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  locationData: PropTypes.object
 }
 
-BusinessOption.defaultProps = {
-  contentData: [],
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  contentData: []
 }

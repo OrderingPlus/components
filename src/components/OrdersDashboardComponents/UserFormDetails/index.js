@@ -8,6 +8,7 @@ import { useValidationFields as useValidationsFieldsController } from '../../../
  * Component to manage user form details behavior without UI component
  */
 export const UserFormDetails = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     useSessionUser,
@@ -289,7 +290,6 @@ export const UserFormDetails = (props) => {
         }
       })
     }
-    reader.onerror = error => console.log(error)
   }
 
   /**
@@ -421,26 +421,6 @@ UserFormDetails.propTypes = {
     }
   },
   /**
-   * Components types before user details form
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after user details form
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before user details form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after user details form
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element),
-  /**
    * Url to login page
    * Url to create element link to login page
    */
@@ -452,12 +432,8 @@ UserFormDetails.propTypes = {
   elementLinkToLogin: PropTypes.element
 }
 
-UserFormDetails.defaultProps = {
+const defaultProps = {
   useValidationFields: false,
   validationFieldsType: 'checkout',
-  useDefualtSessionManager: true,
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  useDefualtSessionManager: true
 }

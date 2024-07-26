@@ -19,7 +19,8 @@ export const OrderDetails = (props) => {
     driverAndBusinessId,
     sendCustomMessage,
     isDisabledOrdersRoom,
-    isDriverNotification
+    isDriverNotification,
+    isBusinessApp
   } = props
 
   const [{ user, token, loading }] = useSession()
@@ -41,6 +42,7 @@ export const OrderDetails = (props) => {
   const [forceUpdate, setForceUpdate] = useState(null)
   const [reorderState, setReorderState] = useState({ loading: false, result: [], error: null })
   const [cartState, setCartState] = useState({ loading: false, error: null })
+  const [showReservationAlert, setShowReservationAlert] = useState(false)
   /**
    * Method to accept or reject a logistic order
    */
@@ -198,6 +200,9 @@ export const OrderDetails = (props) => {
           order: Object.assign(orderState.order, result),
           loading: false
         })
+        if (result?.status === 7 && result?.reservation && isBusinessApp) {
+          setShowReservationAlert(true)
+        }
         return Object.assign(orderState.order, result)
       }
       if (error) {
@@ -367,9 +372,7 @@ export const OrderDetails = (props) => {
 
       setMessagesReadList(result)
       events.emit('order_message_read', orderState.order?.id)
-    } catch (e) {
-      console.log(e.message)
-    }
+    } catch {}
   }
 
   const getDrivers = async (orderId) => {
@@ -633,6 +636,8 @@ export const OrderDetails = (props) => {
           cartState={cartState}
           handleClickLogisticOrder={handleClickLogisticOrder}
           loadMessages={loadMessages}
+          showReservationAlert={showReservationAlert}
+          setShowReservationAlert={setShowReservationAlert}
         />
       )}
     </>
@@ -654,32 +659,5 @@ OrderDetails.propTypes = {
   /**
    * Order, this must be contains an object with all order info
    */
-  order: PropTypes.object,
-  /**
-   * Components types before order details
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after order details
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before order details
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after order details
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-OrderDetails.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  order: PropTypes.object
 }

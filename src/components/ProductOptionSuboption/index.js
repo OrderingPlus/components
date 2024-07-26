@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
  * Component to render product option suboption
  */
 export const ProductOptionSuboption = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     balance,
@@ -12,8 +13,7 @@ export const ProductOptionSuboption = (props) => {
     suboption,
     onChange,
     isOrigin,
-    pizzaState,
-    isAlsea
+    pizzaState
   } = props
 
   /**
@@ -24,7 +24,7 @@ export const ProductOptionSuboption = (props) => {
   if (selected && props.state.quantity && props.state.quantity > 0) {
     quantity = props.state.quantity
   } else if (selected) {
-    quantity = option?.name?.toLowerCase() === 'queso y salsa' && isAlsea ? props.state.quantity : 1
+    quantity = 1
   }
   const position = props.state.position || 'whole'
   const price = option.with_half_option && suboption.half_price && position !== 'whole' ? suboption.half_price : suboption.price
@@ -50,7 +50,7 @@ export const ProductOptionSuboption = (props) => {
     const selectStatus = isOrigin ? !state.selected : state.selected
     const minMaxValidation = option.with_half_option ? usePizzaValidation : (balance === option.max && !(option?.max === 1 && option?.min === 1))
     const canBeSelectedByHalf = (pizzaState?.[`option:${option?.id}`]?.value === (option.max - 0.5)) && option.with_half_option
-    if (selectStatus && (option.limit_suboptions_by_max || isAlsea) && minMaxValidation && !canBeSelectedByHalf) {
+    if (selectStatus && option.limit_suboptions_by_max && minMaxValidation && !canBeSelectedByHalf) {
       return
     }
     changeState({
@@ -174,7 +174,7 @@ ProductOptionSuboption.propTypes = {
   onChange: PropTypes.func
 }
 
-ProductOptionSuboption.defaultProps = {
+const defaultProps = {
   state: {},
   balance: 0
 }

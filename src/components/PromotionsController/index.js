@@ -5,6 +5,7 @@ import { useOrder } from '../../contexts/OrderContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const PromotionsController = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     paramsToFetch,
@@ -87,7 +88,7 @@ export const PromotionsController = (props) => {
   )
 }
 
-PromotionsController.defaultProps = {
+const defaultProps = {
   paramsToFetch: [
     'id',
     'name',

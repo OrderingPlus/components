@@ -11,8 +11,10 @@ export const LanguageContext = createContext()
  * Custom provider to languages manager
  * This provider has a reducer for manage languages state
  * @param {props} props
+ * {restOfProps} props
+ * This prop doesn't need permission from sdk put extra settings there.
  */
-export const LanguageProvider = ({ settings, children, strategy }) => {
+export const LanguageProvider = ({ settings, children, strategy, restOfProps }) => {
   const [state, setState] = useState({
     loading: true,
     dictionary: {}
@@ -24,6 +26,10 @@ export const LanguageProvider = ({ settings, children, strategy }) => {
   const setLanguageFromLocalStorage = async () => {
     const language = await strategy.getItem('language', true)
     if (!language) {
+      if (restOfProps?.use_project_domain) {
+        setState({ ...state, loading: false })
+        return
+      }
       loadDefaultLanguage()
     } else {
       setState({ ...state, language })
@@ -59,7 +65,20 @@ export const LanguageProvider = ({ settings, children, strategy }) => {
   const refreshTranslations = async () => {
     try {
       !state.loading && setState({ ...state, loading: true })
-      const { content: { error, result } } = await ordering.translations().asDictionary().get()
+      let params = {}
+      const conditons = []
+      const appInternalName = restOfProps?.app_internal_name ?? null
+      if (appInternalName) {
+        conditons.push({
+          attribute: 'product',
+          value: appInternalName
+        })
+        params = {
+          ...params,
+          version: 'v2'
+        }
+      }
+      const { content: { error, result } } = await ordering.translations().parameters(params).where(conditons).asDictionary().get()
       setState({
         ...state,
         loading: false,
@@ -105,9 +124,16 @@ export const LanguageProvider = ({ settings, children, strategy }) => {
    * Refresh translation when change language from ordering
    */
   useEffect(() => {
-    if (state.language?.code && state.language?.code === ordering.language) {
-      settings?.use_root_point && settings?.force_update_lang ? updateLanguageContext() : refreshTranslations()
+    const checkLanguage = async () => {
+      const isValidLanguage = !!(state?.language?.code && state?.language?.code === ordering?.language)
+      const isProjectDomain = restOfProps?.use_project_domain
+      if ((!isProjectDomain && isValidLanguage) || (isProjectDomain && !!ordering?.project && isValidLanguage)) {
+        const token = await strategy.getItem('token')
+        settings?.use_root_point && settings?.force_update_lang && !token ? updateLanguageContext() : refreshTranslations()
+      }
     }
+
+    checkLanguage()
   }, [state.language?.code, ordering])
 
   useEffect(() => {
@@ -120,7 +146,19 @@ export const LanguageProvider = ({ settings, children, strategy }) => {
   }, [state.language])
 
   const t = (key, fallback = null) => {
-    return (state?.dictionary && Object.keys(state?.dictionary).length > 0 && state.dictionary[key]) || fallback || key
+    let originalKey = key
+    const appInternalName = restOfProps.app_internal_name ?? null
+    if (appInternalName !== null) {
+      const prefix = `${appInternalName.toUpperCase()}_`
+      if (!key?.startsWith(prefix)) {
+        key = `${prefix}${key}`
+      } else {
+        originalKey = key.substring(prefix.length)
+      }
+    }
+    const textValue = state?.dictionary?.[key] ?? state?.dictionary?.[originalKey] ?? fallback ?? key
+
+    return textValue
   }
 
   return (

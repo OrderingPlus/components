@@ -10,6 +10,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
  * Component to manage custom order details behavior without UI component
  */
 export const CustomOrderDetails = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     businessPropsToFetch
@@ -233,6 +234,6 @@ CustomOrderDetails.propTypes = {
   UIComponent: PropTypes.elementType
 }
 
-CustomOrderDetails.defaultProps = {
+const defaultProps = {
   businessPropsToFetch: ['id', 'name', 'location', 'logo', 'slug']
 }

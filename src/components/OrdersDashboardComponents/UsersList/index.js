@@ -7,6 +7,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useEvent } from '../../../contexts/EventContext'
 
 export const UsersList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     defaultUserActiveState,
@@ -931,7 +932,7 @@ UsersList.propTypes = {
   propsToFetch: PropTypes.arrayOf(string)
 }
 
-UsersList.defaultProps = {
+const defaultProps = {
   propsToFetch: [
     'name', 'lastname', 'email', 'phone', 'photo', 'cellphone', 'schedule',
     'country_phone_code', 'city_id', 'city', 'address', 'addresses', 'max_days_in_future',

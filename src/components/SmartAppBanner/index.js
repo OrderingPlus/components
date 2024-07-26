@@ -3,6 +3,7 @@ import { useConfig } from '../../contexts/ConfigContext'
 import PropTypes from 'prop-types'
 
 export const SmartAppBanner = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     storeAndroidId,
@@ -64,7 +65,7 @@ SmartAppBanner.propTypes = {
   storeKindleId: PropTypes.string
 }
 
-SmartAppBanner.defaultProps = {
+const defaultProps = {
   storeAndroidId: '',
   storeAppleId: '',
   storeKindleId: ''

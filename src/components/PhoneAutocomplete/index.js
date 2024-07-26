@@ -7,21 +7,24 @@ import { useBusiness } from '../../contexts/BusinessContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { CODES } from '../../constants/code-numbers'
 import { TIMEZONES } from '../../constants/timezones'
+import { useConfig } from '../../contexts/ConfigContext'
 
 export const PhoneAutocomplete = (props) => {
-  const { UIComponent, isIos, businessSlug, urlPhone, propsToFetch } = props
+  props = { ...defaultProps, ...props }
+  const { UIComponent, isIos, businessSlug, urlPhone, propsToFetch, isFromUrlPhone } = props
 
   const [ordering] = useApi()
   const [{ user, token }] = useSession()
   const [orderState, { setUserCustomerOptions }] = useOrder()
   const [businessState] = useBusiness()
+  const [{ configs }] = useConfig()
   const userCustomer = JSON.parse(window.localStorage.getItem('user-customer'))
 
   const [phone, setPhone] = useState('')
   const [, t] = useLanguage()
   const [openModal, setOpenModal] = useState({ customer: false, signup: false, error: false })
   const [customerState, setCustomerState] = useState({ loading: false, result: { error: false } })
-  const [customersPhones, setCustomersPhones] = useState({ users: userCustomer ? [userCustomer] : [], loading: !!urlPhone, error: null })
+  const [customersPhones, setCustomersPhones] = useState({ users: userCustomer ? [userCustomer] : [], loading: !!urlPhone, error: null, fetched: false })
   const [businessAddress, setBusinessAddress] = useState(null)
   const [alertState, setAlertState] = useState({ open: true, content: [] })
   const [optionsState, setOptionsState] = useState({ loading: false })
@@ -31,10 +34,12 @@ export const PhoneAutocomplete = (props) => {
   /**
    * Get users from API
    */
-  const getUsers = async () => {
+  const getUsers = async (_phone) => {
     const maxRetries = 3
     const waitTime = 60000
-
+    const cellphone = _phone || phone || urlPhone
+    const cellphoneString = cellphone?.toString?.()
+    const cellphoneSplited = cellphoneString?.match?.(/.{1,7}/) || []
     for (let retryAttempt = 1; retryAttempt <= maxRetries; retryAttempt++) {
       try {
         setCustomersPhones({ ...customersPhones, loading: true })
@@ -49,15 +54,23 @@ export const PhoneAutocomplete = (props) => {
             conditions: [{
               attribute: 'cellphone',
               value: {
-                condition: 'ilike',
-                value: isIos ? `%${phone}%` : encodeURI(`%${phone}%`)
+                condition: isFromUrlPhone ? '=' : 'like',
+                value: isFromUrlPhone
+                  ? cellphoneString
+                  : isIos
+                    ? `%${cellphoneSplited?.[0] || cellphoneString}%`
+                    : encodeURI(`%${cellphoneSplited?.[0] || cellphoneString}%`)
               }
             },
             {
               attribute: 'phone',
               value: {
-                condition: 'ilike',
-                value: isIos ? `%${phone}%` : encodeURI(`%${phone}%`)
+                condition: isFromUrlPhone ? '=' : 'like',
+                value: isFromUrlPhone
+                  ? cellphoneString
+                  : isIos
+                    ? `%${cellphoneSplited?.[0] || cellphoneString}%`
+                    : encodeURI(`%${cellphoneSplited?.[0] || cellphoneString}%`)
               }
             }]
           }]
@@ -79,7 +92,8 @@ export const PhoneAutocomplete = (props) => {
 
         if (response.content && response.content.result) {
           const { result } = response.content
-          setCustomersPhones({ ...customersPhones, users: result, loading: false })
+          const users = result.filter(user => user.cellphone?.includes(cellphoneString))
+          setCustomersPhones({ ...customersPhones, users, loading: false, fetched: true })
           break
         } else {
           throw new Error('Error')
@@ -189,7 +203,8 @@ export const PhoneAutocomplete = (props) => {
     if (
       phone &&
       phone.length >= 7 &&
-      (customersPhones?.users?.length === 0 || phone.length === 7)
+      (customersPhones?.users?.length === 0 || phone.length === 7) &&
+      !customersPhones.loading
     ) {
       getUsers()
     }
@@ -217,15 +232,32 @@ export const PhoneAutocomplete = (props) => {
 
   useEffect(() => {
     if (!window.localStorage.getItem('local_phone_code')) {
+      const countriesElevenPhoneLength = ['GB']
+      const countriesElevenPhone = countriesElevenPhoneLength.find((val) => val === configs?.default_country_code?.value?.toUpperCase?.())
       const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       const localCountry = TIMEZONES[localTimezone]
-      const localPhoneCode = CODES.find(code => code.countryName === localCountry)?.phoneCode
+      const localPhoneCode = countriesElevenPhone
+        ? CODES.find(code => code.countryCode === countriesElevenPhone)?.phoneCode
+        : CODES.find(code => code.countryName === localCountry)?.phoneCode
+
       window.localStorage.setItem('local_phone_code', `+${localPhoneCode}`)
       setLocalPhoneCode(`+${localPhoneCode}`)
     } else {
       setLocalPhoneCode(window.localStorage.getItem('local_phone_code'))
     }
   }, [])
+
+  useEffect(() => {
+    if (userCustomer?.id && orderState?.options?.user_id && userCustomer?.id !== orderState?.options?.user_id) {
+      setUserCustomerOptions({
+        options: {
+          user_id: userCustomer?.id,
+          type: orderState?.options?.type
+        },
+        customer: userCustomer
+      })
+    }
+  }, [userCustomer?.id, orderState?.options?.user_id])
 
   return (
     <>
@@ -245,6 +277,7 @@ export const PhoneAutocomplete = (props) => {
           optionsState={optionsState}
           checkAddress={checkAddress}
           localPhoneCode={localPhoneCode}
+          getUsers={getUsers}
         />
       )}
     </>
@@ -254,33 +287,9 @@ PhoneAutocomplete.propTypes = {
   /**
    * UI Component, this must be containt all graphic elements and use parent props
    */
-  UIComponent: PropTypes.elementType,
-  /**
-   * Components types before payment option stripe direct
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after payment option stripe direct
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before payment option stripe direct
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after payment option stripe direct
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  UIComponent: PropTypes.elementType
 }
 
-PhoneAutocomplete.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: [],
+const defaultProps = {
   propsToFetch: ['name', 'lastname', 'email', 'phone', 'photo', 'cellphone', 'country_phone_code', 'city_id', 'city', 'address', 'addresses', 'address_notes', 'dropdown_option_id', 'dropdown_option', 'location', 'zipcode', 'level', 'enabled', 'middle_name', 'second_lastname', 'metadata']
 }

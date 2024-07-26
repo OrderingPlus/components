@@ -32,9 +32,7 @@ export const MainSearch = (props) => {
     try {
       const { response } = await ordering.countries().get()
       setAllListValues({ ...allListValues, countries: response?.data?.result })
-    } catch (error) {
-      console.log(error)
-    }
+    } catch {}
   }
   /**
    * Method to handle change values when searchByAddres is false
@@ -118,32 +116,5 @@ MainSearch.propTypes = {
   /**
    * Method to find business from API
    */
-  handlerFindBusiness: PropTypes.func,
-  /**
-   * Components types before main search
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after main search
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before main search
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after main search
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-MainSearch.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  handlerFindBusiness: PropTypes.func
 }

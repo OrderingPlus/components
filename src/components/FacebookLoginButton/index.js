@@ -6,6 +6,7 @@ import { useApi } from '../../contexts/ApiContext'
  * Component to manage Facebook login behavior without UI component
  */
 export const FacebookLoginButton = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     appId,
@@ -101,8 +102,7 @@ export const FacebookLoginButton = (props) => {
     if (window.FB) {
       setFormState({ ...formState, loading: true })
       window.FB.login((response) => {
-        window.FB.api('/me/permissions', (response) => { // only for tests
-          console.log(response)
+        window.FB.api('/me/permissions', (response) => { // only for test
         })
         if (response.status === 'connected') {
           setFormState({ loading: false, result: { error: false } })
@@ -180,35 +180,11 @@ FacebookLoginButton.propTypes = {
   /**
    * Facebook SDK domain
    */
-  domain: PropTypes.string,
-  /**
-   * Components types before Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Facebook login button
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Facebook login button
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  domain: PropTypes.string
 }
 
-FacebookLoginButton.defaultProps = {
+const defaultProps = {
   version: 'v7.0',
   language: 'en_US',
-  domain: 'connect.facebook.net',
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  domain: 'connect.facebook.net'
 }

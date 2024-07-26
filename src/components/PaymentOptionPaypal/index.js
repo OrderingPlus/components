@@ -7,6 +7,7 @@ import { useOrder } from '../../contexts/OrderContext'
  * Component to manage payment option paypal behavior without UI component
  */
 export const PaymentOptionPaypal = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     body,
     clientId,
@@ -113,34 +114,10 @@ PaymentOptionPaypal.propTypes = {
   /**
    * Method to get success response from paypal button
    */
-  handlerChangePaypal: PropTypes.func,
-  /**
-   * Components types before Payment options paypal
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Payment options paypal
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Payment options paypal
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Payment options paypal
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  handlerChangePaypal: PropTypes.func
 }
 
-PaymentOptionPaypal.defaultProps = {
+const defaultProps = {
   body: {},
-  currency: 'USD',
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  currency: 'USD'
 }

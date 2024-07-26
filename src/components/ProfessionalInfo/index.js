@@ -5,6 +5,7 @@ import { useApi } from '../../contexts/ApiContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const ProfessionalInfo = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     userId,
     propsToFetch,
@@ -119,34 +120,10 @@ ProfessionalInfo.propTypes = {
   /**
   * User, this must be contains an object with all user info
   */
-  user: PropTypes.object,
-  /**
-   * Components types before order details
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-    * Components types after order details
-    * Array of type components, the parent props will pass to these components
-    */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-    * Elements before order details
-    * Array of HTML/Components elements, these components will not get the parent props
-    */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-    * Elements after order details
-    * Array of HTML/Components elements, these components will not get the parent props
-    */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  user: PropTypes.object
 }
 
-ProfessionalInfo.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: [],
+const defaultProps = {
   propsToFetch: [
     'name', 'lastname', 'email', 'phone', 'photo', 'cellphone', 'country_phone_code', 'city_id', 'city', 'address',
     'addresses', 'address_notes', 'driver_zone_restriction', 'dropdown_option_id', 'dropdown_option', 'location', 'loyalty_level',

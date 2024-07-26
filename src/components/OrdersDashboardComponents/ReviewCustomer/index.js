@@ -7,6 +7,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useEvent } from '../../../contexts/EventContext'
 
 export const ReviewCustomer = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     order
@@ -81,33 +82,9 @@ ReviewCustomer.propTypes = {
   /**
    * UI Component, this must be containt all graphic elements and use parent props
    */
-  UIComponent: PropTypes.elementType,
-  /**
-   * Components types before review customer
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after review customer
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before review customer
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after review customer
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  UIComponent: PropTypes.elementType
 }
 
-ReviewCustomer.defaultProps = {
-  order: {},
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  order: {}
 }

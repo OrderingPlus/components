@@ -16,6 +16,7 @@ import { useValidationFields } from '../../../contexts/ValidationsFieldsContext'
  * Component to manage card form for stripe elements form behavior without UI component
  */
 export const CardForm = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     requirements,
@@ -243,6 +244,6 @@ CardForm.propTypes = {
   handleCustomSubmit: PropTypes.func
 }
 
-CardForm.defaultProps = {
+const defaultProps = {
   autosave: true
 }

@@ -79,5 +79,3 @@ SendGiftCard.propTypes = {
    */
   UIComponent: PropTypes.elementType
 }
-
-SendGiftCard.defaultProps = {}

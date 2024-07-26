@@ -156,5 +156,3 @@ export const WalletList = (props) => {
     </>
   )
 }
-
-WalletList.defaultProps = {}

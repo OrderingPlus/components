@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
-import { WrapperGoogleMaps } from '../WrapperGoogleMaps'
 
 import { useEvent } from '../../contexts/EventContext'
 import { useUtils } from '../../contexts/UtilsContext'
+import { useGoogleMaps } from '../../hooks/useGoogleMaps'
 
 export const GoogleMaps = (props) => {
   const {
-    googleReady,
+    apiKey,
     locations,
     mapControls,
     setErrors,
@@ -24,7 +24,8 @@ export const GoogleMaps = (props) => {
     useMapWithBusinessZones,
     deactiveAlerts,
     fallbackIcon,
-    manualZoom
+    manualZoom,
+    avoidFitBounds
   } = props
 
   const [{ optimizeImage }] = useUtils()
@@ -35,6 +36,7 @@ export const GoogleMaps = (props) => {
   const [googleMapMarker, setGoogleMapMarker] = useState(null)
   const [boundMap, setBoundMap] = useState(null)
   const [userActivity, setUserActivity] = useState(false)
+  const [googleReady] = useGoogleMaps(apiKey)
   const markerRef = useRef()
 
   const location = fixedLocation || props.location
@@ -82,7 +84,7 @@ export const GoogleMaps = (props) => {
               infowindow.setContent(locations[i]?.markerPopup)
               infowindow.open(map, marker)
             } else {
-              onBusinessClick(locations[i]?.slug)
+              onBusinessClick(locations[i]?.slug, locations[i])
             }
           })
           bounds.extend(marker.position)
@@ -93,12 +95,13 @@ export const GoogleMaps = (props) => {
         }
       } else {
         marker.addListener('click', () => {
-          onBusinessClick && onBusinessClick(locations[i]?.slug)
+          onBusinessClick && onBusinessClick(locations[i]?.slug, locations[i])
         })
         bounds.extend(marker.position)
         locationMarkers.push(marker)
       }
     }
+
     if (locationMarkers.length > 0) {
       setMarkers(locationMarkers)
     }
@@ -115,7 +118,9 @@ export const GoogleMaps = (props) => {
     if (useMapWithBusinessZones) {
       bounds.extend(center)
     }
-    map.fitBounds(bounds)
+    if (!avoidFitBounds) {
+      map.fitBounds(bounds)
+    }
     setBoundMap(bounds)
   }
   /**
@@ -231,7 +236,7 @@ export const GoogleMaps = (props) => {
   useEffect(() => {
     if (googleReady) {
       const map = new window.google.maps.Map(divRef.current, {
-        zoom: location.zoom ?? mapControls.defaultZoom,
+        zoom: location?.zoom ?? mapControls?.defaultZoom ?? 18,
         center,
         zoomControl: mapControls?.zoomControl,
         streetViewControl: mapControls?.streetViewControl,
@@ -253,7 +258,13 @@ export const GoogleMaps = (props) => {
         if (businessMap) {
           marker = new window.google.maps.Marker({
             position: new window.google.maps.LatLng(center.lat, center.lng),
-            map
+            map,
+            ...(location?.hideicon && {
+              icon: {
+                url: 'https://picsum.photos/10',
+                size: new window.google.maps.Size(1, 1)
+              }
+            })
           })
           map.panTo(new window.google.maps.LatLng(center?.lat, center?.lng))
         } else {
@@ -394,7 +405,9 @@ export const GoogleMaps = (props) => {
             const newLocation = new window.google.maps.LatLng(driverLocation?.lat, driverLocation?.lng)
             useMapWithBusinessZones ? boundMap.extend(newLocation) : markers?.[0] && markers[0].setPosition(newLocation)
             markers?.length > 0 && markers.forEach(marker => boundMap.extend(marker.position))
-            googleMap.fitBounds(boundMap)
+            if (!avoidFitBounds) {
+              googleMap.fitBounds(boundMap)
+            }
           }
         }
         setUserActivity(false)
@@ -428,46 +441,6 @@ GoogleMaps.propTypes = {
    */
   UIComponent: PropTypes.elementType,
   /**
-   * maxLimitLocation, max value to set position
-   */
-  maxLimitLocation: PropTypes.number,
-  /**
-   * handleChangeAddressMap, function to set address when pin is moved
-   */
-  handleChangeAddressMap: PropTypes.func,
-  /**
-   * Components types before [PUT HERE COMPONENT NAME]
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after [PUT HERE COMPONENT NAME]
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before [PUT HERE COMPONENT NAME]
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after [PUT HERE COMPONENT NAME]
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
-}
-
-GoogleMaps.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
-}
-
-export const GoogleMapsMap = WrapperGoogleMaps(GoogleMaps)
-
-GoogleMapsMap.propTypes = {
-  /**
    * You Google Maps api key
    * @see apiKey What is Api Key ? https://developers.google.com/maps/gmp-get-started
    */
@@ -481,5 +454,13 @@ GoogleMapsMap.propTypes = {
    * Function to get error from GPS
    * @param {object} address New address
    */
-  onError: PropTypes.func
+  onError: PropTypes.func,
+  /**
+   * maxLimitLocation, max value to set position
+   */
+  maxLimitLocation: PropTypes.number,
+  /**
+   * handleChangeAddressMap, function to set address when pin is moved
+   */
+  handleChangeAddressMap: PropTypes.func
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
 export const BusinessInformation = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     googleMapsControls,
     business,
@@ -61,33 +62,9 @@ BusinessInformation.propTypes = {
   /**
    * enable/disable business option of accordeon
    */
-  optionToShow: PropTypes.string,
-  /**
-   * Components types before Business information
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Business information
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Business information
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Business information
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  optionToShow: PropTypes.string
 }
 
-BusinessInformation.defaultProps = {
-  business: {},
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  business: {}
 }

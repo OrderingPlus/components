@@ -3,6 +3,7 @@ import PropTypes, { string } from 'prop-types'
 import { useApi } from '../../contexts/ApiContext'
 
 export const BusinessBasicInformation = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     business,
@@ -87,33 +88,9 @@ BusinessBasicInformation.propTypes = {
    * Contain basic information for a business
    */
   business: PropTypes.object,
-  businessParams: PropTypes.arrayOf(string),
-  /**
-   * Components types before Business basic information
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after Business basic information
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before Business basic information
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after Business basic information
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  businessParams: PropTypes.arrayOf(string)
 }
 
-BusinessBasicInformation.defaultProps = {
-  businessParams: ['header', 'logo', 'name', 'today', 'delivery_price', 'minimum', 'description', 'distance', 'delivery_time', 'pickup_time', 'reviews'],
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  businessParams: ['header', 'logo', 'name', 'today', 'delivery_price', 'minimum', 'description', 'distance', 'delivery_time', 'pickup_time', 'reviews']
 }

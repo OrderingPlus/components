@@ -3,6 +3,7 @@ import PropTypes, { string } from 'prop-types'
 import { useApi } from '../../../contexts/ApiContext'
 
 export const CityList = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     cities,
     propsToFetch,
@@ -66,33 +67,9 @@ CityList.propTypes = {
   /**
    * Array of cities props to fetch
    */
-  propsToFetch: PropTypes.arrayOf(string),
-  /**
-   * Components types before my orders
-   * Array of type components, the parent props will pass to these components
-   */
-  beforeComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Components types after my orders
-   * Array of type components, the parent props will pass to these components
-   */
-  afterComponents: PropTypes.arrayOf(PropTypes.elementType),
-  /**
-   * Elements before my orders
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  beforeElements: PropTypes.arrayOf(PropTypes.element),
-  /**
-   * Elements after my orders
-   * Array of HTML/Components elements, these components will not get the parent props
-   */
-  afterElements: PropTypes.arrayOf(PropTypes.element)
+  propsToFetch: PropTypes.arrayOf(string)
 }
 
-CityList.defaultProps = {
-  propsToFetch: ['id', 'name', 'enabled', 'cities'],
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+const defaultProps = {
+  propsToFetch: ['id', 'name', 'enabled', 'cities']
 }

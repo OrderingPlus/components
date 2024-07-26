@@ -10,9 +10,10 @@ export const Popup = (props) => {
     UIComponent,
     open,
     backdropClassName,
-    closeOnBackdrop,
+    closeOnBackdrop = true,
     onClose,
-    isSideBar
+    isSideBar,
+    disableDefaultStyleOnRender
   } = props
 
   const modalRef = useRef(null)
@@ -65,8 +66,10 @@ export const Popup = (props) => {
           modalRoot.remove()
         }
       }
-      window.document.body.style.overflow = defaultOverflow
-      window.document.body.style.paddingRight = defaultPaddingRight
+      if (!disableDefaultStyleOnRender) {
+        window.document.body.style.overflow = defaultOverflow
+        window.document.body.style.paddingRight = defaultPaddingRight
+      }
     }
   }
 
@@ -109,7 +112,7 @@ export const Popup = (props) => {
     <>
       {
         open && root && ReactDOM.createPortal(
-          <div className='popup-component' style={popupStyles} onClick={handleClick} onKeyDown={handleKeyDown} tabIndex={-1} autoFocus ref={modalRef}>
+          <div className='popup-component' style={popupStyles} onMouseDown={handleClick} onKeyDown={handleKeyDown} tabIndex={-1} autoFocus ref={modalRef}>
             {
               UIComponent && <UIComponent {...props} />
             }
@@ -155,15 +158,9 @@ Popup.propTypes = {
   /**
    * Function when cancel popup
    */
-  onCancel: PropTypes.func,
+  onCancel: PropTypes.any,
   /**
    * Function when close popup
    */
   onClose: PropTypes.func
-}
-
-Popup.defaultProps = {
-  open: false,
-  closeOnBackdrop: true,
-  closeWithKeyboard: true
 }

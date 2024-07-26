@@ -141,5 +141,3 @@ AnalyticsSegment.propTypes = {
    */
   writeKey: PropTypes.string.isRequired
 }
-
-AnalyticsSegment.defaultProps = {}

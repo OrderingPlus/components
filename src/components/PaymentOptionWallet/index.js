@@ -181,5 +181,3 @@ export const PaymentOptionWallet = (props) => {
     </>
   )
 }
-
-PaymentOptionWallet.defaultProps = {}

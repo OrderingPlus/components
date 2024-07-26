@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { Ordering } from 'ordering-api-sdk'
+import { Ordering } from '../../sdk/lib/index'
 
 /**
  * Create ApiContext

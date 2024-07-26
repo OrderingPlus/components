@@ -7,6 +7,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const OrderReview = (props) => {
+  props = { ...defaultProps, ...props }
   const {
     UIComponent,
     order,
@@ -170,11 +171,7 @@ OrderReview.propTypes = {
   handleCustomSendReview: PropTypes.func
 }
 
-OrderReview.defaultProps = {
+const defaultProps = {
   defaultStar: 1,
-  order: {},
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
+  order: {}
 }

@@ -15,7 +15,7 @@ export const WebsocketContext = createContext()
  * This provider has a reducer for manage session state
  * @param {props} props
  */
-export const WebsocketProvider = ({ settings, children, strategy, isAlsea }) => {
+export const WebsocketProvider = ({ settings, children, strategy }) => {
   const [session] = useSession()
   const [socket, setSocket] = useState()
   const [configs, setConfigs] = useState(settings)
@@ -23,7 +23,11 @@ export const WebsocketProvider = ({ settings, children, strategy, isAlsea }) => 
   useEffect(() => {
     if (session.loading) return
     if (configs.project && (session.token || !configs.use_root_point)) {
-      const _socket = new Socket({ ...configs, accessToken: session.token, url: isAlsea ? configs.url : 'https://socket-v3.ordering.co' })
+      const _socket = new Socket({
+        ...configs,
+        accessToken: session.token,
+        url: 'https://sockets.orderingplus.com'
+      })
       setSocket(_socket)
     }
   }, [session.loading, session.token, JSON.stringify(configs)])
@@ -42,7 +46,7 @@ export const WebsocketProvider = ({ settings, children, strategy, isAlsea }) => 
     const projectInputInterval = setInterval(async () => {
       let project = null
       if (configs.use_root_point) {
-        project = await strategy.getItem('project_name', true)
+        project = await strategy.getItem('project_name')
       } else {
         await strategy.removeItem('project_name')
         clearInterval(projectInputInterval)

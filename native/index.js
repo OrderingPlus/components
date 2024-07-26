@@ -9,6 +9,7 @@ import { BusinessInformation } from '../src/components/BusinessInformation'
 import { BusinessMenuListing } from '../src/components/BusinessMenuListing'
 import { BusinessProductsCategories } from '../src/components/BusinessProductsCategories'
 import { BusinessProductsSearch } from '../src/components/BusinessProductsSearch'
+import { BusinessReservation } from '../src/components/BusinessReservation'
 import { BusinessReviews } from '../src/components/BusinessReviews'
 import { BusinessSortControl } from '../src/components/BusinessSortControl'
 import { BusinessTypeFilter } from '../src/components/BusinessTypeFilter'
@@ -62,6 +63,7 @@ import { PhoneAutocomplete } from '../src/components/PhoneAutocomplete'
 import { ProductForm } from '../src/components/ProductForm'
 import { ProductImages } from '../src/components/ProductImages'
 import { ProductIngredient } from '../src/components/ProductIngredient'
+import { ProductItemAccordion } from '../src/components/ProductItemAccordion'
 import { ProductOption } from '../src/components/ProductOption'
 import { ProductOptionSuboption } from '../src/components/ProductOptionSuboption'
 import { ProductsList } from '../src/components/ProductsList'
@@ -122,6 +124,7 @@ export {
   BusinessMenuListing,
   BusinessProductsCategories,
   BusinessProductsSearch,
+  BusinessReservation,
   BusinessReviews,
   BusinessSortControl,
   BusinessTypeFilter,
@@ -176,6 +179,7 @@ export {
   ProductForm,
   ProductImages,
   ProductIngredient,
+  ProductItemAccordion,
   ProductOption,
   ProductOptionSuboption,
   ProductsList,

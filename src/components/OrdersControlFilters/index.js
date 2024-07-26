@@ -66,10 +66,3 @@ export const OrdersControlFilters = (props) => {
     </>
   )
 }
-
-OrdersControlFilters.defaultProps = {
-  beforeComponents: [],
-  afterComponents: [],
-  beforeElements: [],
-  afterElements: []
-}

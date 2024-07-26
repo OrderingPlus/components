@@ -83,7 +83,6 @@ export const Analytics = (props) => {
     })
   }
   useEffect(() => {
-    console.log('Analytic Ready')
     if (analyticsReady && window.ga) {
       events.on('change_view', handlechangeView)
       events.on('userLogin', handleLogin)
@@ -115,5 +114,3 @@ Analytics.propTypes = {
    */
   trackId: PropTypes.string.isRequired
 }
-
-Analytics.defaultProps = {}

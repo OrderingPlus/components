@@ -41,7 +41,7 @@ export const SmartAppBanner = (props) => {
       metaTag.content = meta.content
       document.head.appendChild(metaTag)
     })
-  }, [configs, theme])
+  }, [configs])
 
   return (
     <>

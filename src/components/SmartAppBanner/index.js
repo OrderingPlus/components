@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react'
-import { useConfig } from '../../contexts/ConfigContext'
 import PropTypes from 'prop-types'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useTheme } from 'styled-components'
+import SmartBanner from 'smart-app-banner'
 
 export const SmartAppBanner = (props) => {
   props = { ...defaultProps, ...props }
@@ -12,27 +12,15 @@ export const SmartAppBanner = (props) => {
     storeAppleId
   } = props
 
-  const [{ configs }] = useConfig()
   const theme = useTheme()
   const [, t] = useLanguage()
-
   useEffect(() => {
-    if (!configs) return
+    if (!storeAndroidId || !storeAppleId) return
     const logo = theme?.images?.logos?.isotype
+
     const metas = [
-      { name: 'smartbanner:title', content: t('MOBILE_APPNAME', 'Mobila appname') },
-      { name: 'smartbanner:author', content: t('MOBILE_APPNAME_AUTHOR', 'App name author') },
-      { name: 'smartbanner:price', content: t('FREE', 'Free') },
-      { name: 'smartbanner:price-suffix-apple', content: ` - ${t('ON_THE_APP_STORE', 'On the app store')}` },
-      { name: 'smartbanner:price-suffix-google', content: ` - ${t('IN_GOOGLE_PLAY', 'In google play')}` },
-      { name: 'smartbanner:icon-apple', content: logo },
-      { name: 'smartbanner:icon-google', content: logo },
-      { name: 'smartbanner:button', content: t('VIEW', 'View') },
-      { name: 'smartbanner:button-url-apple', content: storeAppleId || configs?.android_app_id?.value },
-      { name: 'smartbanner:button-url-google', content: storeAndroidId || configs?.ios_app_id?.value },
-      { name: 'smartbanner:enabled-platforms', content: 'android,ios' },
-      { name: 'smartbanner:close-label', content: t('CLOSE', 'Close') },
-      { name: 'smartbanner:api', content: 'no' }
+      { name: 'apple-itunes-app', content: `app-id=${storeAppleId}` },
+      { name: 'google-play-app', content: `app-id=${storeAndroidId}` }
     ]
     // add metas to head
     metas.forEach(meta => {
@@ -41,7 +29,35 @@ export const SmartAppBanner = (props) => {
       metaTag.content = meta.content
       document.head.appendChild(metaTag)
     })
-  }, [configs])
+    if (window.smartbanner) {
+      window.smartbanner.publish()
+    }
+    const smartBanner = new SmartBanner({
+      daysHidden: 15,
+      daysReminder: 90,
+      appStoreLanguage: 'us',
+      title: t('MOBILE_APPNAME', 'Mobila appname'),
+      author: t('MOBILE_APPNAME_AUTHOR', 'App name author'),
+      button: t('VIEW', 'View'),
+      store: {
+        ios: t('ON_THE_APP_STORE', 'On the app store'),
+        android: t('IN_GOOGLE_PLAY', 'In google play')
+      },
+      price: {
+        ios: t('FREE', 'Free'),
+        android: t('FREE', 'Free'),
+        windows: t('FREE', 'Free')
+      },
+      icon: logo
+    })
+    return () => {
+      metas.forEach(meta => {
+        const metaTag = document.querySelector(`meta[name="${meta.name}"]`)
+        metaTag && metaTag.remove()
+      })
+      smartBanner.hide()
+    }
+  }, [storeAndroidId, storeAppleId])
 
   return (
     <>
@@ -64,15 +80,10 @@ SmartAppBanner.propTypes = {
   /**
    * store apple id
    */
-  storeAppleId: PropTypes.string,
-  /**
-   * store kindle id
-   */
-  storeKindleId: PropTypes.string
+  storeAppleId: PropTypes.string
 }
 
 const defaultProps = {
   storeAndroidId: '',
-  storeAppleId: '',
-  storeKindleId: ''
+  storeAppleId: ''
 }

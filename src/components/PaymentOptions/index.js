@@ -22,7 +22,8 @@ export const PaymentOptions = (props) => {
     onPaymentChange,
     paymethodsCustom,
     UIComponent,
-    isKiosk
+    isKiosk,
+    returnUrl
   } = props
 
   const fetchPaymethods = isKiosk
@@ -160,7 +161,12 @@ export const PaymentOptions = (props) => {
 
   useEffect(() => {
     if (paymethodSelected) {
-      changePaymethod(businessId, paymethodSelected.id, JSON.stringify(paymethodData))
+      const _paymethodData = paymethodData
+      if (paymethodSelected?.gateway === 'stripe_checkout') {
+        _paymethodData.success_url = returnUrl
+        _paymethodData.cancel_url = returnUrl
+      }
+      changePaymethod(businessId, paymethodSelected.id, JSON.stringify(_paymethodData))
     }
   }, [paymethodSelected, paymethodData])
 

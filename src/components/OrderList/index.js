@@ -166,7 +166,15 @@ export const OrderList = props => {
                 value: 'service'
               }
             }]
-          }]
+          },
+          {
+            attribute: 'cloned_order_id',
+            value: {
+              condition: '!=',
+              value: null
+            }
+          }
+        ]
       })
     }
 

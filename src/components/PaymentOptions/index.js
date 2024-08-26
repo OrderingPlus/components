@@ -51,7 +51,7 @@ export const PaymentOptions = (props) => {
 
     return paymentMethods.filter(method => {
       const validation = validations?.[method?.paymethod?.gateway]
-      return validation ? !validation(method?.data) : true
+      return validation ? !validation(method?.data) : method?.paymethod?.gateway
     })
   }
 
@@ -106,19 +106,12 @@ export const PaymentOptions = (props) => {
    * Method to set payment option selected by user
    * @param {Object} val object with information of payment method selected
    */
-  const handlePaymethodClick = (paymethod, isPopupMethod) => {
+  const handlePaymethodClick = (paymethod, isPopupMethod, dataToChange = {}) => {
     const paymentsDirect = ['paypal', 'square']
     events.emit('add_payment_option', paymethod)
     if (isPopupMethod) {
-      if (paymentsDirect.includes(paymethod?.gateway)) {
-        setPaymethodsSelected(paymethod)
-      } else {
-        setPaymethodsSelected(null)
-      }
-      setIsOpenMethod({
-        ...isOpenMethod,
-        paymethod
-      })
+      setPaymethodsSelected(paymentsDirect.includes(paymethod?.gateway) ? paymethod : null)
+      setIsOpenMethod({ ...isOpenMethod, paymethod })
       handlePaymethodDataChange({})
       return
     }
@@ -127,7 +120,7 @@ export const PaymentOptions = (props) => {
     }
     setPaymethodsSelected(paymethod)
     setIsOpenMethod({ ...isOpenMethod, paymethod })
-    handlePaymethodDataChange({})
+    handlePaymethodDataChange(dataToChange)
   }
 
   const handlePaymethodDataChange = (data) => {
@@ -160,7 +153,7 @@ export const PaymentOptions = (props) => {
   }
 
   useEffect(() => {
-    if (paymethodSelected) {
+    if (paymethodSelected && !props.disableAutoUpdate) {
       const _paymethodData = paymethodData
       if (paymethodSelected?.gateway === 'stripe_checkout') {
         _paymethodData.success_url = returnUrl

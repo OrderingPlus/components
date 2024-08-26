@@ -415,6 +415,7 @@ export const BusinessAndProductList = (props) => {
 
   const loadProducts = async ({ newFetch } = {}) => {
     if (notLoadProducts) {
+      setCategoryState({ ...categoryState, loading: false })
       return
     }
 
@@ -884,10 +885,10 @@ export const BusinessAndProductList = (props) => {
   }, [priceFilterValues])
 
   useEffect(() => {
-    if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !props.avoidBusinessLoading) {
+    if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !props.avoidBusinessLoading && !props.isExternalLoading) {
       getBusiness()
     }
-  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected])
+  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected, props.isExternalLoading])
 
   useEffect(() => {
     if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !businessState.loading && props.avoidBusinessLoading) {

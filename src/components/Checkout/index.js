@@ -146,15 +146,16 @@ export const Checkout = (props) => {
   /**
    * Method to handle click on Place order
    */
-  const handlerClickPlaceOrder = async (paymentOptions, payloadProps, confirmPayment, dismissPlatformPay) => {
+  const handlerClickPlaceOrder = async (paymentOptions, payloadProps, confirmPayment, dismissPlatformPay, paymethod = null) => {
     if (placing) {
       showToast(ToastType.Info, t('CART_IN_PROGRESS', 'Cart in progress'))
       return
     }
-    let paymethodData = paymethodSelected?.data
-    if (paymethodSelected?.paymethod && ['stripe', 'stripe_connect', 'stripe_direct'].includes(paymethodSelected?.paymethod?.gateway)) {
+    const _paymethodSelected = paymethod ?? paymethodSelected
+    let paymethodData = _paymethodSelected?.data
+    if (_paymethodSelected?.paymethod && ['stripe', 'stripe_connect', 'stripe_direct'].includes(_paymethodSelected?.paymethod?.gateway)) {
       paymethodData = {
-        source_id: paymethodSelected?.data?.id
+        source_id: _paymethodSelected?.data?.id
       }
     }
     let payload = {
@@ -163,11 +164,11 @@ export const Checkout = (props) => {
 
     if (cart?.offer_id) payload.offer_id = cart?.offer_id
 
-    if (paymethodSelected?.paymethod) {
+    if (_paymethodSelected?.paymethod) {
       payload = {
         ...payload,
-        paymethod_id: paymethodSelected?.paymethodId,
-        paymethod_data: paymethodSelected?.data
+        paymethod_id: _paymethodSelected?.paymethodId,
+        paymethod_data: _paymethodSelected?.data
       }
     }
 
@@ -179,7 +180,7 @@ export const Checkout = (props) => {
     }
 
     if (handleCustomClick) {
-      handleCustomClick(payload, paymethodSelected, cart)
+      handleCustomClick(payload, _paymethodSelected, cart)
       return
     }
     if (!cart) return
@@ -194,13 +195,13 @@ export const Checkout = (props) => {
 
     setPlacing(true)
     await onChangeSpot()
-    if (paymethodsWithoutSaveCard.includes(paymethodSelected?.paymethod?.gateway)) {
+    if (paymethodsWithoutSaveCard.includes(_paymethodSelected?.paymethod?.gateway)) {
       delete payload.paymethod_data
     }
     const result = await placeCart(cart.uuid, payload)
     if (result?.error || !result) {
       setErrors(result?.result)
-      if (dismissPlatformPay && paymethodSelected?.paymethod?.gateway === 'apple_pay') {
+      if (dismissPlatformPay && _paymethodSelected?.paymethod?.gateway === 'apple_pay') {
         await dismissPlatformPay()
       }
       refreshOrderOptions()
@@ -211,7 +212,7 @@ export const Checkout = (props) => {
     const cartResult = result?.result
 
     if (cartResult?.paymethod_data?.status === 2 && actionsBeforePlace) {
-      await actionsBeforePlace(paymethodSelected, result.result)
+      await actionsBeforePlace(_paymethodSelected, result.result)
     }
     if (confirmPayment && result?.result?.paymethod_data?.gateway === 'apple_pay') {
       const { error: confirmApplePayError } = await confirmPayment(result?.result?.paymethod_data?.result?.client_secret)
@@ -224,10 +225,10 @@ export const Checkout = (props) => {
       cartResult?.paymethod_data?.status === 2 &&
       !payloadProps.isNative
     ) {
-      handleConfirmCredomaticPage(cartResult, paymethodSelected)
+      handleConfirmCredomaticPage(cartResult, _paymethodSelected)
     }
     setPlacing(false)
-    onPlaceOrderClick && onPlaceOrderClick(payload, paymethodSelected, cartResult)
+    onPlaceOrderClick && onPlaceOrderClick(payload, _paymethodSelected, cartResult)
   }
 
   const handlePaymethodChange = (paymethod) => {
@@ -522,6 +523,7 @@ export const Checkout = (props) => {
         <UIComponent
           {...props}
           cart={cart}
+          businessId={businessId}
           placing={placing}
           errors={errors}
           loyaltyPlansState={loyaltyPlansState}

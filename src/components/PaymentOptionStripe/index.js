@@ -191,16 +191,10 @@ export const PaymentOptionStripe = (props) => {
   }
 
   const handleNewCard = (card) => {
-    cardsList.cards.push(card)
-    setCardsList({
-      ...cardsList,
-      card
-    })
+    cardsList.cards.unshift(card)
+    setCardsList({ ...cardsList, card })
     if (paymethodsWithoutSaveCards.includes(gateway)) {
-      setCardList({
-        ...cardsList,
-        card
-      })
+      setCardList({ ...cardsList, card })
     }
     handleCardClick(card)
   }

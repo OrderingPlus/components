@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import PropTypes, { object } from 'prop-types'
 import { useOrder } from '../../contexts/OrderContext'
 
 export const OrderTypeControl = (props) => {
   props = { ...defaultProps, ...props }
   const {
-    UIComponent
+    UIComponent,
+    disabledUpdateState
   } = props
   const [orderState, { changeType }] = useOrder()
   const [typeSelected, setTypeSelected] = useState(null)
 
-  const handleChangeOrderType = (orderType) => {
+  const handleChangeOrderType = async (orderType) => {
     setTypeSelected(orderType)
-    changeType(orderType)
+    await changeType(orderType)
+    return orderType
   }
 
   useEffect(() => {
-    setTypeSelected(orderState.options.type)
+    !disabledUpdateState && setTypeSelected(orderState.options.type)
   }, [orderState.options.type])
 
   return (
@@ -24,7 +26,7 @@ export const OrderTypeControl = (props) => {
       {UIComponent && (
         <UIComponent
           {...props}
-          typeSelected={typeSelected || orderState.options.type}
+          typeSelected={typeSelected ?? orderState.options.type}
           handleChangeOrderType={props.handleChangeOrderType || handleChangeOrderType}
         />
       )}

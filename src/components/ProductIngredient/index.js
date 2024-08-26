@@ -29,7 +29,7 @@ export const ProductIngredient = (props) => {
    * Select/unselect the suboption
    */
   const toggleSelect = () => {
-    changeState({ selected: !state.selected })
+    changeState({ selected: !state?.selected })
   }
 
   return (

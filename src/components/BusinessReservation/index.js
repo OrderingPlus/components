@@ -241,6 +241,10 @@ export const BusinessReservation = (props) => {
     return () => clearInterval(interval)
   }, [reserveDate.date])
 
+  useEffect(() => {
+    setOrderingMethod(!cart?.products?.length ? 1 : 2)
+  }, [cart?.products?.length])
+
   return (
     <>
       {UIComponent && (

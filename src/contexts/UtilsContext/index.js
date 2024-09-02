@@ -318,6 +318,12 @@ export const UtilsProviders = ({ children }) => {
     }
   }
 
+  const GiftCardPaymethods = [{
+    gateway: 'stripe',
+    name: 'Stripe',
+    id: 1
+  }]
+
   const functions = {
     parsePrice,
     parseNumber,
@@ -328,7 +334,8 @@ export const UtilsProviders = ({ children }) => {
     getTimeAgo,
     getTimeTo,
     optimizeImage,
-    getOrderState
+    getOrderState,
+    GiftCardPaymethods
   }
 
   useEffect(() => {

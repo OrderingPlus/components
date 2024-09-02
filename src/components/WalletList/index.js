@@ -13,12 +13,13 @@ export const WalletList = (props) => {
 
   const [ordering] = useApi()
   const socket = useWebsocket()
-  const [{ token, user }] = useSession()
+  const [{ token, user, auth }] = useSession()
   const [events] = useEvent()
-  const [walletSelected, setWalletSelected] = useState(null)
 
+  const [walletSelected, setWalletSelected] = useState(null)
+  const [levelList, setLevelList] = useState({ loading: false, levels: [], error: null })
   const [state, setState] = useState({ wallets: [], loading: true, error: null })
-  const [transactions, setTransactions] = useState({ list: null, loading: true, error: null })
+  const [transactions, setTransactions] = useState({ list: null, loading: !props.notFetchTransactionsInWallets, error: null })
   const [userLoyaltyLevel, setUserLoyaltyLevel] = useState({ loading: true, error: null, loyaltyLevel: null })
 
   const userProps = ['loyalty_level']
@@ -81,10 +82,12 @@ export const WalletList = (props) => {
         const cashWallet = isWalletCashEnabled ? result.find(wallet => wallet.type === 'cash') : null
         const pointsWallet = isWalletPointsEnabled ? result.find(wallet => wallet.type === 'credit_point') : null
 
-        if (cashWallet) {
-          getTransactions(cashWallet.id)
-        } else if (pointsWallet) {
-          getTransactions(pointsWallet.id)
+        if (!props.notFetchTransactionsInWallets) {
+          if (cashWallet) {
+            getTransactions(cashWallet.id)
+          } else if (pointsWallet) {
+            getTransactions(pointsWallet.id)
+          }
         }
       }
 
@@ -111,7 +114,9 @@ export const WalletList = (props) => {
       setUserLoyaltyLevel({
         ...userLoyaltyLevel,
         loading: false,
-        loyaltyLevel: error ? null : result?.loyalty_level,
+        loyaltyLevel: error
+          ? null
+          : { ...result?.loyalty_level, loyalty_level_points: result?.loyalty_level_points },
         error: error ? result : null
       })
     } catch (error) {
@@ -123,10 +128,36 @@ export const WalletList = (props) => {
     }
   }
 
+  const getLevelList = async () => {
+    try {
+      setLevelList({ ...levelList, loading: true })
+      const requestOptions = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      }
+      const fetchEndpoint = `${ordering.root}/loyalty_levels`
+      const response = await fetch(fetchEndpoint, requestOptions)
+      const { error, result } = await response.json()
+      if (!error) {
+        setLevelList({ ...levelList, loading: false, error: null, levels: result })
+      } else {
+        setLevelList({ ...levelList, loading: false, error: result })
+      }
+    } catch (error) {
+      setLevelList({ ...levelList, loading: false, error: error.message })
+    }
+  }
+
   useEffect(() => {
-    getUserLoyaltyLevel()
-    getWallets()
-  }, [])
+    if (auth) {
+      getUserLoyaltyLevel()
+      getWallets()
+      props.fetchLevels && getLevelList()
+    }
+  }, [auth])
 
   useEffect(() => {
     if (walletSelected) {
@@ -147,6 +178,7 @@ export const WalletList = (props) => {
         <UIComponent
           {...props}
           walletList={state}
+          levelList={levelList}
           userLoyaltyLevel={userLoyaltyLevel}
           transactionsList={transactions}
           setWalletSelected={setWalletSelected}

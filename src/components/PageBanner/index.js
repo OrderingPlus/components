@@ -59,6 +59,9 @@ export const PageBanner = (props) => {
       if (position === 'web_business_page' || position === 'app_business_page') {
         fetchEndpoint = `${ordering.root}/banner?position=${position}&business_id=${businessId}`
       }
+      if (position === 'app_home_page') {
+        fetchEndpoint = `${ordering.root}/banner?position=${position}`
+      }
       if (orderState.options?.moment && isValidMoment(orderState.options?.moment, 'YYYY-MM-DD HH:mm:ss')) {
         const moment = dayjs.utc(orderState.options?.moment, 'YYYY-MM-DD HH:mm:ss').local().unix()
         fetchEndpoint += `&timestamp=${moment}`

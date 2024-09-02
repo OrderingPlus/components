@@ -114,6 +114,7 @@ const defaultProps = {
     'max_discount',
     'stackable',
     'auto',
+    'loyalty_levels',
     'public',
     'limit_per_user',
     'user_order_count',

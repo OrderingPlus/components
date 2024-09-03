@@ -299,6 +299,7 @@ export const BusinessAndProductList = (props) => {
 
   const getLazyProducts = async ({ page, pageSize = categoryStateDefault.pagination.pageSize }) => {
     const parameters = {
+      version: 'v2',
       type: orderState.options?.type ?? 1,
       ...(!isFetchAllProducts && { page }),
       ...(!isFetchAllProducts && { page_size: pageSize }),
@@ -415,6 +416,7 @@ export const BusinessAndProductList = (props) => {
 
   const loadProducts = async ({ newFetch } = {}) => {
     if (notLoadProducts) {
+      setCategoryState({ ...categoryState, loading: false })
       return
     }
 
@@ -665,7 +667,8 @@ export const BusinessAndProductList = (props) => {
         requestsState.product = source
         const parameters = {
           type: orderState.options?.type || 1,
-          moment: orderState.options?.moment || null
+          moment: orderState.options?.moment || null,
+          version: 'v2'
         }
 
         if (orderState.options?.moment && isValidMoment(orderState.options?.moment, 'YYYY-MM-DD HH:mm:ss')) {
@@ -883,10 +886,10 @@ export const BusinessAndProductList = (props) => {
   }, [priceFilterValues])
 
   useEffect(() => {
-    if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !props.avoidBusinessLoading) {
+    if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !props.avoidBusinessLoading && !props.isExternalLoading) {
       getBusiness()
     }
-  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected])
+  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected, props.isExternalLoading])
 
   useEffect(() => {
     if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !businessState.loading && props.avoidBusinessLoading) {

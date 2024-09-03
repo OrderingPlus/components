@@ -166,7 +166,15 @@ export const OrderList = props => {
                 value: 'service'
               }
             }]
-          }]
+          },
+          {
+            attribute: 'cloned_order_id',
+            value: {
+              condition: '!=',
+              value: null
+            }
+          }
+        ]
       })
     }
 
@@ -451,23 +459,19 @@ export const OrderList = props => {
     }
 
     const handleAddNewOrder = (order) => {
+      if (!orderStatus?.includes(order?.status)) return
       showToast(ToastType.Info, t('SPECIFIC_ORDER_ORDERED', 'Order _NUMBER_ has been ordered').replace('_NUMBER_', order.id))
-      const newOrder = [order, ...orderList.orders]
-      setOrderList({
-        ...orderList,
-        orders: newOrder,
-        loading: false
+      setOrderList((orderList) => {
+        orderList.orders.unshift(order)
+        return ({
+          ...orderList,
+          orders: orderList.orders,
+          loading: false
+        })
       })
     }
-
-    const ordersRoom = !props.isAsCustomer && session?.user?.level === 0 ? 'orders' : `orders_${session?.user?.id}`
-    socket.join(ordersRoom)
-    if (!socket?.socket?._callbacks?.$orders_register || socket?.socket?._callbacks?.$orders_register?.find(func => func?.name !== 'handleAddNewOrder')) {
-      socket.on('orders_register', handleAddNewOrder)
-    }
-    if (!socket?.socket?._callbacks?.$update_order || socket?.socket?._callbacks?.$update_order?.find(func => func?.name !== 'handleUpdateOrder')) {
-      socket.on('update_order', handleUpdateOrder)
-    }
+    socket.on('orders_register', handleAddNewOrder)
+    socket.on('update_order', handleUpdateOrder)
     return () => {
       socket.off('update_order', handleUpdateOrder)
       socket.off('orders_register', handleAddNewOrder)

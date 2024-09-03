@@ -51,7 +51,7 @@ export const UserFormDetails = (props) => {
   const accessToken = useDefualtSessionManager ? session.token : props.accessToken
 
   useEffect(() => {
-    if ((userId || (useSessionUser && refreshSessionUser)) && !session.loading && !props.userData) {
+    if ((userId || (useSessionUser && refreshSessionUser)) && !session.loading && !props.userData && session?.user?.id) {
       setUserState({ ...userState, loading: true })
       const source = {}
       requestsState.user = source
@@ -688,18 +688,6 @@ UserFormDetails.propTypes = {
    * Save user and token with default session manager
    */
   useDefualtSessionManager: PropTypes.bool,
-  /**
-   * Access token to update user
-   * Is required when `useDefualtSessionManager` is false
-   */
-  accessToken: (props, propName) => {
-    if (props[propName] !== undefined && typeof props[propName] !== 'string') {
-      return new Error(`Invalid prop \`${propName}\` of type \`${typeof props[propName]}\` supplied to \`UserFormDetails\`, expected \`object\`.`)
-    }
-    if (props[propName] === undefined && !props.useDefualtSessionManager) {
-      return new Error(`Invalid prop \`${propName}\` is required when \`useDefualtSessionManager\` is false.`)
-    }
-  },
   /**
    * Url to login page
    * Url to create element link to login page

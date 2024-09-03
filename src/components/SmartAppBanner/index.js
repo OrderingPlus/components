@@ -9,13 +9,15 @@ export const SmartAppBanner = (props) => {
   const {
     UIComponent,
     storeAndroidId,
-    storeAppleId
+    storeAppleId,
+    appName
   } = props
 
   const theme = useTheme()
   const [, t] = useLanguage()
   useEffect(() => {
     if (!storeAndroidId || !storeAppleId) return
+    const description = document.querySelector('meta[name="description"]').getAttribute('content')
     const logo = theme?.images?.logos?.isotype
 
     const metas = [
@@ -36,8 +38,8 @@ export const SmartAppBanner = (props) => {
       daysHidden: 15,
       daysReminder: 90,
       appStoreLanguage: 'us',
-      title: t('MOBILE_APPNAME', 'Mobila appname'),
-      author: t('MOBILE_APPNAME_AUTHOR', 'App name author'),
+      title: appName,
+      author: description,
       button: t('VIEW', 'View'),
       store: {
         ios: t('ON_THE_APP_STORE', 'On the app store'),

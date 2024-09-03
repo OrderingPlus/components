@@ -5,6 +5,7 @@ import { useOrder } from '../../contexts/OrderContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useEvent } from '../../contexts/EventContext'
 import { useSession } from '../../contexts/SessionContext'
+import { useUtils } from '../../contexts/UtilsContext'
 
 const paymethodsExisting = ['stripe', 'stripe_direct', 'stripe_connect', 'paypal', 'square']
 const paymethodsNotAllowed = ['paypal_express', 'authorize']
@@ -22,12 +23,14 @@ export const PaymentOptions = (props) => {
     onPaymentChange,
     paymethodsCustom,
     UIComponent,
-    isKiosk
+    isKiosk,
+    returnUrl
   } = props
 
   const fetchPaymethods = isKiosk
   const [events] = useEvent()
   const [ordering] = useApi()
+  const [{ GiftCardPaymethods }] = useUtils()
   const [orderState, { changePaymethod }] = useOrder()
   const [{ device_code }] = useSession()
   const orderTotal = orderState.carts?.[`businessId:${businessId}`]?.total || 0
@@ -50,7 +53,7 @@ export const PaymentOptions = (props) => {
 
     return paymentMethods.filter(method => {
       const validation = validations?.[method?.paymethod?.gateway]
-      return validation ? !validation(method?.data) : true
+      return validation ? !validation(method?.data) : method?.paymethod?.gateway
     })
   }
 
@@ -105,19 +108,12 @@ export const PaymentOptions = (props) => {
    * Method to set payment option selected by user
    * @param {Object} val object with information of payment method selected
    */
-  const handlePaymethodClick = (paymethod, isPopupMethod) => {
+  const handlePaymethodClick = (paymethod, isPopupMethod, dataToChange = {}) => {
     const paymentsDirect = ['paypal', 'square']
     events.emit('add_payment_option', paymethod)
     if (isPopupMethod) {
-      if (paymentsDirect.includes(paymethod?.gateway)) {
-        setPaymethodsSelected(paymethod)
-      } else {
-        setPaymethodsSelected(null)
-      }
-      setIsOpenMethod({
-        ...isOpenMethod,
-        paymethod
-      })
+      setPaymethodsSelected(paymentsDirect.includes(paymethod?.gateway) ? paymethod : null)
+      setIsOpenMethod({ ...isOpenMethod, paymethod })
       handlePaymethodDataChange({})
       return
     }
@@ -126,7 +122,7 @@ export const PaymentOptions = (props) => {
     }
     setPaymethodsSelected(paymethod)
     setIsOpenMethod({ ...isOpenMethod, paymethod })
-    handlePaymethodDataChange({})
+    handlePaymethodDataChange(dataToChange)
   }
 
   const handlePaymethodDataChange = (data) => {
@@ -159,8 +155,13 @@ export const PaymentOptions = (props) => {
   }
 
   useEffect(() => {
-    if (paymethodSelected) {
-      changePaymethod(businessId, paymethodSelected.id, JSON.stringify(paymethodData))
+    if (paymethodSelected && !props.disableAutoUpdate) {
+      const _paymethodData = paymethodData
+      if (paymethodSelected?.gateway === 'stripe_checkout') {
+        _paymethodData.success_url = returnUrl
+        _paymethodData.cancel_url = returnUrl
+      }
+      changePaymethod(businessId, paymethodSelected.id, JSON.stringify(_paymethodData))
     }
   }, [paymethodSelected, paymethodData])
 
@@ -200,11 +201,7 @@ export const PaymentOptions = (props) => {
           setPaymethodsList({
             ...paymethodsList,
             loading: false,
-            paymethods: [{
-              gateway: 'stripe',
-              name: 'Stripe',
-              id: 1
-            }]
+            paymethods: GiftCardPaymethods
           })
         } else {
           getPaymentOptions()

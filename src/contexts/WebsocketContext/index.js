@@ -45,15 +45,14 @@ export const WebsocketProvider = ({ settings, children, strategy }) => {
     if (session.auth) return
     const projectInputInterval = setInterval(async () => {
       let project = null
-      if (configs.use_root_point) {
+      if (settings.use_root_point) {
         project = await strategy.getItem('project_name')
       } else {
         await strategy.removeItem('project_name')
         clearInterval(projectInputInterval)
       }
       if (project) {
-        setConfigs({ ...configs, project })
-        configs.project = project
+        setConfigs((prevConfigs) => ({ ...prevConfigs, project: JSON.parse(project) }))
         clearInterval(projectInputInterval)
       }
     }, 1000)

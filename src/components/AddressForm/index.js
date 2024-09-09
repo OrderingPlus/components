@@ -36,7 +36,7 @@ export const AddressForm = (props) => {
   const [formState, setFormState] = useState({ loading: false, changes: {}, error: null })
   const [userByToken, setUserByToken] = useState(null)
   const [mapBoxSuggestCount, setMapBoxSuggestCount] = useState(0)
-  const [uuidv4, setUuidv4] = useState(null)
+  const [uuidv4, setUuidv4] = useState(v4())
   const [mapBoxSuggests, setMapBoxSuggest] = useState([])
   const [{ auth, user, token }, { refreshUserInfo }] = useSession()
   const requestsState = {}
@@ -374,12 +374,18 @@ export const AddressForm = (props) => {
     const address = {
       location,
       address: properties?.full_address || properties?.address || properties?.name,
-      country: properties?.country?.name,
-      country_code: properties?.country?.country_code,
-      locality: properties?.locality?.name,
+      country: properties?.context?.country?.name,
+      country_code: properties?.context?.country?.country_code,
+      locality: properties?.context?.locality?.name,
       region: properties?.context?.region?.name,
       street: properties?.context?.street?.name,
-      mapbox_id: properties?.mapbox_id
+      mapbox_id: properties?.mapbox_id,
+      zipcode: properties?.context?.postcode?.name,
+      neighborhood: properties?.context?.neighborhood?.name,
+      map_data: {
+        library: 'mapbox',
+        place_id: properties?.mapbox_id
+      }
     }
     callback && callback(address)
   }

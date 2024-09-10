@@ -68,6 +68,7 @@ import { ProductOption } from '../src/components/ProductOption'
 import { ProductOptionSuboption } from '../src/components/ProductOptionSuboption'
 import { ProductsList } from '../src/components/ProductsList'
 import { ProductsListing } from '../src/components/ProductsListing'
+import { ProjectForm } from '../src/components/ProjectForm'
 import { PromotionsController } from '../src/components/PromotionsController'
 import { PurchaseGiftCard } from '../src/components/GiftCard/PurchaseGiftCard'
 import { RedeemGiftCard } from '../src/components/GiftCard/RedeemGiftCard'
@@ -184,6 +185,7 @@ export {
   ProductOptionSuboption,
   ProductsList,
   ProductsListing,
+  ProjectForm,
   PromotionsController,
   PurchaseGiftCard,
   RedeemGiftCard,

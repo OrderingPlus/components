@@ -40,6 +40,7 @@ import { GpsButton as GoogleGpsButton } from './components/GpsButton'
 import { GoogleIdentityButton } from './components/GoogleIdentity'
 import { LanguageSelector } from './components/LanguageSelector'
 import { LoginForm } from './components/LoginForm'
+import { LoginGuest } from './components/LoginGuest'
 import { LogoutAction } from './components/LogoutAction'
 import { MainSearch } from './components/MainSearch'
 import { MenuControl } from './components/MenuControl'
@@ -214,6 +215,7 @@ export {
   GoogleIdentityButton,
   LanguageSelector,
   LoginForm,
+  LoginGuest,
   LogoutAction,
   MainSearch,
   MenuControl,

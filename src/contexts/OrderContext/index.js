@@ -363,7 +363,6 @@ export const OrderProvider = ({
         const options = {}
         state.loading = true
         options.headers = {
-          'X-App-X': ordering.appId,
           'X-Socket-Id-X': socket?.getId()
         }
         const countryCode = changes?.country_code && changes?.country_code !== state?.options?.address?.country_code

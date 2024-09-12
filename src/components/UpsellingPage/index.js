@@ -66,21 +66,15 @@ export const UpsellingPage = (props) => {
   const getUpsellingProducts = (result) => {
     const upsellingProductsfiltered = result.filter(product => product.upselling)
 
-    const repeatProducts = cartProducts && cartProducts?.filter(cartProduct => upsellingProductsfiltered.find(product => product.id === cartProduct.id))
+    const repeatProducts = cartProducts?.length ? cartProducts?.filter(cartProduct => upsellingProductsfiltered.find(product => product.id === cartProduct.id)) : []
 
-    if (repeatProducts.length) {
-      setUpsellingProducts({
-        ...upsellingProducts,
-        loading: false,
-        products: upsellingProductsfiltered.filter(product => !product.inventoried && !repeatProducts.find(repeatProduct => repeatProduct.id === product.id))
-      })
-    } else {
-      setUpsellingProducts({
-        ...upsellingProducts,
-        loading: false,
-        products: upsellingProductsfiltered
-      })
-    }
+    setUpsellingProducts({
+      ...upsellingProducts,
+      loading: false,
+      products: repeatProducts?.length
+        ? upsellingProductsfiltered?.filter(product => !product.inventoried && !repeatProducts.find(repeatProduct => repeatProduct.id === product.id))
+        : upsellingProductsfiltered
+    })
   }
 
   /**

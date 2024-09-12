@@ -258,25 +258,37 @@ export const AddressForm = (props) => {
         lat: !isInvalidDefaultLocation ? defaultLatitude : 40.7744146,
         lng: !isInvalidDefaultLocation ? defaultLongitude : -73.9678064
       }
-      const propsToFetch = ['name', 'address', 'location', 'distance', 'open', 'schedule', 'slug']
+      let where = null
       let parameters = {
         location: location || defaultLocation,
         type: options?.type || 1,
         orderBy: 'distance'
       }
+      const conditions = []
+      const propsToFetch = ['name', 'address', 'location', 'distance', 'open', 'schedule', 'slug']
       const paginationParams = {
         page: 1,
         page_size: 5
       }
+
       if (options?.moment && isValidMoment(options?.moment, 'YYYY-MM-DD HH:mm:ss')) {
         const moment = dayjs.utc(options?.moment, 'YYYY-MM-DD HH:mm:ss').local().unix()
         parameters.timestamp = moment
       }
       parameters = { ...parameters, ...paginationParams }
+
+      if (franchiseId) {
+        conditions.push({ attribute: 'franchise_id', value: franchiseId })
+      }
+      if (conditions.length > 0) {
+        where = {
+          conditions,
+          conector: 'AND'
+        }
+      }
       const source = {}
       requestsState.businesses = source
-
-      const { content: { error, result } } = await ordering.businesses().select(propsToFetch).parameters(parameters).get({ cancelToken: source })
+      const { content: { error, result } } = await ordering.businesses().select(propsToFetch).parameters(parameters).where(where).get({ cancelToken: source })
       if (!error) {
         const firstNearestOpenBusiness = result?.find(business => business?.open)
         setBusinessNearestState({

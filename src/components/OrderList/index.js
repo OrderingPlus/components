@@ -37,7 +37,8 @@ export const OrderList = props => {
     noGiftCardOrders,
     propsToFetch,
     handleRedirectToCheckout,
-    isCustomerMode
+    isCustomerMode,
+    isGetOrdersFromHome
   } = props
 
   const [ordering] = useApi()
@@ -640,6 +641,20 @@ export const OrderList = props => {
       loadOrders(false, false, false, true)
     }
   }, [businessesSearchList, businessId])
+
+  useEffect(() => {
+    if (!isGetOrdersFromHome) return
+    if (session?.auth) {
+      loadOrders(false, false, false, true)
+    } else {
+      setOrderList({
+        ...orderList,
+        loading: false,
+        error: null,
+        orders: []
+      })
+    }
+  }, [isGetOrdersFromHome, session?.auth])
 
   useEffect(() => {
     setIsEmptyBusinesses && setIsEmptyBusinesses(businessOrderIds?.length === 0)

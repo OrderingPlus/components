@@ -1,17 +1,21 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import { useApi } from '../../contexts/ApiContext'
-import { useConfig } from '../../contexts/ConfigContext'
 import * as firebase from 'firebase/app'
 import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
+
+import { useApi } from '../../contexts/ApiContext'
+import { useConfig } from '../../contexts/ConfigContext'
+import { useSession } from '../../contexts/SessionContext'
 
 export const FirebaseGoogleLoginButton = (props) => {
   const {
     UIComponent,
-    handleSuccessGoogleLogin
+    handleSuccessGoogleLogin,
+    isGuest
   } = props
 
   const [ordering] = useApi()
+  const [{ user }] = useSession()
   const [{ configs }] = useConfig()
   const [actionState, setActionState] = useState({ loading: false, error: null })
 
@@ -45,11 +49,13 @@ export const FirebaseGoogleLoginButton = (props) => {
    */
   const handleSigninSuccess = async (tokenResponse) => {
     try {
-      const { content: { error, result } } = await ordering.users().authGoogle({
-        access_token: tokenResponse.oauthIdToken,
-        name: tokenResponse.firstName,
-        lastname: tokenResponse.lastName
-      })
+      const _credentials = {
+        access_token: tokenResponse?.oauthIdToken,
+        name: tokenResponse?.firstName,
+        lastname: tokenResponse?.lastName
+      }
+      if (isGuest && user?.guest_id) _credentials.guest_token = user?.guest_id
+      const { content: { error, result } } = await ordering.users().authGoogle(_credentials)
       if (!error) {
         if (handleSuccessGoogleLogin) {
           handleSuccessGoogleLogin(result)

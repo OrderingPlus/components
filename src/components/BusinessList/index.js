@@ -40,7 +40,8 @@ export const BusinessList = (props) => {
     searchValueCustom,
     isKiosk,
     isCustomerMode,
-    avoidRefreshUserInfo
+    avoidRefreshUserInfo,
+    showSearchBar
   } = props
 
   const [businessesList, setBusinessesList] = useState({ businesses: [], loading: true, error: null })
@@ -68,7 +69,7 @@ export const BusinessList = (props) => {
   const [firstLoad, setFirstLoad] = useState(false)
   const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
   const rex = /^[A-Za-z0-9\s]+$/g
-  const advancedSearchEnabled = configs?.advanced_business_search_enabled?.value === '1'
+  const advancedSearchEnabled = configs?.advanced_business_search_enabled?.value === '1' || showSearchBar
   const showCities = (!orderingTheme?.business_listing_view?.components?.cities?.hidden && orderState?.options?.type === 2 && !props.disabledCities) ?? false
   const unaddressedTypes = configs?.unaddressed_order_types_allowed?.value.split('|').map(value => Number(value)) || []
   const isAllowUnaddressOrderType = unaddressedTypes.includes(orderState?.options?.type)
@@ -262,7 +263,7 @@ export const BusinessList = (props) => {
       setRequestsState({ ...requestsState })
 
       const fetchEndpoint = (advancedSearchEnabled && searchValue?.length >= 3) || (!where && !asDashboard)
-        ? ordering.businesses().select(propsToFetch).parameters(parameters)
+        ? where ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where) : ordering.businesses().select(propsToFetch).parameters(parameters)
         : where && asDashboard
           ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where).asDashboard()
           : where && !asDashboard
@@ -386,7 +387,7 @@ export const BusinessList = (props) => {
   useEffect(() => {
     const request = requestsState.businesses
     return () => {
-      request && request.cancel()
+      request && request?.cancel()
     }
   }, [requestsState.businesses])
 
@@ -428,7 +429,7 @@ export const BusinessList = (props) => {
       setBusinessesList({ ...businessesList, loading: false })
       return
     }
-    if (isDoordash || franchiseEnabled) {
+    if (((isDoordash || franchiseEnabled) && !showSearchBar) || (showSearchBar && (searchValue?.length >= 3 || !searchValue))) {
       getBusinesses(true)
     }
   }, [
@@ -532,7 +533,7 @@ export const BusinessList = (props) => {
    * @param {string} search Search value
    */
   const handleChangeSearch = (search) => {
-    if (!!search !== !!searchValue) {
+    if (!!search !== !!searchValue && !showSearchBar) {
       setBusinessesList({
         ...businessesList,
         businesses: [],

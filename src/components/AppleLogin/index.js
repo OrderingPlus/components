@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useApi } from '../../contexts/ApiContext'
+import { useSession } from '../../contexts/SessionContext'
 import { useConfig } from '../../contexts/ConfigContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const AppleLogin = (props) => {
-  const { UIComponent, onSuccess, onFailure, initParams: initParamsCustom, handleButtonAppleLoginClick } = props
+  const { UIComponent, onSuccess, onFailure, initParams: initParamsCustom, handleButtonAppleLoginClick, isGuest } = props
 
   const [ordering] = useApi()
   const socket = useWebsocket()
-  const [formState, setFormState] = useState({ loading: false, result: { error: false } })
+  const [{ user }] = useSession()
   const [{ configs }] = useConfig()
+  const [formState, setFormState] = useState({ loading: false, result: { error: false } })
 
   const initParams = initParamsCustom || {
     clientId: configs?.apple_login_client_id?.value,
@@ -59,6 +61,10 @@ export const AppleLogin = (props) => {
 
     try {
       setFormState({ ...formState, loading: true })
+      const _credentials = {
+        code: data.code
+      }
+      if (isGuest && user?.guest_id) _credentials.guest_token = user?.guest_id
       const response = await fetch(`${ordering.root}/auth/apple`, {
         method: 'POST',
         headers: {
@@ -66,9 +72,7 @@ export const AppleLogin = (props) => {
           'X-App-X': ordering.appId,
           'X-Socket-Id-X': socket?.getId()
         },
-        body: JSON.stringify({
-          code: data.code
-        })
+        body: JSON.stringify(_credentials)
       })
       const { result, error } = await response.json()
       setFormState({

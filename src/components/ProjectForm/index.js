@@ -10,12 +10,10 @@ export const ProjectForm = (props) => {
 
   const [ordering, { setOrdering }] = useApi()
 
-  const [projectName, setProjectName] = useState(null)
-  const [isLoadingProject, setLoadingProject] = useState(false)
+  const [projectState, setProjectState] = useState({ data: null, loading: false })
 
   const onSubmit = (values) => {
-    setLoadingProject(true)
-    setProjectName(values)
+    setProjectState({ data: values, loading: true })
     setOrdering({ ...ordering, project: values?.project_name })
     setStoreData('project_name', JSON.stringify(values?.project_name))
   }
@@ -25,11 +23,9 @@ export const ProjectForm = (props) => {
       {UIComponent && (
         <UIComponent
           {...props}
-          projectName={projectName}
-          isLoadingProject={isLoadingProject}
+          projectState={projectState}
+          setProjectState={setProjectState}
           onSubmit={onSubmit}
-          setLoadingProject={setLoadingProject}
-          setProjectName={setProjectName}
         />
       )}
     </>

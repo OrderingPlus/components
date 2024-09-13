@@ -135,6 +135,7 @@ import { UserVerification } from './components/UserVerification'
 import { WalletList } from './components/WalletList'
 import { QueryLoginSpoonity } from './components/QueryLoginSpoonity'
 import { WebsocketStatus } from './components/WebsocketStatus'
+import { ProjectForm } from './components/ProjectForm'
 
 import {
   Appointments,
@@ -249,6 +250,7 @@ export {
   ProductsListing,
   ProfessionalInfo,
   PromotionsController,
+  ProjectForm,
   PurchaseGiftCard,
   RedeemGiftCard,
   SearchOptions,

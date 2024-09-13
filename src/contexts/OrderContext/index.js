@@ -363,7 +363,6 @@ export const OrderProvider = ({
         const options = {}
         state.loading = true
         options.headers = {
-          'X-App-X': ordering.appId,
           'X-Socket-Id-X': socket?.getId()
         }
         const countryCode = changes?.country_code && changes?.country_code !== state?.options?.address?.country_code
@@ -560,7 +559,6 @@ export const OrderProvider = ({
       }
       const { content: { error, result } } = await ordering.setAccessToken(session.token).carts().removeProduct(body, {
         headers: {
-          'X-App-X': ordering.appId,
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
         }
@@ -710,7 +708,6 @@ export const OrderProvider = ({
         .carts()
         .applyCoupon(body, {
           headers: {
-            'X-App-X': ordering.appId,
             'X-Socket-Id-X': socket?.getId(),
             'X-Country-Code-X': countryCode
           }
@@ -1029,7 +1026,6 @@ export const OrderProvider = ({
       if (body.user_id === userCustomerId || data) {
         fetchurl = await ordering.setAccessToken(session.token).carts(cardId).confirmWithData(body, {
           headers: {
-            'X-App-X': ordering.appId,
             'X-Socket-Id-X': socket?.getId(),
             'X-Country-Code-X': countryCode
           }
@@ -1037,7 +1033,6 @@ export const OrderProvider = ({
       } else {
         fetchurl = await ordering.setAccessToken(session.token).carts(cardId).confirm(body, {
           headers: {
-            'X-App-X': ordering.appId,
             'X-Socket-Id-X': socket?.getId(),
             'X-Country-Code-X': countryCode
           }
@@ -1120,7 +1115,6 @@ export const OrderProvider = ({
         : null
       const options = {
         headers: {
-          'X-App-X': ordering.appId,
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
         }

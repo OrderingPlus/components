@@ -686,6 +686,7 @@ export const OrderList = props => {
           sortOrders={sortOrders}
           setSortBy={setSortBy}
           orderList={orderList}
+          setOrderList={setOrderList}
           pagination={pagination}
           loadMoreOrders={loadMoreOrders}
           goToPage={goToPage}

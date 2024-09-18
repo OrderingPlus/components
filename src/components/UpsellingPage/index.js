@@ -66,7 +66,7 @@ export const UpsellingPage = (props) => {
   const getUpsellingProducts = (result) => {
     const upsellingProductsfiltered = result.filter(product => product.upselling)
 
-    const repeatProducts = cartProducts && cartProducts?.filter(cartProduct => upsellingProductsfiltered.find(product => product.id === cartProduct.id))
+    const repeatProducts = cartProducts?.length ? cartProducts?.filter(cartProduct => upsellingProductsfiltered.find(product => product.id === cartProduct.id)) : []
 
     setUpsellingProducts({
       ...upsellingProducts,

@@ -243,9 +243,10 @@ export const BusinessAndProductList = (props) => {
     })
   }
 
-  const getProducts = async () => {
-    for (let i = 0; i < businessState?.business?.categories?.length ?? 0; i++) {
-      const category = businessState?.business?.categories[i]
+  const getProducts = async (business) => {
+    const businessObj = business ?? businessState?.business
+    for (let i = 0; i < businessObj?.categories?.length ?? 0; i++) {
+      const category = businessObj?.categories[i]
       const isFeatured = category?.products?.some((product) => product.featured)
       if (isFeatured) {
         setFeaturedProducts(isFeatured)
@@ -257,13 +258,13 @@ export const BusinessAndProductList = (props) => {
       loading: false
     }
     if (categorySelected.id !== 'featured' && categorySelected.id !== null) {
-      iterateCategories(businessState?.business?.categories)
-      const categoriesList = [].concat(...businessState?.business?.categories.map(category => category.children))
-      const categories = isUseParentCategory ? categoriesList : businessState?.business?.categories
+      iterateCategories(businessObj?.categories)
+      const categoriesList = [].concat(...businessObj?.categories.map(category => category.children))
+      const categories = isUseParentCategory ? categoriesList : businessObj?.categories
       const parentCategory = categories?.find(category => category.category_id === categorySelected.id) ?? {}
       const categoryFinded = subCategoriesList.find(subCat => subCat.id === parentCategory.category_id) ?? {}
 
-      const productsFiltered = businessState?.business?.categories
+      const productsFiltered = businessObj?.categories
         ?.find(category => category.id === (isUseParentCategory ? parentCategory?.parent_category_id : categorySelected.id))
         ?.products
         .filter(product => isUseParentCategory
@@ -272,7 +273,7 @@ export const BusinessAndProductList = (props) => {
 
       categoryState.products = productsFiltered || []
     } else if (categorySelected.id === 'featured') {
-      const productsFiltered = businessState?.business?.categories?.reduce(
+      const productsFiltered = businessObj?.categories?.reduce(
         (products, category) => [...products, ...category.products], []
       ).filter(
         product => isFeaturedSearch(product)
@@ -282,10 +283,10 @@ export const BusinessAndProductList = (props) => {
       let _categoriesCustom = null
       if (avoidProductDuplicate) {
         const customCategories = ['favorites']
-        _categoriesCustom = businessState?.business?.categories?.filter(({ id }) => (!customCategories.includes(id)))
+        _categoriesCustom = businessObj?.categories?.filter(({ id }) => (!customCategories.includes(id)))
       }
 
-      const productsToFilter = avoidProductDuplicate ? _categoriesCustom : businessState?.business?.categories
+      const productsToFilter = avoidProductDuplicate ? _categoriesCustom : businessObj?.categories
       const productsFiltered = productsToFilter?.reduce(
         (products, category) => [...products, ...category.products], []
       ).filter(
@@ -414,7 +415,7 @@ export const BusinessAndProductList = (props) => {
     return promises
   }
 
-  const loadProducts = async ({ newFetch } = {}) => {
+  const loadProducts = async ({ newFetch, business } = {}) => {
     if (notLoadProducts) {
       setCategoryState({ ...categoryState, loading: false })
       return
@@ -432,10 +433,10 @@ export const BusinessAndProductList = (props) => {
       return
     }
 
-    const isLazy = !!businessState?.business?.lazy_load_products_recommended
+    const isLazy = !!business?.lazy_load_products_recommended ?? !!businessState?.business?.lazy_load_products_recommended
 
     if (!isLazy) {
-      getProducts()
+      getProducts(business)
       return
     }
 
@@ -760,6 +761,7 @@ export const BusinessAndProductList = (props) => {
         data.menus = menus
       }
 
+      isApp && loadProducts({ newFetch: true, business: result })
       setBusinessState(data)
       setLoadedFirstTime(true)
     } catch (err) {

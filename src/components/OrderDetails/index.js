@@ -405,25 +405,15 @@ export const OrderDetails = (props) => {
   const handleReorder = async (orderId) => {
     if (!orderId) return
     try {
+      setReorderState({ ...reorderState, loading: true })
+      const { error, result } = await reorder(orderId)
       setReorderState({
         ...reorderState,
-        loading: true
+        loading: false,
+        error,
+        result
       })
-      const { error, result } = await reorder(orderId)
-      if (!error) {
-        setReorderState({
-          ...reorderState,
-          loading: false,
-          result
-        })
-      } else {
-        setReorderState({
-          ...reorderState,
-          loading: false,
-          error: true,
-          result
-        })
-      }
+      return !error ? result : null
     } catch (err) {
       setReorderState({
         ...reorderState,

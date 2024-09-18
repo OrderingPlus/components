@@ -161,15 +161,15 @@ export const AddressForm = (props) => {
           ...addressState,
           address: content.result
         })
-        onSaveAddress && onSaveAddress(content.result)
         if (isSelectedAfterAdd) {
-          changeAddress(content.result.id, {
+          await changeAddress(content.result.id, {
             address: isEdit ? null : content.result,
             country_code: content.result?.country_code,
             type: options?.type,
             isEdit
           })
         }
+        onSaveAddress && onSaveAddress(content.result)
       }
       if (userCustomerSetup) {
         await setUserCustomer(userCustomerSetup, true)

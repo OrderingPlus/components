@@ -157,11 +157,11 @@ export const BusinessSearchList = (props) => {
         }
         where = `&where=${JSON.stringify(where)}`
       }
-      setBusinessesSearchList({
-        ...businessesSearchList,
+      setBusinessesSearchList((prevProps) => ({
+        ...prevProps,
         loading: true,
         lengthError: false
-      })
+      }))
       const requestOptions = {
         method: 'GET',
         headers: {
@@ -175,12 +175,12 @@ export const BusinessSearchList = (props) => {
       const response = await fetch(`${ordering.root}/search?order_type_id=${orderState?.options?.type}${filtParams}&location=${JSON.stringify(options?.location || location)}${where}`, requestOptions)
       const { result, error, pagination } = await response.json()
       if (error) {
-        setBusinessesSearchList({
+        setBusinessesSearchList(() => ({
           businesses: [],
           loading: false,
           error: result,
           lengthError: false
-        })
+        }))
         return
       }
       let nextPageItems = 0
@@ -202,12 +202,12 @@ export const BusinessSearchList = (props) => {
         lengthError: false
       }))
     } catch (err) {
-      setBusinessesSearchList({
+      setBusinessesSearchList(() => ({
         businesses: [],
         loading: false,
         error: err.message,
         lengthError: false
-      })
+      }))
     }
   }
 

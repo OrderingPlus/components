@@ -136,7 +136,7 @@ export const BusinessSearchList = (props) => {
 
   const handleSearchbusinessAndProducts = async (newFetch, options, val) => {
     try {
-      let filtParams = val?.length >= 3 ? `&term=${val}` : ''
+      let filtParams = val?.length >= 3 ? `&term=${encodeURI(`%${val}%`)}` : ''
       Object.keys(filters).map(key => {
         if ((!filters[key] && filters[key] !== 0) || filters[key] === 'default' || filters[key]?.length === 0) return
         Array.isArray(filters[key]) ? filtParams = filtParams + `&${key}=[${filters[key]}]` : filtParams = filtParams + `&${key}=${filters[key]}`
@@ -155,11 +155,11 @@ export const BusinessSearchList = (props) => {
         }
         where = `&where=${JSON.stringify(where)}`
       }
-      setBusinessesSearchList({
-        ...businessesSearchList,
+      setBusinessesSearchList((prevProps) => ({
+        ...prevProps,
         loading: true,
         lengthError: false
-      })
+      }))
       const requestOptions = {
         method: 'GET',
         headers: {
@@ -173,12 +173,12 @@ export const BusinessSearchList = (props) => {
       const response = await fetch(`${ordering.root}/search?order_type_id=${orderState?.options?.type}${filtParams}&location=${JSON.stringify(options?.location || location)}${where}`, requestOptions)
       const { result, error, pagination } = await response.json()
       if (error) {
-        setBusinessesSearchList({
+        setBusinessesSearchList(() => ({
           businesses: [],
           loading: false,
           error: result,
           lengthError: false
-        })
+        }))
         return
       }
       let nextPageItems = 0
@@ -186,26 +186,26 @@ export const BusinessSearchList = (props) => {
         const remainingItems = pagination.total - result.length
         nextPageItems = remainingItems < pagination.page_size ? remainingItems : pagination.page_size
       }
-      setPaginationProps({
-        ...paginationProps,
+      setPaginationProps((prevProps) => ({
+        ...prevProps,
         currentPage: pagination.current_page,
         totalPages: pagination.total_pages,
         totalItems: pagination.total,
         nextPageItems
-      })
-      setBusinessesSearchList({
-        ...businessesSearchList,
-        businesses: cityId ? (newFetch ? result : [...businessesSearchList?.businesses, ...result])?.filter(_business => _business?.city_id === cityId) : newFetch ? result : [...businessesSearchList?.businesses, ...result],
+      }))
+      setBusinessesSearchList((prevProps) => ({
+        ...prevProps,
+        businesses: cityId ? (newFetch ? result : [...prevProps?.businesses, ...result])?.filter(_business => _business?.city_id === cityId) : newFetch ? result : [...prevProps?.businesses, ...result],
         loading: false,
         lengthError: false
-      })
+      }))
     } catch (err) {
-      setBusinessesSearchList({
+      setBusinessesSearchList(() => ({
         businesses: [],
         loading: false,
         error: err.message,
         lengthError: false
-      })
+      }))
     }
   }
 

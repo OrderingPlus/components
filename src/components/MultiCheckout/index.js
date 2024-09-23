@@ -139,6 +139,7 @@ export const MultiCheckout = (props) => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
             'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
             'X-Socket-Id-X': socket?.getId()
           },
           ...(isChecked && {
@@ -190,6 +191,7 @@ export const MultiCheckout = (props) => {
           'Content-Type': 'application/json',
           Authorization: `bearer ${token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })
@@ -219,6 +221,7 @@ export const MultiCheckout = (props) => {
               'Content-Type': 'application/json',
               Authorization: `bearer ${token}`,
               'X-App-X': ordering.appId,
+              'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
               'X-Socket-Id-X': socket?.getId()
             },
             body: JSON.stringify(body)
@@ -256,6 +259,7 @@ export const MultiCheckout = (props) => {
           'Content-Type': 'application/json',
           Authorization: `bearer ${token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })
@@ -284,6 +288,7 @@ export const MultiCheckout = (props) => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
             'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
             'X-Socket-Id-X': socket?.getId()
           }
         }

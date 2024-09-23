@@ -24,6 +24,7 @@ interface SettingProps {
   accessToken?: string | null
   apiKey?: string | null
   appId?: string | null
+  appInternalName?: string | null
   billing?: string | null
   countryCode?: string | null
 }
@@ -38,6 +39,7 @@ export class Ordering {
   private appId: string | null
   private billing: string | null
   private countryCode: string | null
+  private appInternalName: string | null
   constructor ({
     url = 'https://apiv4.ordering.co',
     version = 'v400',
@@ -47,7 +49,8 @@ export class Ordering {
     apiKey = null,
     appId = null,
     billing = null,
-    countryCode = null
+    countryCode = null,
+    appInternalName = null
   }: SettingProps = {}) {
     this.url = url
     this.version = version
@@ -58,6 +61,7 @@ export class Ordering {
     this.appId = appId
     this.billing = billing
     this.countryCode = countryCode
+    this.appInternalName = appInternalName
   }
 
   get root () {
@@ -88,6 +92,11 @@ export class Ordering {
 
   setAppId (appId: string) {
     this.appId = appId
+    return this
+  }
+
+  setAppInternalName (appInternalName: string) {
+    this.appInternalName = appInternalName
     return this
   }
 
@@ -226,6 +235,9 @@ export class Ordering {
     }
     if (this.appId) {
       authHeaders['X-APP-X'] = this.appId
+    }
+    if (this.appInternalName) {
+      authHeaders['X-INTERNAL-PRODUCT-X'] = this.appInternalName
     }
     if (this.countryCode) {
       authHeaders['X-Country-Code-X'] = this.countryCode

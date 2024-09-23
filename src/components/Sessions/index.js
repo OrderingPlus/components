@@ -31,6 +31,7 @@ export const Sessions = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })
@@ -70,6 +71,7 @@ export const Sessions = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })
@@ -113,6 +115,7 @@ export const Sessions = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify({ delete_current: deleteCurrent })

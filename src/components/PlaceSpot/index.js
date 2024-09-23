@@ -52,6 +52,7 @@ export const PlaceSpot = (props) => {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         'X-App-X': ordering.appId,
+        'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
         'X-Socket-Id-X': socket?.getId()
       })
       const { result: resultPlaceGroups, error: errorPlaceGroups } = await responsePlaceGroups.json()
@@ -60,6 +61,7 @@ export const PlaceSpot = (props) => {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         'X-App-X': ordering.appId,
+        'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
         'X-Socket-Id-X': socket?.getId()
       })
       const { result: resultPlaces, error: errorPlaces } = await responsePlaces.json()

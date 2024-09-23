@@ -46,6 +46,7 @@ export const PaymentOptionStripeRedirect = (props) => {
         headers: {
           Authorization: `Bearer ${token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       }

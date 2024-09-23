@@ -5,7 +5,8 @@ import { useApi } from '../../contexts/ApiContext'
 export const ProjectForm = (props) => {
   const {
     UIComponent,
-    setStoreData
+    setStoreData,
+    setIsProjectSetted
   } = props
 
   const [ordering, { setOrdering }] = useApi()
@@ -16,6 +17,7 @@ export const ProjectForm = (props) => {
     setProjectState({ data: values, loading: true })
     setOrdering({ ...ordering, project: values?.project_name })
     setStoreData('project_name', JSON.stringify(values?.project_name))
+    setIsProjectSetted?.(!!values?.project_name)
   }
 
   return (

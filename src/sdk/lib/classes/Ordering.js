@@ -1,6 +1,6 @@
-/* eslint-disable camelcase */
 /* eslint-disable no-redeclare */
 /* eslint-disable no-var */
+/* eslint-disable camelcase */
 import { ApiResponse } from './ApiResponse'
 import { ApiLanguage } from './ApiLanguage'
 import { ApiSystem } from './ApiSystem'
@@ -81,7 +81,7 @@ const __rest = (this && this.__rest) || function (s, e) {
 }
 const Ordering = /** @class */ (function () {
   function Ordering (_a) {
-    const _b = _a === void 0 ? {} : _a; const _c = _b.url; const url = _c === void 0 ? 'https://apiv4.ordering.co' : _c; const _d = _b.version; const version = _d === void 0 ? 'v400' : _d; const _e = _b.project; const project = _e === void 0 ? 'demo' : _e; const _f = _b.language; const language = _f === void 0 ? 'en' : _f; const _g = _b.accessToken; const accessToken = _g === void 0 ? null : _g; const _h = _b.apiKey; const apiKey = _h === void 0 ? null : _h; const _j = _b.appId; const appId = _j === void 0 ? null : _j; const _k = _b.billing; const billing = _k === void 0 ? null : _k; const _l = _b.countryCode; const countryCode = _l === void 0 ? null : _l
+    const _b = _a === void 0 ? {} : _a; const _c = _b.url; const url = _c === void 0 ? 'https://apiv4.ordering.co' : _c; const _d = _b.version; const version = _d === void 0 ? 'v400' : _d; const _e = _b.project; const project = _e === void 0 ? 'demo' : _e; const _f = _b.language; const language = _f === void 0 ? 'en' : _f; const _g = _b.accessToken; const accessToken = _g === void 0 ? null : _g; const _h = _b.apiKey; const apiKey = _h === void 0 ? null : _h; const _j = _b.appId; const appId = _j === void 0 ? null : _j; const _k = _b.billing; const billing = _k === void 0 ? null : _k; const _l = _b.countryCode; const countryCode = _l === void 0 ? null : _l; const _m = _b.appInternalName; const appInternalName = _m === void 0 ? null : _m
     this.url = url
     this.version = version
     this.project = project
@@ -91,6 +91,7 @@ const Ordering = /** @class */ (function () {
     this.appId = appId
     this.billing = billing
     this.countryCode = countryCode
+    this.appInternalName = appInternalName
   }
   Object.defineProperty(Ordering.prototype, 'root', {
     get: function () {
@@ -130,6 +131,10 @@ const Ordering = /** @class */ (function () {
   }
   Ordering.prototype.setAppId = function (appId) {
     this.appId = appId
+    return this
+  }
+  Ordering.prototype.setAppInternalName = function (appInternalName) {
+    this.appInternalName = appInternalName
     return this
   }
   Ordering.prototype.setUrl = function (url) {
@@ -210,12 +215,12 @@ const Ordering = /** @class */ (function () {
     const root = options.system ? this.systemRoot : this.root
     const query = options.query; const mode = options.mode; const conditions = options.conditions; const headers = options.headers; const otherOptions = __rest(options
       /**
-         * Parse query
-         */
+       * Parse query
+       */
       , ['query', 'mode', 'conditions', 'headers'])
     /**
-         * Parse query
-         */
+       * Parse query
+       */
     const _query = query || {}
     if (_query && Object.keys(_query).length > 0) {
       for (const key in _query) {
@@ -223,28 +228,28 @@ const Ordering = /** @class */ (function () {
       }
     }
     /**
-         * Parse params from options and select attributes
-         */
+       * Parse params from options and select attributes
+       */
     let params = ((_a = _query === null || _query === void 0 ? void 0 : _query.params) === null || _a === void 0 ? void 0 : _a.split(',')) || []
     params = params.concat(options.attributes || [])
     if (params.length > 0) {
       _query.params = params.join(',')
     }
     /**
-         * Parse conditions to filter api data
-         */
+       * Parse conditions to filter api data
+       */
     if (conditions) {
       _query.where = typeof conditions === 'object' ? JSON.stringify(conditions) : conditions
     }
     /**
-         * Parse conditions to filter api data
-         */
+       * Parse conditions to filter api data
+       */
     if (mode) {
       _query.mode = options.mode
     }
     /**
-         * Parse headers from options and default
-         */
+       * Parse headers from options and default
+       */
     const authHeaders = {}
     if (this.accessToken && !this.apiKey) {
       authHeaders.Authorization = 'Bearer ' + this.accessToken
@@ -255,12 +260,15 @@ const Ordering = /** @class */ (function () {
     if (this.appId) {
       authHeaders['X-APP-X'] = this.appId
     }
+    if (this.appInternalName) {
+      authHeaders['X-INTERNAL-PRODUCT-X'] = this.appInternalName
+    }
     if (this.countryCode) {
       authHeaders['X-Country-Code-X'] = this.countryCode
     }
     /**
-         * Create Option Request
-         */
+       * Create Option Request
+       */
     const _options = __assign(__assign({}, otherOptions), {
       // validateStatus: status => status < 500,
       params: _query || {}, headers: Object.assign(authHeaders, headers || {})
@@ -271,21 +279,21 @@ const Ordering = /** @class */ (function () {
     const promise = new Promise(function (resolve, reject) {
       const xhr = new window.XMLHttpRequest()
       /**
-             * Parse query to request
-             */
+           * Parse query to request
+           */
       const query = Object.entries(options.params || {}).map(function (entry) {
         return entry[0] + '=' + entry[1]
       }).join('&')
       xhr.open(method, url + (query ? '?' + query : ''))
       /**
-             * Add headers to request
-             */
+           * Add headers to request
+           */
       Object.entries(options.headers || {}).forEach(function (entry) {
         xhr.setRequestHeader(entry[0], entry[1])
       })
       /**
-             * Create cancel request
-             */
+           * Create cancel request
+           */
       if (options.cancelToken && typeof options.cancelToken === 'object') {
         options.cancelToken.cancel = function () {
           xhr.abort()

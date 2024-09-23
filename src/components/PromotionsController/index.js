@@ -38,6 +38,7 @@ export const PromotionsController = (props) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.token}`,
         'X-App-X': ordering.appId,
+        'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
         'X-Socket-Id-X': socket?.getId()
       }
     })

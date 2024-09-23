@@ -599,6 +599,7 @@ export const OrderProvider = ({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
         },
@@ -662,6 +663,7 @@ export const OrderProvider = ({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify(body)
@@ -752,6 +754,7 @@ export const OrderProvider = ({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
         }
@@ -795,6 +798,7 @@ export const OrderProvider = ({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
         }
@@ -977,6 +981,7 @@ export const OrderProvider = ({
           'Content-Type': 'application/json',
           Authorization: `bearer ${session.token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
         },
@@ -1079,6 +1084,7 @@ export const OrderProvider = ({
           'Content-Type': 'application/json',
           Authorization: `bearer ${session.token}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
         }

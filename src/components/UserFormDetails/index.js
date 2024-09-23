@@ -361,6 +361,7 @@ export const UserFormDetails = (props) => {
         headers: {
           'Content-Type': 'application/json',
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify(body)
@@ -483,6 +484,7 @@ export const UserFormDetails = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })
@@ -515,6 +517,7 @@ export const UserFormDetails = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify({

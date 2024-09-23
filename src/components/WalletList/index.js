@@ -35,6 +35,7 @@ export const WalletList = (props) => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
             'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
             'X-Socket-Id-X': socket?.getId()
           }
         }
@@ -71,6 +72,7 @@ export const WalletList = (props) => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
             'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
             'X-Socket-Id-X': socket?.getId()
           }
         }

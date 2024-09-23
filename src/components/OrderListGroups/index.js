@@ -570,6 +570,7 @@ export const OrderListGroups = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })
@@ -645,6 +646,7 @@ export const OrderListGroups = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })
@@ -877,6 +879,7 @@ export const OrderListGroups = (props) => {
               Authorization: `Bearer ${session.token}`,
               'Content-Type': 'application/json',
               'X-App-X': ordering.appId,
+              'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
               'X-Socket-Id-X': socket?.getId()
             },
             body: JSON.stringify(body)

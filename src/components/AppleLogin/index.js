@@ -70,6 +70,7 @@ export const AppleLogin = (props) => {
         headers: {
           'Content-Type': 'application/json',
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify(_credentials)
@@ -113,7 +114,7 @@ export const AppleLogin = (props) => {
     try {
       const data = await window.AppleID.auth.signIn()
       handleAppleLoginClick(data?.authorization)
-    } catch {}
+    } catch { }
   }
 
   return <>{UIComponent && <UIComponent {...props} initLoginApple={initLoginApple} />}</>

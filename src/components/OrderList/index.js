@@ -312,6 +312,7 @@ export const OrderList = props => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })

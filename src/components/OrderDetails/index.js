@@ -114,6 +114,7 @@ export const OrderDetails = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })
@@ -155,6 +156,7 @@ export const OrderDetails = (props) => {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify({
@@ -305,6 +307,7 @@ export const OrderDetails = (props) => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
             'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
             'X-Socket-Id-X': socket?.getId()
           }
         })
@@ -365,6 +368,7 @@ export const OrderDetails = (props) => {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         }
       })

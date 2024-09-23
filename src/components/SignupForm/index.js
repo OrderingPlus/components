@@ -208,6 +208,7 @@ export const SignupForm = (props) => {
         headers: {
           'Content-Type': 'application/json',
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify({
@@ -278,6 +279,7 @@ export const SignupForm = (props) => {
         headers: {
           'Content-Type': 'application/json',
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify(body)
@@ -331,6 +333,7 @@ export const SignupForm = (props) => {
         headers: {
           'Content-Type': 'application/json',
           'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
         },
         body: JSON.stringify(body)

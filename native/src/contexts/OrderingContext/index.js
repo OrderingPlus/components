@@ -34,6 +34,7 @@ export const OrderingProvider = ({ Alert, settings, children, isDisableToast, is
   const restOfSettings = {
     project: settings.project,
     appId: settings.app_id,
+    appInternalName: settings.app_internal_name,
     use_root_point: settings.use_root_point,
     countryCode: settings.countryCode,
     useOptimizeLoad: settings?.useOptimizeLoad,

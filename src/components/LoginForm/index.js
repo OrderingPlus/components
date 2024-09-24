@@ -176,7 +176,7 @@ export const LoginForm = (props) => {
         }
         events.emit('userLogin', result)
         if (handleSuccessLogin) {
-          handleSuccessLogin(result)
+          await handleSuccessLogin(result)
         }
 
         if (urlToRedirect) {
@@ -303,7 +303,7 @@ export const LoginForm = (props) => {
           token: res?.result?.session?.access_token
         })
         if (handleSuccessLogin) {
-          handleSuccessLogin(res?.result)
+          await handleSuccessLogin(res?.result)
         }
       }
       setCheckPhoneCodeState({

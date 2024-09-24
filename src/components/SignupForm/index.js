@@ -124,7 +124,7 @@ export const SignupForm = (props) => {
       if (!response.content.error) {
         events.emit('singup_user', response.content.result)
         if (handleSuccessSignup) {
-          handleSuccessSignup(response.content.result)
+          await handleSuccessSignup(response.content.result)
         }
       }
     } catch (err) {
@@ -345,7 +345,7 @@ export const SignupForm = (props) => {
           token: res?.result?.session?.access_token
         })
         if (handleSuccessSignup) {
-          handleSuccessSignup(res?.result)
+          await handleSuccessSignup(res?.result)
         }
       }
       setCheckPhoneCodeState({
@@ -395,7 +395,7 @@ export const SignupForm = (props) => {
           token: result?.session?.access_token
         })
         if (handleSuccessSignup) {
-          handleSuccessSignup(result)
+          await handleSuccessSignup(result)
         }
 
         setCheckPhoneCodeState({

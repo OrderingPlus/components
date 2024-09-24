@@ -6,7 +6,7 @@ export const ProjectForm = (props) => {
   const {
     UIComponent,
     setStoreData,
-    setIsProjectSetted
+    setGeneralProjectState
   } = props
 
   const [ordering, { setOrdering }] = useApi()
@@ -17,7 +17,7 @@ export const ProjectForm = (props) => {
     setProjectState({ data: values, loading: true })
     setOrdering({ ...ordering, project: values?.project_name })
     setStoreData('project_name', JSON.stringify(values?.project_name))
-    setIsProjectSetted?.(!!values?.project_name)
+    setGeneralProjectState?.({ setted: !!values?.project_name, changed: !!values?.project_name })
   }
 
   return (

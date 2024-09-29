@@ -7,6 +7,7 @@ export const BusinessReviews = (props) => {
   const {
     businessId,
     reviews,
+    showEmptyComments,
     UIComponent
   } = props
 
@@ -98,7 +99,7 @@ export const BusinessReviews = (props) => {
       setBusinessReviewsList({
         ...businessReviewsList,
         loading: false,
-        reviews: sortReviews(reviews.filter(r => r.comment))
+        reviews: sortReviews(reviews.filter(r => r.comment || showEmptyComments))
       })
     } else {
       getBusiness()
@@ -112,7 +113,7 @@ export const BusinessReviews = (props) => {
 
   useEffect(() => {
     if (!reviews?.length) return
-    const reviewsListing = sortReviews(reviews.filter(r => r.comment))
+    const reviewsListing = sortReviews(reviews.filter(r => r.comment || showEmptyComments))
     if (!searchValue) {
       setBusinessReviewsList({
         ...businessReviewsList,

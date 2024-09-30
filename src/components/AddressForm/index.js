@@ -245,7 +245,7 @@ export const AddressForm = (props) => {
     }
   }
 
-  const getNearestBusiness = async (location) => {
+  const getNearestBusiness = async (location, callback) => {
     try {
       setBusinessNearestState({
         ...businessNearestState,
@@ -296,6 +296,7 @@ export const AddressForm = (props) => {
           error: firstNearestOpenBusiness ? null : t('NO_BUSINESS_NEAR_LOCATION', 'No business near of you location') || error,
           loading: false
         })
+        callback && callback(firstNearestOpenBusiness)
         return
       }
       setBusinessNearestState({

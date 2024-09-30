@@ -7,6 +7,9 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useConfig } from '../../contexts/ConfigContext'
 import { useToast, ToastType } from '../../contexts/ToastContext'
 import { useCustomer } from '../../contexts/CustomerContext'
+import { useSession } from '../../contexts/SessionContext'
+import { useWebsocket } from '../../contexts/WebsocketContext'
+
 dayjs.extend(utc)
 
 export const BusinessAndProductList = (props) => {
@@ -38,6 +41,8 @@ export const BusinessAndProductList = (props) => {
   const [, { showToast }] = useToast()
   const [languageState, t] = useLanguage()
   const [customerState] = useCustomer()
+  const [{ user, token }] = useSession()
+  const socket = useWebsocket()
   const [categorySelected, setCategorySelected] = useState({ id: null, name: t('ALL', 'All') })
   const [searchValue, setSearchValue] = useState(null)
   const [sortByValue, setSortByValue] = useState(null)
@@ -185,6 +190,49 @@ export const BusinessAndProductList = (props) => {
    */
   const handleChangeProfessionalSelected = (professional) => {
     setProfessionalSelected(professional)
+  }
+
+  /**
+   * Method to add, remove favorite info for user from API
+   */
+  const handleFavoriteBusiness = async (isAdd = false) => {
+    if (!businessState?.business || !user) return
+    showToast(ToastType.Info, t('LOADING', 'loading'))
+
+    try {
+      const changes = { object_id: businessState?.business?.id }
+      const requestOptions = {
+        method: isAdd ? 'POST' : 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-App-X': ordering.appId,
+          'X-Socket-Id-X': socket?.getId()
+        },
+        ...(isAdd && { body: JSON.stringify(changes) })
+      }
+      const fetchEndpoint = isAdd
+        ? `${ordering.root}/users/${user?.id}/favorite_businesses`
+        : `${ordering.root}/users/${user.id}/favorite_businesses/${businessState?.business?.id}`
+      const response = await fetch(fetchEndpoint, requestOptions)
+      const content = await response.json()
+
+      if (!content.error) {
+        setBusinessState({
+          ...businessState,
+          business: {
+            ...businessState.business,
+            favorite: isAdd
+          }
+        })
+        props.handleCustomUpdate && props.handleCustomUpdate(businessState?.business?.id, { favorite: isAdd })
+        showToast(ToastType.Success, isAdd ? t('FAVORITE_ADDED', 'Favorite added') : t('FAVORITE_REMOVED', 'Favorite removed'))
+      } else {
+        showToast(ToastType.Error, t(content.result, 'Error adding favorite'))
+      }
+    } catch (error) {
+      showToast(ToastType.Error, [error.message])
+    }
   }
 
   const handleUpdateProducts = (productId, changes) => {
@@ -984,6 +1032,7 @@ export const BusinessAndProductList = (props) => {
           updateStoreCategory={updateStoreCategory}
           updateStoreProduct={updateStoreProduct}
           loadedFirstTime={loadedFirstTime}
+          handleFavoriteBusiness={handleFavoriteBusiness}
         />
       )}
     </>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useGoogleMaps } from '../../hooks/useGoogleMaps'
@@ -13,7 +13,8 @@ export const GpsButton = (props) => {
     apiKey,
     onData,
     onError,
-    onAddress
+    onAddress,
+    isGetAddress
   } = props
 
   const [, t] = useLanguage()
@@ -80,6 +81,11 @@ export const GpsButton = (props) => {
       enableHighAccuracy: true
     })
   }
+
+  useEffect(() => {
+    if (!isGetAddress) return
+    handleGPS()
+  }, [isGetAddress])
 
   return (
     navigator.geolocation && (

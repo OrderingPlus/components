@@ -103,6 +103,7 @@ export const OrderListGroups = (props) => {
   const [orderLogisticAdded, setOrderLogisticAdded] = useState(null)
   const [orderLogisticUpdated, setOrderLogisticUpdated] = useState(null)
   const [recentlyReceivedMessage, setRecentlyReceivedMessage] = useState(null)
+  const [loadingChangeOrder, setLoadingChangeOrder] = useState(false)
   const [ordersFiltered, setOrdersFiltered] = useState({
     orders: [],
     loading: false,
@@ -815,6 +816,7 @@ export const OrderListGroups = (props) => {
 
   const handleClickLogisticOrder = async (status, orderId) => {
     try {
+      setLoadingChangeOrder(true)
       const response = await fetch(`${ordering.root}/drivers/${session.user?.id}/assign_requests/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
@@ -846,11 +848,14 @@ export const OrderListGroups = (props) => {
     } catch (err) {
       setlogisticOrders({ ...logisticOrders, error: err.message })
       showToast(ToastType.Error, err.message)
+    } finally {
+      setLoadingChangeOrder(false)
     }
   }
 
   const handleChangeOrderStatus = async (status, orderIds, body = {}) => {
     try {
+      setLoadingChangeOrder(true)
       delete body.id
       const bodyToSend = Object.keys(body || {}).length > 0 ? body : { status }
       const setOrderStatus = async (id) => {
@@ -866,6 +871,8 @@ export const OrderListGroups = (props) => {
       return result
     } catch (err) {
       return err?.message ?? err
+    } finally {
+      setLoadingChangeOrder(false)
     }
   }
 
@@ -1274,6 +1281,7 @@ export const OrderListGroups = (props) => {
           ordersFormatted={formatOrdersGrouped(ordersGroup[currentTabSelected]?.orders)}
           isLogisticActivated={isLogisticActivated}
           ordersFiltered={ordersFiltered}
+          loadingChangeOrder={loadingChangeOrder}
         />
       )}
     </>

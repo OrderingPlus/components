@@ -13,6 +13,7 @@ export const SingleOrderCard = (props) => {
     order,
     handleReorder,
     handleUpdateOrderList,
+    handleUpdateSingleOrder,
     isCustomerMode
   } = props
 
@@ -57,6 +58,7 @@ export const SingleOrderCard = (props) => {
       if (!content.error) {
         setActionState({ ...actionState, loading: false })
         handleUpdateOrderList && handleUpdateOrderList(order?.id, { favorite: isAdd })
+        handleUpdateSingleOrder && handleUpdateSingleOrder({ favorite: isAdd })
         showToast(ToastType.Success, isAdd ? t('FAVORITE_ADDED', 'Favorite added') : t('FAVORITE_REMOVED', 'Favorite removed'))
       } else {
         setActionState({

@@ -24,7 +24,7 @@ export const OrderReview = (props) => {
   const [session] = useSession()
   const [, t] = useLanguage()
   const [, { showToast }] = useToast()
-  const [stars, setStars] = useState({ quality: defaultStar, punctiality: defaultStar, service: defaultStar, packaging: defaultStar, comments: '' })
+  const [stars, setStars] = useState({ quality: defaultStar, punctuality: defaultStar, service: defaultStar, packaging: defaultStar, comments: '' })
   const [formState, setFormState] = useState({ loading: false, result: { error: false } })
 
   const reviewOrder = async (body) => {
@@ -52,14 +52,14 @@ export const OrderReview = (props) => {
   /**
    * Function that load and send the review order to ordering
    */
-  const handleSendReview = async () => {
+  const handleSendReview = async (callback) => {
     if (handleCustomSendReview) {
       handleCustomSendReview && handleCustomSendReview(stars)
     }
     setFormState({ ...formState, loading: true })
     const staticBody = {
       quality: stars.quality,
-      delivery: stars.punctiality,
+      delivery: stars.punctuality,
       service: stars.service,
       package: stars.packaging,
       comment: stars.comments,
@@ -67,7 +67,6 @@ export const OrderReview = (props) => {
     }
     try {
       if (order?.business?.length > 1) {
-        // eslint-disable-next-line no-unused-expressions
         order?.business?.forEach(async (_business, i) => {
           const body = {
             ...staticBody,
@@ -88,10 +87,13 @@ export const OrderReview = (props) => {
           business_id: order.business_id
         }
         const { response, result, error } = await reviewOrder(body)
+        !error && callback?.()
         onSaveReview && onSaveReview(response)
         setFormState({ loading: false, result, error })
-        if (!error && isToast) showToast(ToastType.Success, t('ORDER_REVIEW_SUCCESS_CONTENT', 'Thank you, Order review successfully submitted!'))
-        if (!error) handleUpdateOrderList && handleUpdateOrderList(order.id, { review: result })
+        if (!error) {
+          handleUpdateOrderList && handleUpdateOrderList(order.id, { review: result })
+          isToast && showToast(ToastType.Success, t('ORDER_REVIEW_SUCCESS_CONTENT', 'Thank you, Order review successfully submitted!'))
+        }
       }
     } catch (err) {
       setFormState({

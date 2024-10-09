@@ -84,7 +84,7 @@ export const GoogleMaps = (props) => {
               infowindow.setContent(locations[i]?.markerPopup)
               infowindow.open(map, marker)
             } else {
-              onBusinessClick(locations[i]?.slug, locations[i])
+              onBusinessClick && onBusinessClick(locations[i]?.slug, locations[i])
             }
           })
           bounds.extend(marker.position)

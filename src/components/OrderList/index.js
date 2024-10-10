@@ -489,7 +489,7 @@ export const OrderList = props => {
     const ordersRoom = !props.isAsCustomer && session?.user?.level === 0 ? 'orders' : `orders_${session?.user?.id}`
     socket.join(ordersRoom)
     return () => {
-      socket.leave(ordersRoom)
+      !props.disabledLeaveOrderSocket && socket.leave(ordersRoom)
     }
   }, [socket, session, userCustomerId, isCustomerMode])
 

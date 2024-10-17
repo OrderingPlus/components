@@ -42,8 +42,8 @@ export const BusinessReviews = (props) => {
 
   const onChangeReview = (text) => {
     const reviews = text !== ''
-    ? reviewsList.filter(review => review.comment && review.comment.toLowerCase().includes(text?.toLowerCase()))
-    : reviewsList
+      ? reviewsList.filter(review => review.comment && review.comment.toLowerCase().includes(text?.toLowerCase()))
+      : reviewsList
     setBusinessReviewsList({
       ...businessReviewsList,
       loading: false,

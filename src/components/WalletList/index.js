@@ -154,12 +154,12 @@ export const WalletList = (props) => {
   }
 
   useEffect(() => {
-    if (auth) {
+    if (auth || props.refresh) {
       getUserLoyaltyLevel()
       getWallets()
       props.fetchLevels && getLevelList()
     }
-  }, [auth])
+  }, [auth, props.refresh])
 
   useEffect(() => {
     if (walletSelected) {

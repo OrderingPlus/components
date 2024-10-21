@@ -118,6 +118,7 @@ import { PaymentOptionCash } from './components/PaymentOptionCash'
 import { PaymentOptionPaypal } from './components/PaymentOptionPaypal'
 import { PaymentOptionStripe } from './components/PaymentOptionStripe'
 import { PaymentOptionStripeDirect } from './components/PaymentOptionStripeDirect'
+import { PaymentOptionStripeLink } from './components/PaymentOptionStripeLink'
 import { PaymentOptionStripeRedirect } from './components/PaymentOptionStripeRedirect'
 import { PaymentOptionSquare } from './components/PaymentOptionSquare'
 import { StripeElementsForm } from './components/StripeElementsForm'
@@ -271,6 +272,7 @@ export {
   PaymentOptionPaypal,
   PaymentOptionStripe,
   PaymentOptionStripeDirect,
+  PaymentOptionStripeLink,
   PaymentOptionStripeRedirect,
   PaymentOptionSquare,
   PhoneAutocomplete,

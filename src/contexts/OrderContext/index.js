@@ -1304,11 +1304,11 @@ export const OrderProvider = ({
   }
 
   useEffect(() => {
-    if (session.loading || languageState.loading) return
+    if (session.loading || languageState.loading || !ordering?.project) return
     if (session.auth) {
       refreshOrderOptions()
     }
-  }, [session.auth, session.loading, languageState.loading])
+  }, [session.auth, session.loading, languageState.loading, ordering?.project])
 
   useEffect(() => {
     if (session.loading || configState.loading) return

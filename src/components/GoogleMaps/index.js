@@ -25,7 +25,8 @@ export const GoogleMaps = (props) => {
     deactiveAlerts,
     fallbackIcon,
     manualZoom,
-    avoidFitBounds
+    avoidFitBounds,
+    allowMarkerPopups
   } = props
 
   const [{ optimizeImage }] = useUtils()
@@ -95,7 +96,16 @@ export const GoogleMaps = (props) => {
         }
       } else {
         marker.addListener('click', () => {
-          onBusinessClick && onBusinessClick(locations[i]?.slug, locations[i])
+          if (locations[i]?.markerPopup && allowMarkerPopups) {
+            const infowindow = new window.google.maps.InfoWindow()
+            infowindow.setContent(locations[i]?.markerPopup)
+            infowindow.open(map, marker)
+            window.google.maps.event.addListenerOnce(infowindow, 'domready', () => {
+              document.getElementById(`order-now-${locations[i]?.id}`)?.addEventListener('click', () => locations[i]?.onBusinessCustomClick())
+            })
+          } else {
+            onBusinessClick && onBusinessClick(locations[i]?.slug, locations[i])
+          }
         })
         bounds.extend(marker.position)
         locationMarkers.push(marker)

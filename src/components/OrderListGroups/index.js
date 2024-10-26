@@ -13,7 +13,6 @@ export const OrderListGroups = (props) => {
     UIComponent,
     orderBy,
     isIos,
-    useDefualtSessionManager,
     paginationSettings,
     asDashboard,
     orderGroupStatusCustom,
@@ -104,6 +103,7 @@ export const OrderListGroups = (props) => {
   const [orderLogisticUpdated, setOrderLogisticUpdated] = useState(null)
   const [recentlyReceivedMessage, setRecentlyReceivedMessage] = useState(null)
   const [loadingChangeOrder, setLoadingChangeOrder] = useState(false)
+
   const [ordersFiltered, setOrdersFiltered] = useState({
     orders: [],
     loading: false,
@@ -117,7 +117,6 @@ export const OrderListGroups = (props) => {
     }
   })
 
-  const accessToken = useDefualtSessionManager ? session.token : props.accessToken
   const requestsState = {}
 
   const handleSelectCurrentTab = (value) => {
@@ -138,6 +137,7 @@ export const OrderListGroups = (props) => {
     }
     setCurrentTabSelected(value)
   }
+
   const getOrders = async ({
     page,
     pageSize = paginationSettings.pageSize,
@@ -327,8 +327,8 @@ export const OrderListGroups = (props) => {
     options.cancelToken = source
 
     const functionFetch = asDashboard
-      ? ordering.setAccessToken(accessToken).orders().asDashboard()
-      : ordering.setAccessToken(accessToken).orders()
+      ? ordering.setAccessToken(session.token).orders().asDashboard()
+      : ordering.setAccessToken(session.token).orders()
     return await functionFetch.get(options)
   }
 
@@ -336,7 +336,7 @@ export const OrderListGroups = (props) => {
     try {
       setControlsState({ ...controlsState, loading: true })
       const { content: { error, result } } = await ordering
-        .setAccessToken(accessToken)
+        .setAccessToken(session.token)
         .controls()
         .get()
       const obj = {
@@ -413,14 +413,14 @@ export const OrderListGroups = (props) => {
         orderStatus: options?.allStatusses ? null : ordersGroup[currentTabSelected]?.currentFilter,
         newFetch: (newFetch || newFetchCurrent)
       })
-
       const _ordersCleaned = error
         ? (newFetch || newFetchCurrent)
-            ? []
-            : sortOrders(ordersGroup[currentTabSelected]?.orders)
+          ? []
+          : sortOrders(ordersGroup[currentTabSelected]?.orders)
         : (newFetch || newFetchCurrent)
-            ? sortOrders(result)
-            : sortOrders(ordersGroup[currentTabSelected]?.orders.concat(result))
+          ? sortOrders(result)
+          : sortOrders(ordersGroup[currentTabSelected]?.orders.concat(result))
+
       if (options?.allStatusses) {
         setOrdersFiltered({
           error,
@@ -535,14 +535,14 @@ export const OrderListGroups = (props) => {
           error: error ? result : null,
           pagination: !error
             ? {
-                ...ordersGroup[currentTabSelected].pagination,
-                currentPage: pagination.current_page,
-                pageSize: pagination.page_size,
-                totalPages: pagination.total_pages,
-                total: pagination.total,
-                from: pagination.from,
-                to: pagination.to
-              }
+              ...ordersGroup[currentTabSelected].pagination,
+              currentPage: pagination.current_page,
+              pageSize: pagination.page_size,
+              totalPages: pagination.total_pages,
+              total: pagination.total,
+              from: pagination.from,
+              to: pagination.to
+            }
             : ordersGroup[currentTabSelected].pagination
         }
       })
@@ -569,7 +569,7 @@ export const OrderListGroups = (props) => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${session.token}`,
           'X-App-X': ordering.appId,
           'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
@@ -600,11 +600,11 @@ export const OrderListGroups = (props) => {
       const errorState = []
 
       if (orderIds.length === 1) {
-        const { content: { error } } = await ordering.setAccessToken(accessToken).orders(orderIds[0]).delete()
+        const { content: { error } } = await ordering.setAccessToken(session.token).orders(orderIds[0]).delete()
         errorState.push({ error, id: orderIds[0] })
       } else if (orderIds.length > 1) {
         for (const id of orderIds) {
-          const { content: { error: multiError } } = await ordering.setAccessToken(accessToken).orders(id).delete()
+          const { content: { error: multiError } } = await ordering.setAccessToken(session.token).orders(id).delete()
           errorState.push({ error: multiError, id })
         }
       }
@@ -645,7 +645,7 @@ export const OrderListGroups = (props) => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${session.token}`,
           'X-App-X': ordering.appId,
           'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
           'X-Socket-Id-X': socket?.getId()
@@ -673,7 +673,7 @@ export const OrderListGroups = (props) => {
     return ordersSorted
   }
 
-  const filterByIdUnique = (array) => {
+  const filterByIdUnique = (array, currentTabSelected) => {
     if (!array) return []
 
     const tempObj = {}
@@ -709,13 +709,12 @@ export const OrderListGroups = (props) => {
 
         const groupIds = totalOrders.filter(o => o.cart_group_id === item?.cart_group_id)
         const _item = !ordersGroupids.includes(item?.cart_group_id)
-          ? Object.entries({ [item?.cart_group_id]: groupIds })
-          : ''
+          ? Object.entries({ [item?.cart_group_id]: groupIds }) : ''
 
         if (_item) ordersGroupids.push(item?.cart_group_id)
         return _item
       }).filter(item => item)
-    return options?.allStatusses ? totalOrders : filterByIdUnique(totalOrders)
+    return options?.allStatusses ? totalOrders : filterByIdUnique(totalOrders, currentTabSelected)
   }
 
   const getStatusById = (id) => {
@@ -744,38 +743,38 @@ export const OrderListGroups = (props) => {
   }
 
   const actionOrderToTab = (orderAux, status, type) => {
-    const orderList = ordersGroup[status]?.orders
-    let orders
-    const order = {
-      ...orderAux,
-      showNotification: true
-    }
-    if (type === 'update') {
-      const indexToUpdate = orderList.findIndex((o) => o.id === order.id)
-      orderList[indexToUpdate] = { ...order, action: type + order?.status }
-      orders = orderList
-    } else {
-      orders = type === 'add'
-        ? [{ ...order, action: type + order?.status }, ...orderList]
-        : orderList.filter((_order) => _order.id !== order.id)
-    }
-    let _pagination = ordersGroup[status].pagination
-    if (type !== 'update') {
-      _pagination = {
-        ...ordersGroup[status].pagination,
-        total: ordersGroup[status].pagination.total + (type === 'add' ? 1 : -1)
+    setOrdersGroup(prevState => {
+      if (!prevState[status]?.orders) return
+      const orderList = prevState[status]?.orders
+      const order = { ...orderAux, showNotification: false }
+      let updatedOrders
+
+      switch (type) {
+        case 'update':
+          updatedOrders = orderList.map(o => o.id === order.id ? { ...order, action: `${type}${order?.status}` } : o)
+          break
+        case 'add':
+          updatedOrders = [{ ...order, action: `${type}${order?.status}` }, ...orderList]
+          break
+        case 'remove':
+          updatedOrders = orderList.filter(o => o.id !== order.id)
+          break
       }
-    }
-    setOrdersGroup((prevState) => ({
-      ...prevState,
-      orders: filterByIdUnique(sortOrders(orders)),
-      [status]: {
-        ...prevState[status],
-        orders: sortOrders(orders),
-        pagination: _pagination
-      },
-      pagination: _pagination
-    }))
+
+      const updatedPagination = {
+        ...prevState[status].pagination,
+        total: prevState[status].pagination.total + (type === 'add' ? 1 : type === 'remove' ? -1 : 0)
+      }
+
+      return {
+        ...prevState,
+        [status]: {
+          ...prevState[status],
+          orders: filterByIdUnique(sortOrders(updatedOrders), status),
+          pagination: updatedPagination
+        }
+      }
+    })
   }
 
   const handleClickOrder = (orderAux) => {
@@ -819,7 +818,7 @@ export const OrderListGroups = (props) => {
       setLoadingChangeOrder(true)
       const response = await fetch(`${ordering.root}/drivers/${session.user?.id}/assign_requests/${orderId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
         body: JSON.stringify({
           status,
           user_id: session.user?.id
@@ -1017,7 +1016,6 @@ export const OrderListGroups = (props) => {
         }
         delete order.total
         delete order.subtotal
-
         const currentFilter = ordersGroup[getStatusById(order?.status) ?? '']?.currentFilter
         !currentFilter.includes(order.status)
           ? actionOrderToTab(order, getStatusById(order?.status), 'remove')
@@ -1089,7 +1087,6 @@ export const OrderListGroups = (props) => {
         setRecentlyReceivedMessage(message)
       }
     }
-
     socket.on('orders_register', handleAddNewOrder)
     socket.on('order_assigned', handleAddNewOrder)
     socket.on('update_order', handleUpdateOrder)
@@ -1181,7 +1178,7 @@ export const OrderListGroups = (props) => {
     const userId = session.user.id
     const userLevel = session.user.level
 
-    const ordersRoom = userLevel === 0 || !isDriverApp
+    const ordersRoom = userLevel === 0
       ? 'orders'
       : `orders_${userId}`
 

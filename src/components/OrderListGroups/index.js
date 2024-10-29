@@ -415,11 +415,11 @@ export const OrderListGroups = (props) => {
       })
       const _ordersCleaned = error
         ? (newFetch || newFetchCurrent)
-          ? []
-          : sortOrders(ordersGroup[currentTabSelected]?.orders)
+            ? []
+            : sortOrders(ordersGroup[currentTabSelected]?.orders)
         : (newFetch || newFetchCurrent)
-          ? sortOrders(result)
-          : sortOrders(ordersGroup[currentTabSelected]?.orders.concat(result))
+            ? sortOrders(result)
+            : sortOrders(ordersGroup[currentTabSelected]?.orders.concat(result))
 
       if (options?.allStatusses) {
         setOrdersFiltered({
@@ -535,14 +535,14 @@ export const OrderListGroups = (props) => {
           error: error ? result : null,
           pagination: !error
             ? {
-              ...ordersGroup[currentTabSelected].pagination,
-              currentPage: pagination.current_page,
-              pageSize: pagination.page_size,
-              totalPages: pagination.total_pages,
-              total: pagination.total,
-              from: pagination.from,
-              to: pagination.to
-            }
+                ...ordersGroup[currentTabSelected].pagination,
+                currentPage: pagination.current_page,
+                pageSize: pagination.page_size,
+                totalPages: pagination.total_pages,
+                total: pagination.total,
+                from: pagination.from,
+                to: pagination.to
+              }
             : ordersGroup[currentTabSelected].pagination
         }
       })
@@ -709,7 +709,8 @@ export const OrderListGroups = (props) => {
 
         const groupIds = totalOrders.filter(o => o.cart_group_id === item?.cart_group_id)
         const _item = !ordersGroupids.includes(item?.cart_group_id)
-          ? Object.entries({ [item?.cart_group_id]: groupIds }) : ''
+          ? Object.entries({ [item?.cart_group_id]: groupIds })
+          : ''
 
         if (_item) ordersGroupids.push(item?.cart_group_id)
         return _item

@@ -355,7 +355,7 @@ export const AddressForm = (props) => {
       const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?${paramsFormatted}`)
       const result = await response.json()
       if (result?.suggestions) {
-        setMapBoxSuggest(result?.suggestions)
+        setMapBoxSuggest(result?.suggestions?.filter(suggest => suggest?.context?.address?.address_number))
       }
       setMapBoxSuggestCount((count) => count + 1)
     } catch (err) {
@@ -395,6 +395,8 @@ export const AddressForm = (props) => {
       mapbox_id: properties?.mapbox_id,
       zipcode: properties?.context?.postcode?.name,
       neighborhood: properties?.context?.neighborhood?.name,
+      street_number: properties?.context?.address_number,
+      route: properties?.context?.street_name,
       map_data: {
         library: 'mapbox',
         place_id: properties?.mapbox_id

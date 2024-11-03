@@ -134,7 +134,10 @@ export const BusinessSimpleList = (props) => {
 
   useEffect(() => {
     getBusinesses()
-  }, [orderType])
+  }, [
+    orderType,
+    JSON.stringify(orderState.options?.address?.location)
+  ])
 
   return (
     UIComponent && (

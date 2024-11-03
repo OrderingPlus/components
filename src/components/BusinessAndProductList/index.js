@@ -480,6 +480,8 @@ export const BusinessAndProductList = (props) => {
       return
     }
 
+    if (slug && slug !== businessState?.business?.slug) return
+
     const isLazy = !!business?.lazy_load_products_recommended ?? !!businessState?.business?.lazy_load_products_recommended
 
     if (!isLazy) {
@@ -927,7 +929,7 @@ export const BusinessAndProductList = (props) => {
   }, [sortByValue])
 
   useEffect(() => {
-    loadProducts()
+    loadProducts({ newFetch: true })
   }, [slug])
 
   useEffect(() => {

@@ -11,6 +11,7 @@ const stripeLink = 'stripe_link'
 const paymethodsExisting = ['stripe', 'stripe_direct', 'stripe_connect', 'paypal', 'square']
 const paymethodsNotAllowed = ['paypal_express', 'authorize']
 const paymethodsCallcenterMode = ['cash', 'card_delivery', 'ivrpay', '100_coupon', stripeLink]
+const redirectMethods = ['stripe_checkout', 'checkout_pro_mercadopago']
 
 /**
  * Component to manage payment options behavior without UI component
@@ -158,7 +159,7 @@ export const PaymentOptions = (props) => {
   useEffect(() => {
     if (paymethodSelected && !props.disableAutoUpdate) {
       const _paymethodData = paymethodData
-      if (paymethodSelected?.gateway === 'stripe_checkout') {
+      if (redirectMethods.includes(paymethodSelected?.gateway)) {
         _paymethodData.success_url = returnUrl
         _paymethodData.cancel_url = returnUrl
       }

@@ -139,7 +139,7 @@ export const AddressList = (props) => {
   }
 
   const handleAddressRegister = async (address) => {
-    if (address?.user_id !== userCustomerSetup?.id) return
+    if (address?.user_id !== userCustomerSetup?.id && !address?.insert) return
     try {
       await setAddressList((prevProps) => ({
         ...prevProps,
@@ -185,6 +185,7 @@ export const AddressList = (props) => {
           setAddressList={setAddressList}
           actionStatus={actionStatus}
           handleSetDefault={handleSetDefault}
+          handleAddressRegister={handleAddressRegister}
           handleDelete={handleDelete}
           loadAddresses={loadAddresses}
         />

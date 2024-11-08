@@ -136,7 +136,7 @@ export const BusinessSimpleList = (props) => {
     getBusinesses()
   }, [
     orderType,
-    JSON.stringify(orderState.options?.address?.location)
+    orderState.options?.address_id
   ])
 
   return (

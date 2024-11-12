@@ -141,6 +141,11 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
   }, [])
 
   useEffect(() => {
+    if (!restOfProps?.use_project_subdomain || !ordering?.project || ordering?.language === restOfProps?.api?.language) return
+    loadDefaultLanguage()
+  }, [ordering?.project])
+
+  useEffect(() => {
     if (ordering.language !== state?.language?.code) return
     apiHelper.setLanguage(state?.language?.code)
   }, [state.language])

@@ -52,7 +52,12 @@ export const WebsocketProvider = ({ settings, children, strategy }) => {
         clearInterval(projectInputInterval)
       }
       if (project) {
-        setConfigs((prevConfigs) => ({ ...prevConfigs, project: JSON.parse(project) }))
+        try {
+          const parsedProject = JSON.parse(project)
+          setConfigs((prevConfigs) => ({ ...prevConfigs, project: parsedProject }))
+        } catch (error) {
+          setConfigs((prevConfigs) => ({ ...prevConfigs, project }))
+        }
         clearInterval(projectInputInterval)
       }
     }, 1000)

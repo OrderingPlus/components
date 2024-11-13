@@ -52,13 +52,14 @@ export const AutocompleteInput = (props) => {
               addressObj.zipcode = component.short_name
             }
             if (addressType === 'street_number') {
-              addressObj.street_number = component.long_name
+              addressObj.internal_number = component.long_name
             }
             if (addressType === 'neighborhood') {
               addressObj.neighborhood = component.long_name
             }
             if (addressType === 'route') {
               addressObj.route = component.short_name
+              addressObj.street_number = component.long_name
             }
             if (addressType === 'locality') {
               addressObj.locality = component.long_name

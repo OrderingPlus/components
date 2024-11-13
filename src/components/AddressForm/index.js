@@ -395,8 +395,9 @@ export const AddressForm = (props) => {
       mapbox_id: properties?.mapbox_id,
       zipcode: properties?.context?.postcode?.name,
       neighborhood: properties?.context?.neighborhood?.name,
-      street_number: properties?.context?.address_number,
+      street_number: properties?.context?.address?.street_name,
       route: properties?.context?.street_name,
+      internal_number: properties?.context?.address?.address_number,
       map_data: {
         library: 'mapbox',
         place_id: properties?.mapbox_id

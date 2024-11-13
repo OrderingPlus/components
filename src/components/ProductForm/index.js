@@ -514,8 +514,8 @@ export const ProductForm = (props) => {
     if (!product?.product) {
       return errors
     }
-    product.product?.extras?.forEach(extra => {
-      extra.options.map(option => {
+    product?.product?.extras?.forEach(extra => {
+      extra?.options?.map(option => {
         const suboptions = productCart.options[`id:${option.id}`]?.suboptions
         const quantity = suboptions
           ? option?.with_half_option
@@ -821,14 +821,16 @@ export const ProductForm = (props) => {
       const _dependsSuboptions = {}
       const preselectedOptions = []
       const preselectedSuboptions = []
-      for (const extra of product.product.extras) {
-        for (const option of extra.options) {
-          for (const suboption of option.suboptions) {
-            _selectedSuboptions[`suboption:${suboption.id}`] =
-              (suboption.preselected ||
-                (option?.max === 1 && option?.min === 1 && option?.suboptions?.length === 1)) &&
-              (!editMode || !!props.productCart?.options[`id:${option?.id}`]?.suboptions[`id:${suboption?.id}`])
-            _dependsSuboptions[`suboption:${suboption.id}`] = option?.conditioned && option?.respect_to !== null ? option?.respect_to : null
+      for (const extra of product?.product?.extras) {
+        if (extra?.options) {
+          for (const option of extra?.options) {
+            for (const suboption of option?.suboptions) {
+              _selectedSuboptions[`suboption:${suboption.id}`] =
+                (suboption.preselected ||
+                  (option?.max === 1 && option?.min === 1 && option?.suboptions?.length === 1)) &&
+                (!editMode || !!props.productCart?.options[`id:${option?.id}`]?.suboptions[`id:${suboption?.id}`])
+              _dependsSuboptions[`suboption:${suboption.id}`] = option?.conditioned && option?.respect_to !== null ? option?.respect_to : null
+            }
           }
         }
       }
@@ -839,12 +841,14 @@ export const ProductForm = (props) => {
         }))
       }
 
-      for (const extra of product.product.extras) {
-        for (const option of extra.options) {
-          for (const suboption of option.suboptions) {
-            if (checkSuboptionsSelected(suboption?.id, _selectedSuboptions, _dependsSuboptions)) {
-              preselectedOptions.push(option)
-              preselectedSuboptions.push(suboption)
+      for (const extra of product?.product?.extras) {
+        if (extra?.options) {
+          for (const option of extra?.options) {
+            for (const suboption of option?.suboptions) {
+              if (checkSuboptionsSelected(suboption?.id, _selectedSuboptions, _dependsSuboptions)) {
+                preselectedOptions.push(option)
+                preselectedSuboptions.push(suboption)
+              }
             }
           }
         }
@@ -921,7 +925,7 @@ export const ProductForm = (props) => {
   if (isStarbucks) {
     useEffect(() => {
       if (product?.product && Object.keys(product?.product).length) {
-        const options = [].concat(...product.product.extras.map(extra => extra.options.filter(
+        const options = [].concat(...product.product?.extras?.map(extra => extra?.options?.filter(
           option => (
             option.name === 'Tamaño' &&
             option.suboptions.filter(suboption => suboption.name === 'Grande (16oz - 437ml)').length === 1

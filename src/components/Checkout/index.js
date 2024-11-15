@@ -230,7 +230,7 @@ export const Checkout = (props) => {
       handleConfirmCredomaticPage(cartResult, _paymethodSelected)
     }
 
-    if (cartResult?.paymethod_data?.gateway === 'computop' &&
+    if (['computop'].includes(cartResult?.paymethod_data?.gateway) &&
       (cartResult?.paymethod_data?.result?.Len) &&
       cartResult?.paymethod_data?.status === 2 &&
       !payloadProps.isNative

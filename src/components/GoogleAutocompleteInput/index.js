@@ -45,6 +45,7 @@ export const AutocompleteInput = (props) => {
       autocomplete.addListener('place_changed', () => {
         const place = autocomplete.getPlace()
         const addressObj = {}
+        const cityFallback = place?.address_components.find(component => component.types.includes('administrative_area_level_2'))
         if (place?.address_components) {
           for (const component of place.address_components) {
             const addressType = component.types[0]
@@ -52,14 +53,14 @@ export const AutocompleteInput = (props) => {
               addressObj.zipcode = component.short_name
             }
             if (addressType === 'street_number') {
-              addressObj.internal_number = component.long_name
+              addressObj.street_number = component.long_name
             }
             if (addressType === 'neighborhood') {
               addressObj.neighborhood = component.long_name
             }
             if (addressType === 'route') {
-              addressObj.route = component.short_name
-              addressObj.street_number = component.long_name
+              addressObj.route = component.long_name
+              addressObj.city = component.long_name || cityFallback.long_name
             }
             if (addressType === 'locality') {
               addressObj.locality = component.long_name
@@ -73,9 +74,7 @@ export const AutocompleteInput = (props) => {
             }
             if (addressType === 'administrative_area_level_1') {
               addressObj.state = component.long_name
-            }
-            if (addressType === 'administrative_area_level_2') {
-              addressObj.city = component.long_name
+              addressObj.state_code = component.short_name
             }
           }
           const address = {

@@ -348,6 +348,7 @@ export const BusinessAndProductList = (props) => {
 
   const getLazyProducts = async ({ page, pageSize = categoryStateDefault.pagination.pageSize }) => {
     const parameters = {
+      version: 'v2',
       type: orderState.options?.type ?? 1,
       ...(!isFetchAllProducts && { page }),
       ...(!isFetchAllProducts && { page_size: pageSize }),
@@ -480,9 +481,11 @@ export const BusinessAndProductList = (props) => {
       return
     }
 
-    if (slug && slug !== businessState?.business?.slug) return
+    const slugToCompare = business?.slug ?? businessState?.business?.slug
 
-    const isLazy = !!business?.lazy_load_products_recommended ?? !!businessState?.business?.lazy_load_products_recommended
+    if (slug && slug !== slugToCompare) return
+
+    const isLazy = !!business?.lazy_load_products_recommended || !!businessState?.business?.lazy_load_products_recommended
 
     if (!isLazy) {
       getProducts(business)
@@ -503,13 +506,15 @@ export const BusinessAndProductList = (props) => {
       const errorsList = []
 
       if (error) {
-        errorsList.push(result[0])
+        errorsList.push(typeof result === 'string' ? result : result[0])
       }
       if (featuredRes?.content?.error) {
-        errorsList.push(featuredRes?.content?.result[0])
+        errorsList.push(typeof featuredRes?.content?.result === 'string'
+          ? featuredRes?.content?.result
+          : featuredRes?.content?.result[0])
       }
       if (errorsList?.length) {
-        setErrors(errorsList[0])
+        setErrors(errorsList)
         setCategoryState({ ...curCategoryState, loading: false })
         return
       }
@@ -614,13 +619,15 @@ export const BusinessAndProductList = (props) => {
       const errorsList = []
 
       if (error) {
-        errorsList.push(result[0])
+        errorsList.push(typeof result === 'string' ? result : result[0])
       }
       if (featuredRes?.content?.error) {
-        errorsList.push(featuredRes?.content?.result[0])
+        errorsList.push(typeof featuredRes?.content?.result === 'string'
+          ? featuredRes?.content?.result
+          : featuredRes?.content?.result[0])
       }
       if (errorsList?.length) {
-        setErrors(errorsList[0])
+        setErrors(errorsList)
         setCategoryState({ ...curCategoryState, loading: false })
         return
       }

@@ -229,6 +229,15 @@ export const Checkout = (props) => {
     ) {
       handleConfirmCredomaticPage(cartResult, _paymethodSelected)
     }
+
+    if (['computop'].includes(cartResult?.paymethod_data?.gateway) &&
+      (cartResult?.paymethod_data?.result?.Len) &&
+      cartResult?.paymethod_data?.status === 2 &&
+      !payloadProps.isNative
+    ) {
+      handleConfirmComputopPage(cartResult, _paymethodSelected)
+    }
+
     setPlacing(false)
     onPlaceOrderClick && onPlaceOrderClick(payload, _paymethodSelected, cartResult)
   }
@@ -447,6 +456,27 @@ export const Checkout = (props) => {
         })
       }
       await fetch('https://integrations.ordering.co/credomatic/log_generator.php', requestOptions)
+      form.submit()
+    } catch (err) {
+      showToast(ToastType.Error, err.message)
+    }
+  }
+
+  const handleConfirmComputopPage = async (cart, paymethodSelected) => {
+    try {
+      const data = cart?.paymethod_data?.result
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = data?.Url
+      form.style.display = 'none'
+      // eslint-disable-next-line no-unused-expressions
+      Object.keys(data)?.map(key => {
+        const formInputName = document.createElement('input')
+        formInputName.name = key
+        formInputName.value = data[key]
+        form.appendChild(formInputName)
+      })
+      document.body.appendChild(form)
       form.submit()
     } catch (err) {
       showToast(ToastType.Error, err.message)

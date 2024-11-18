@@ -481,7 +481,9 @@ export const BusinessAndProductList = (props) => {
       return
     }
 
-    if (slug && slug !== businessState?.business?.slug) return
+    const slugToCompare = business?.slug ?? businessState?.business?.slug
+
+    if (slug && slug !== slugToCompare) return
 
     const isLazy = !!business?.lazy_load_products_recommended || !!businessState?.business?.lazy_load_products_recommended
 

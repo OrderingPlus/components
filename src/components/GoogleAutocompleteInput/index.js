@@ -60,9 +60,9 @@ export const AutocompleteInput = (props) => {
             }
             if (addressType === 'route') {
               addressObj.route = component.long_name
-              addressObj.city = component.long_name || cityFallback.long_name
             }
             if (addressType === 'locality') {
+              addressObj.city = component.long_name || cityFallback.long_name
               addressObj.locality = component.long_name
             }
             if (component.types?.includes('sublocality')) {

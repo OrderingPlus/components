@@ -154,6 +154,7 @@ export const AddressForm = (props) => {
         ...formState,
         loading: false,
         error: content.error ? content.result : null,
+        result: content.result,
         changes: content.error ? formState.changes : {}
       })
       if (!content.error) {

@@ -11,7 +11,7 @@ const stripeLink = 'stripe_link'
 const paymethodsExisting = ['stripe', 'stripe_direct', 'stripe_connect', 'paypal', 'square']
 const paymethodsNotAllowed = ['paypal_express', 'authorize']
 const paymethodsCallcenterMode = ['cash', 'card_delivery', 'ivrpay', '100_coupon', stripeLink]
-const redirectMethods = ['stripe_checkout', 'checkout_pro_mercadopago']
+const redirectMethods = ['stripe_checkout', 'checkout_pro_mercadopago', 'epayco']
 
 /**
  * Component to manage payment options behavior without UI component

@@ -144,7 +144,6 @@ export const Checkout = (props) => {
       })
     }
   }
-
   /**
    * Method to handle click on Place order
    */
@@ -214,7 +213,8 @@ export const Checkout = (props) => {
     const cartResult = result?.result
 
     if (cartResult?.paymethod_data?.status === 2 && actionsBeforePlace) {
-      await actionsBeforePlace(_paymethodSelected, result.result)
+      const sandbox = businessDetails?.business?.paymethods?.find(paymethod => paymethod?.paymethod?.gateway === _paymethodSelected?.gateway)?.sandbox
+      await actionsBeforePlace({ ..._paymethodSelected, sandbox }, result.result)
     }
     if (confirmPayment && result?.result?.paymethod_data?.gateway === 'apple_pay') {
       const { error: confirmApplePayError } = await confirmPayment(result?.result?.paymethod_data?.result?.client_secret)

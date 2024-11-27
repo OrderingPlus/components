@@ -219,7 +219,7 @@ export const Checkout = (props) => {
     }
     if (confirmPayment && result?.result?.paymethod_data?.gateway === 'apple_pay') {
       const { error: confirmApplePayError } = await confirmPayment(result?.result?.paymethod_data?.result?.client_secret)
-      if (confirmApplePayError) {
+      if (confirmApplePayError && confirmApplePayError?.message !== 'You must provide the `applePay` parameter.') {
         setErrors(confirmApplePayError)
       }
     }

@@ -54,6 +54,14 @@ export const AddressForm = (props) => {
   const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
   const useAlternativeMap = configs?.use_alternative_to_google_maps?.value === '1'
 
+  const orderTypeList = [t('DELIVERY', 'Delivery'), t('PICKUP', 'Pickup'), t('EAT_IN', 'Eat in'), t('CURBSIDE', 'Curbside'), t('DRIVE_THRU', 'Drive thru')]
+
+  const getOrderType = (type) => {
+    const index = type - 1
+    const orderType = orderTypeList[index]
+    return orderType || t('DELIVERY', 'Delivery')
+  }
+
   /**
    * Load an address by id
    * @param {number} userId User id for address user
@@ -294,7 +302,7 @@ export const AddressForm = (props) => {
         const firstNearestOpenBusiness = result?.find(business => business?.open)
         setBusinessNearestState({
           business: firstNearestOpenBusiness,
-          error: firstNearestOpenBusiness ? null : t('NO_BUSINESS_NEAR_LOCATION', 'No business near of you location') || error,
+          error: firstNearestOpenBusiness ? null : t('NO_BUSINESS_NEAR_DELIVERY_TYPE', 'No business near for _type_ try another address or delivery type').replace('_type_', getOrderType(options?.type)) || error,
           loading: false
         })
         callback && callback(firstNearestOpenBusiness)

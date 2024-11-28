@@ -36,6 +36,7 @@ export const AddressList = (props) => {
    * Function to load addresses from API
    */
   const loadAddresses = async () => {
+    if (!userId) return
     try {
       setAddressList({ ...addressList, loading: true })
       const source = {}
@@ -56,8 +57,8 @@ export const AddressList = (props) => {
   useEffect(() => {
     loadAddresses()
     return () => {
-      if (typeof requestsState.list.cancel === 'function') {
-        requestsState.list.cancel()
+      if (typeof requestsState?.list?.cancel === 'function') {
+        requestsState?.list?.cancel?.()
       }
     }
   }, [userId])

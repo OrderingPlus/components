@@ -186,6 +186,7 @@ export const Checkout = (props) => {
     }
     if (!cart) return
     payload = {
+      paymethod_id: paymentOptions?.paymethod_id,
       ...payload,
       ...payloadProps,
       paymethod_data: {

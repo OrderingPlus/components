@@ -28,6 +28,7 @@ export const BusinessAndProductList = (props) => {
     location,
     avoidProductDuplicate,
     isApp,
+    ignoreSlugToCompare,
     isFetchAllProducts,
     isCustomerMode,
     notLoadProducts,
@@ -487,7 +488,7 @@ export const BusinessAndProductList = (props) => {
       : business?.slug ?? businessState?.business?.slug
 
     if ((slug && slug !== String(slugToCompare))) return
-    if (slug && slug !== businessState?.business?.slug && isApp) return
+    if (ignoreSlugToCompare && slug && slug !== businessState?.business?.slug) return
 
     const isLazy = !!business?.lazy_load_products_recommended || !!businessState?.business?.lazy_load_products_recommended
 

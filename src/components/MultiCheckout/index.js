@@ -96,7 +96,7 @@ export const MultiCheckout = (props) => {
       return
     }
 
-    if (result?.paymethod_data?.status === 2 && actionsBeforePlace) {
+    if ((result?.paymethod_data?.status === 2 || result?.status === 'payment_incomplete') && actionsBeforePlace) {
       await actionsBeforePlace(paymethodSelected, result)
     }
 
@@ -117,6 +117,11 @@ export const MultiCheckout = (props) => {
     if (!error) {
       onPlaceOrderClick && onPlaceOrderClick(result)
     }
+    setCartGroup({
+      ...cartGroup,
+      error,
+      result
+    })
   }
 
   const handleSelectPaymethod = (paymethod) => {

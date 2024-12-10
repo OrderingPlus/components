@@ -553,7 +553,7 @@ export const OrderDetails = (props) => {
       socket.on('update_order', handleUpdateOrderDetails)
     }
     return () => {
-      if (!isDisabledOrdersRoom) socket.leave(getRoom('orders'))
+      if (!isDisabledOrdersRoom && !props.disabledLeaveOrderSocket) socket.leave(getRoom('orders'))
       socket.off('update_order', handleUpdateOrderDetails)
       socket.off('tracking_driver', handleTrackingDriver)
     }

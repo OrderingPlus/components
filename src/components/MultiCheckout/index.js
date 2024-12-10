@@ -114,7 +114,7 @@ export const MultiCheckout = (props) => {
       }
     }
     setPlacing(false)
-    if (!error) {
+    if (!error && result?.status !== 'payment_incomplete') {
       onPlaceOrderClick && onPlaceOrderClick(result)
     }
     setCartGroup({

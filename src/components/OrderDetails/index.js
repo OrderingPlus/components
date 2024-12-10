@@ -284,6 +284,7 @@ export const OrderDetails = (props) => {
    * Method to get order from API
    */
   const getOrder = async () => {
+    setOrderState({ ...orderState, loading: true })
     const source = {}
     requestsState.order = source
     requestsState.business = source
@@ -486,7 +487,7 @@ export const OrderDetails = (props) => {
       if (isFetchDrivers) {
         getDrivers(props.order?.id ?? orderId)
       }
-    } else if (!orderState.order && !isDriverNotification) {
+    } else if ((!orderState.order || (orderId && orderId !== orderState.order?.uuid)) && !isDriverNotification) {
       getOrder()
     }
 
@@ -498,7 +499,7 @@ export const OrderDetails = (props) => {
         requestsState.business.cancel()
       }
     }
-  }, [props.order, orderState.order?.id])
+  }, [props.order, orderState.order?.id, orderId])
 
   useEffect(() => {
     if (orderId && isDriverNotification) {

@@ -28,7 +28,7 @@ export const MultiCheckout = (props) => {
    * Session content
    */
   const [{ token }] = useSession()
-  const [{ carts }, { placeMultiCarts }] = useOrder()
+  const [{ carts }, { placeMultiCarts, confirmMultiCarts }] = useOrder()
   /**
 * Toast state
 */
@@ -278,6 +278,12 @@ export const MultiCheckout = (props) => {
         result,
         error
       })
+      if (['payment_incomplete', 'succeeded'].includes(result?.status)) {
+        const confirmCartRes = await confirmMultiCarts(cartUuid)
+        if (confirmCartRes.result.order?.uuid) {
+          onPlaceOrderClick && onPlaceOrderClick(confirmCartRes.result.order)
+        }
+      }
     } catch (err) {
       setCartGroup({
         ...cartGroup,

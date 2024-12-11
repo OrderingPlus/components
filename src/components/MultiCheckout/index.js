@@ -278,12 +278,6 @@ export const MultiCheckout = (props) => {
         result,
         error
       })
-      if (['payment_incomplete', 'succeeded'].includes(result?.status)) {
-        const confirmCartRes = await confirmMultiCarts(cartUuid)
-        if (confirmCartRes.result.order?.uuid) {
-          onPlaceOrderClick && onPlaceOrderClick(confirmCartRes.result.order)
-        }
-      }
     } catch (err) {
       setCartGroup({
         ...cartGroup,
@@ -346,6 +340,13 @@ export const MultiCheckout = (props) => {
     }
   }
 
+  const handleConfirmMulticarts = async () => {
+    const confirmCartRes = await confirmMultiCarts(cartUuid)
+    if (confirmCartRes.result.order?.uuid) {
+      onPlaceOrderClick && onPlaceOrderClick(confirmCartRes.result.order)
+    }
+  }
+
   useEffect(() => {
     if (deliveryOptionSelected === undefined) {
       setDeliveryOptionSelected(null)
@@ -360,6 +361,12 @@ export const MultiCheckout = (props) => {
   useEffect(() => {
     getMultiCart()
   }, [JSON.stringify(carts)])
+
+  useEffect(() => {
+    if (['payment_incomplete', 'succeeded'].includes(cartGroup?.result?.status)) {
+      handleConfirmMulticarts()
+    }
+  }, [cartGroup?.result?.status])
 
   return (
     <>

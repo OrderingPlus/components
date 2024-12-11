@@ -49,7 +49,7 @@ export const MultiCheckout = (props) => {
   const [cartGroup, setCartGroup] = useState({ loading: true, error: null, result: null })
   const [walletState, setWalletState] = useState({ loading: false, error: null, result: null })
   const [checkoutFieldsState, setCheckoutFieldsState] = useState({ fields: [], loading: false, error: null })
-
+  const [cartsRequireConfirm, setCartsRequireConfirm] = useState(null)
   const openCarts = (cartGroup?.result?.carts?.filter(cart => cart?.valid && cart?.status !== 1 && cart?.business_id) || null) || []
   const cartsInvalid = (cartGroup?.result?.carts?.filter(cart => cart?.status !== 1) || null) || []
   const totalCartsPrice = openCarts?.length && openCarts.reduce((total, cart) => { return total + cart?.total }, 0)
@@ -278,6 +278,9 @@ export const MultiCheckout = (props) => {
         result,
         error
       })
+      if (cartsRequireConfirm === null) {
+        setCartsRequireConfirm(result?.status === 'payment_incomplete')
+      }
     } catch (err) {
       setCartGroup({
         ...cartGroup,
@@ -363,10 +366,10 @@ export const MultiCheckout = (props) => {
   }, [JSON.stringify(carts)])
 
   useEffect(() => {
-    if (['payment_incomplete', 'succeeded'].includes(cartGroup?.result?.status)) {
+    if (cartsRequireConfirm) {
       handleConfirmMulticarts()
     }
-  }, [cartGroup?.result?.status])
+  }, [cartsRequireConfirm])
 
   return (
     <>

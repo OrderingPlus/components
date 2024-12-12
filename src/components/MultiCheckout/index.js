@@ -254,7 +254,7 @@ export const MultiCheckout = (props) => {
     multiHandleChangeDeliveryOption(value, cartUuidArr)
   }
 
-  const getMultiCart = async () => {
+  const getMultiCart = async (confirmAfterGetOrder = false) => {
     try {
       if (!cartUuid) return
       setCartGroup({
@@ -278,6 +278,9 @@ export const MultiCheckout = (props) => {
         result,
         error
       })
+      if (confirmAfterGetOrder && result?.status === 'payment_incomplete') {
+        handleConfirmMulticarts()
+      }
       if (cartsRequireConfirm === null) {
         setCartsRequireConfirm(result?.status === 'payment_incomplete')
       }
@@ -394,6 +397,7 @@ export const MultiCheckout = (props) => {
           totalCartsFee={totalCartsFee}
           cartsInvalid={cartsInvalid}
           checkoutFieldsState={checkoutFieldsState}
+          getMultiCart={getMultiCart}
         />
       )}
     </>

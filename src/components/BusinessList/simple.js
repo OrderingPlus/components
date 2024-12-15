@@ -58,7 +58,7 @@ export const BusinessSimpleList = (props) => {
         location: (isAllowUnaddressOrderType && !orderState.options?.address?.location)
           ? location
           : `${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`,
-        type: orderType
+        type: orderType ?? orderState?.options?.type
       }
 
       if (orderState.options?.moment && isValidMoment(orderState.options?.moment, 'YYYY-MM-DD HH:mm:ss')) {
@@ -136,6 +136,7 @@ export const BusinessSimpleList = (props) => {
     getBusinesses()
   }, [
     orderType,
+    orderState.options?.moment,
     orderState.options?.address_id
   ])
 

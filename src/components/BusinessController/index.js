@@ -175,6 +175,33 @@ export const BusinessController = (props) => {
     }
   }
 
+  const registerClickBusinessEvent = async (business) => {
+    await fetch(`${ordering.root}/tracking_events`, {
+      method: 'POST',
+      body: JSON.stringify({
+        events: JSON.stringify([
+          {
+            event: 'click',
+            model: 'Business',
+            object_id: business?.business_id ?? business?.id
+          }
+        ])
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        'X-App-X': ordering.appId,
+        'X-INTERNAL-PRODUCT-X': ordering.appInternalName
+      }
+    })
+  }
+
+  const handleClick = () => {
+    const _onBusinessClick = handleCustomClick || onBusinessClick
+    _onBusinessClick?.(business)
+    registerClickBusinessEvent(business)
+  }
+
   useEffect(() => {
     if (!isDisabledInterval) {
       let timeout = null
@@ -288,7 +315,7 @@ export const BusinessController = (props) => {
           formatNumber={formatNumber}
           getBusinessOffer={getBusinessOffer}
           getBusinessMaxOffer={getBusinessMaxOffer}
-          handleClick={handleCustomClick || onBusinessClick}
+          handleClick={handleClick}
           businessWillCloseSoonMinutes={businessWillCloseSoonMinutes}
           handleFavoriteBusiness={handleFavoriteBusiness}
         />

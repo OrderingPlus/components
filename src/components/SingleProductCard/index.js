@@ -79,6 +79,32 @@ export const SingleProductCard = (props) => {
     }
   }
 
+  const registerClickProductEvent = async (product) => {
+    await fetch(`${ordering.root}/tracking_events`, {
+      method: 'POST',
+      body: JSON.stringify({
+        events: JSON.stringify([
+          {
+            event: 'click',
+            model: 'Product',
+            object_id: product?.product_id ?? product?.id
+          }
+        ])
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        'X-App-X': ordering.appId,
+        'X-INTERNAL-PRODUCT-X': ordering.appInternalName
+      }
+    })
+  }
+
+  const onProductClick = (product, business) => {
+    registerClickProductEvent(product)
+    props?.onProductClick?.(product, business)
+  }
+
   return (
     <>
       {UIComponent && (
@@ -86,6 +112,7 @@ export const SingleProductCard = (props) => {
           {...props}
           handleFavoriteProduct={handleFavoriteProduct}
           actionState={actionState}
+          onProductClick={onProductClick}
         />
       )}
     </>

@@ -101,7 +101,6 @@ export const SingleProductCard = (props) => {
   }
 
   const onProductClick = (product, business) => {
-    console.log('product', product)
     registerClickProductEvent(product)
     props?.onProductClick?.(product, business)
   }

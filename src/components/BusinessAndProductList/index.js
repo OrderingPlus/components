@@ -802,7 +802,8 @@ export const BusinessAndProductList = (props) => {
         parameters.user_id = customerState?.user?.id
       }
 
-      const { content: { result } } = await ordering.businesses(slug).select(businessProps).parameters(parameters).get({ cancelToken: source })
+      let { content: { result } } = await ordering.businesses(slug).select(businessProps).parameters(parameters).get({ cancelToken: source })
+      result = !slug ? result[0] : result
 
       setErrorQuantityProducts(!result?.categories || result?.categories?.length === 0)
 

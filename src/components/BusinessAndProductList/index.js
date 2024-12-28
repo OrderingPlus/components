@@ -1026,6 +1026,7 @@ export const BusinessAndProductList = (props) => {
           featuredProducts={featuredProducts}
           errorQuantityProducts={errorQuantityProducts}
           categoriesState={categoriesState}
+          setCategorySelected={setCategorySelected}
           handleChangeCategory={handleChangeCategory}
           handleChangeSearch={handleChangeSearch}
           handleChangeSortBy={handleChangeSortBy}

@@ -139,7 +139,11 @@ export const OrderList = props => {
       options.query.where.push({ attribute: 'customer_id', value: parseInt(userCustomerId, 10) })
     }
     if (businessId) {
-      options.query.where.push({ attribute: 'business_id', value: parseInt(businessId, 10) })
+      const value = parseInt(businessId, 10)
+      const condition = value >= 0
+        ? { attribute: 'business_id', value }
+        : { attribute: 'ref_business', conditions: [{ attribute: 'slug', value: businessId }] }
+      options.query.where.push(condition)
     }
     if (franchiseId) {
       options.query.where.push({ attribute: 'ref_business', conditions: [{ attribute: 'franchise_id', value: parseInt(franchiseId, 10) }] })

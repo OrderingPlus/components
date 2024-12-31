@@ -19,7 +19,8 @@ export const OrderListGroups = (props) => {
     onOrdersDeleted,
     customOrderTypes,
     customPaymethods,
-    isDriverApp
+    isDriverApp,
+    disabledLeaveOrderSocket
   } = props
 
   const [ordering] = useApi()
@@ -1194,7 +1195,7 @@ export const OrderListGroups = (props) => {
     }
 
     const leaveRooms = () => {
-      socket.leave(ordersRoom)
+      !disabledLeaveOrderSocket && socket.leave(ordersRoom)
       socket.leave(requestsRoom)
       socket.leave(groupsRoom)
       socket.leave(messagesOrdersRoom)

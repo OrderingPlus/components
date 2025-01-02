@@ -70,6 +70,7 @@ export const OrderList = props => {
   const accessToken = useDefualtSessionManager ? session.token : props.accessToken
   const requestsState = {}
   const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
+  const isNumeric = (value) => !isNaN(value) && !isNaN(parseFloat(value))
 
   const handleReorder = async (value) => {
     const orderId = Array.isArray(value) ? value : [value]
@@ -139,8 +140,8 @@ export const OrderList = props => {
       options.query.where.push({ attribute: 'customer_id', value: parseInt(userCustomerId, 10) })
     }
     if (businessId) {
-      const value = parseInt(businessId, 10)
-      const condition = value >= 0
+      const value = isNumeric(businessId) ? parseInt(businessId, 10) : businessId
+      const condition = isNumeric(businessId)
         ? { attribute: 'business_id', value }
         : { attribute: 'ref_business', conditions: [{ attribute: 'slug', value: businessId }] }
       options.query.where.push(condition)

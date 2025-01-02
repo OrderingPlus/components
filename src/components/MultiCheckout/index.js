@@ -17,7 +17,9 @@ export const MultiCheckout = (props) => {
     onPlaceOrderClick,
     cartUuid,
     userId,
-    actionsBeforePlace
+    actionsBeforePlace,
+    handleOrderRedirect,
+    isListenOrderUpdate
   } = props
 
   const qParams = userId ? `?user_id=${userId}` : ''
@@ -373,6 +375,21 @@ export const MultiCheckout = (props) => {
       handleConfirmMulticarts()
     }
   }, [cartsRequireConfirm])
+
+  useEffect(() => {
+    const handleCartUpdate = (cart) => {
+      if (cart?.status !== 1 || !cart?.order?.uuid) return
+      handleOrderRedirect && handleOrderRedirect({ id: cart?.cart_group_id || cart?.order?.id })
+    }
+    if ((isListenOrderUpdate) && socket?.socket?._callbacks?.$carts_update) {
+      socket.on('carts_update', handleCartUpdate)
+    }
+    return () => {
+      if ((isListenOrderUpdate) && socket?.socket?._callbacks?.$carts_update) {
+        socket.off('carts_update', handleCartUpdate)
+      }
+    }
+  }, [socket, isListenOrderUpdate])
 
   return (
     <>

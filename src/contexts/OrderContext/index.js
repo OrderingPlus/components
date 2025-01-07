@@ -1339,25 +1339,37 @@ export const OrderProvider = ({
         showToast(ToastType.Info, t('UPDATING_CART_INFO', 'Updating cart information...'))
       }
 
-      if (cart.status === 1) {
-        if (state.carts[`businessId:${cart.business_id}`]) {
-          delete state.carts[`businessId:${cart.business_id}`]
-        }
-      } else {
-        const cartFinded = Object.values(state.carts).find(_cart => _cart?.uuid === cart?.uuid)
-        const oldBusinessId = cartFinded?.business_id
-        const newBusinessId = cart?.business_id
-
-        if (!oldBusinessId || oldBusinessId === newBusinessId) {
-          state.carts[`businessId:${cart.business_id}`] = {
-            ...state.carts[`businessId:${cart.business_id}`],
-            ...cart
+      setState(prevState => {
+        const newState = { ...prevState }
+        if (cart.status === 1) {
+          const newCarts = { ...prevState.carts }
+          delete newCarts[`businessId:${cart.business_id}`]
+          return {
+            ...newState,
+            carts: newCarts
           }
         } else {
-          delete state.carts[`businessId:${oldBusinessId}`]
-          state.carts[`businessId:${newBusinessId}`] = cart
+          const cartFinded = Object.values(prevState.carts).find(_cart => _cart?.uuid === cart?.uuid)
+          const oldBusinessId = cartFinded?.business_id
+          const newBusinessId = cart?.business_id
+          const newCarts = { ...prevState.carts }
+
+          if (!oldBusinessId || oldBusinessId === newBusinessId) {
+            newCarts[`businessId:${cart.business_id}`] = {
+              ...newCarts[`businessId:${cart.business_id}`],
+              ...cart
+            }
+          } else {
+            delete newCarts[`businessId:${oldBusinessId}`]
+            newCarts[`businessId:${newBusinessId}`] = cart
+          }
+
+          return {
+            ...newState,
+            carts: newCarts
+          }
         }
-      }
+      })
     }
     const handleOrderOptionUpdate = ({ carts, ...options }) => {
       if (!isDisableToast) {
@@ -1387,7 +1399,7 @@ export const OrderProvider = ({
       socket.off('carts_update', handleCartUpdate)
       socket.off('order_options_update', handleOrderOptionUpdate)
     }
-  }, [state, socket])
+  }, [state.carts, state.options, state.loading, socket])
 
   /**
    * Join to carts room

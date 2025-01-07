@@ -374,6 +374,12 @@ export const MultiCheckout = (props) => {
     }
   }, [cartsRequireConfirm])
 
+  useEffect(() => {
+    if (cartGroup?.result?.status === 'completed') {
+      onPlaceOrderClick && onPlaceOrderClick(cartGroup.result, { id: cartGroup.result.id })
+    }
+  }, [cartGroup?.result?.status])
+
   return (
     <>
       {UIComponent && (

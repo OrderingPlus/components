@@ -349,7 +349,12 @@ export const MultiCheckout = (props) => {
   }
 
   const handleConfirmMulticarts = async () => {
-    const confirmCartRes = await confirmMultiCarts(cartUuid)
+    const urlParams = new URLSearchParams(window.location.search)
+    const paramsObj = Object.fromEntries(urlParams.entries())
+    const data = {
+      ...paramsObj
+    }
+    const confirmCartRes = await confirmMultiCarts(cartUuid, data)
     if (confirmCartRes.result.order?.uuid || confirmCartRes?.result?.status === 'completed') {
       onPlaceOrderClick && onPlaceOrderClick(confirmCartRes.result.order || { id: confirmCartRes.result.id })
     }

@@ -1069,10 +1069,16 @@ export const OrderProvider = ({
   /**
  * Confirm multi carts
  */
-  const confirmMultiCarts = async (cartUuid) => {
+  const confirmMultiCarts = async (cartUuid, data) => {
     try {
       setState({ ...state, loading: true })
       const countryCode = await strategy.getItem('country-code')
+      const customerFromLocalStorage = await strategy.getItem('user-customer', true)
+      const userCustomerId = customerFromLocalStorage?.id
+      const body = {
+        ...data,
+        user_id: userCustomerId || session.user.id
+      }
       const requestOptions = {
         method: 'POST',
         headers: {
@@ -1083,6 +1089,9 @@ export const OrderProvider = ({
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
         }
+      }
+      if (data) {
+        requestOptions.body = JSON.stringify(body)
       }
       const response = await fetch(`${ordering.root}/cart_groups/${cartUuid}/confirm`, requestOptions)
       const { result, error } = await response.json()

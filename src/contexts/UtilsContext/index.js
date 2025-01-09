@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react'
 import { useConfig } from '../ConfigContext'
 import { useLanguage } from '../LanguageContext'
+import { useApi } from '../ApiContext'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -24,7 +25,7 @@ export const UtilsContext = createContext()
 export const UtilsProviders = ({ children }) => {
   const [languageState, t] = useLanguage()
   const [configState] = useConfig()
-
+  const [ordering] = useApi()
   // const [localObject, setLocalObject] = useState({})
 
   const refreshLocalObject = () => {
@@ -318,11 +319,24 @@ export const UtilsProviders = ({ children }) => {
     }
   }
 
-  const GiftCardPaymethods = [{
-    gateway: 'stripe',
-    name: 'Stripe',
-    id: 1
-  }]
+  const GiftCardPaymethods = async (token, source) => {
+    const getCredentials = async () => {
+      try {
+        const { content: { result } } = await ordering.setAccessToken(token).paymentCards().getCredentials({ cancelToken: source })
+        return result
+      } catch (error) {
+        console.error(error.message)
+        return null
+      }
+    }
+    const credentials = await getCredentials()
+    return [{
+      gateway: 'stripe',
+      name: 'Stripe',
+      id: 1,
+      credentials
+    }]
+  }
 
   const functions = {
     parsePrice,

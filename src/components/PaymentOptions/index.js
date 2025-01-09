@@ -34,13 +34,14 @@ export const PaymentOptions = (props) => {
   const [ordering] = useApi()
   const [{ GiftCardPaymethods }] = useUtils()
   const [orderState, { changePaymethod }] = useOrder()
-  const [{ device_code }] = useSession()
+  const [{ device_code, token }] = useSession()
   const orderTotal = orderState.carts?.[`businessId:${businessId}`]?.total || 0
 
   const [paymethodsList, setPaymethodsList] = useState({ paymethods: [], loading: true, error: null })
   const [paymethodSelected, setPaymethodsSelected] = useState(null)
   const [paymethodData, setPaymethodData] = useState({})
   const [isOpenMethod, setIsOpenMethod] = useState({ paymethod: null })
+  const requestsState = {}
 
   const filterPaymentMethods = (paymentMethods) => {
     const validations = {
@@ -200,14 +201,25 @@ export const PaymentOptions = (props) => {
     } else {
       if (businessId) {
         if (businessId === -1) {
-          setPaymethodsList({
-            ...paymethodsList,
-            loading: false,
-            paymethods: GiftCardPaymethods
-          })
+          const getPaymethods = async () => {
+            const source = {}
+            requestsState.list = source
+            const paymethod = await GiftCardPaymethods(token, source)
+            setPaymethodsList({
+              ...paymethodsList,
+              loading: false,
+              paymethods: paymethod
+            })
+          }
+          getPaymethods()
         } else {
           getPaymentOptions()
         }
+      }
+    }
+    return () => {
+      if (typeof requestsState?.list?.cancel === 'function') {
+        requestsState?.list?.cancel?.()
       }
     }
   }, [isLoading, businessId])

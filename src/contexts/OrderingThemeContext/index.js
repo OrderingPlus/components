@@ -13,7 +13,7 @@ export const OrderingThemeContext = createContext()
  * This provider has a reducer for manage themes and layouts state
  * @param {props} props
  */
-export const OrderingThemeProvider = ({ children, settings }) => {
+export const OrderingThemeProvider = ({ children, settings, isValidColor }) => {
   const [state, setState] = useState({
     loading: true,
     theme: {},
@@ -23,7 +23,10 @@ export const OrderingThemeProvider = ({ children, settings }) => {
   const [ordering] = useApi()
   const [optimizationLoad] = useOptimizationLoad()
 
-  const isValidColor = (color) => {
+  const _isValidColor = (color) => {
+    if (isValidColor) {
+      return isValidColor?.(color)
+    }
     const s = new Option().style
     s.color = color
     return s.color !== ''
@@ -36,7 +39,7 @@ export const OrderingThemeProvider = ({ children, settings }) => {
       Object.keys(currentObj).forEach(key => {
         if (typeof currentObj[key] === 'object' && currentObj[key] !== null) {
           validateColors(currentObj[key])
-        } else if (key.toLowerCase().includes('color') && !isValidColor(currentObj[key])) {
+        } else if (key.toLowerCase().includes('color') && !_isValidColor(currentObj[key])) {
           currentObj[key] = ''
         }
       })

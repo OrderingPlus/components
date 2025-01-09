@@ -254,7 +254,7 @@ export const MultiCheckout = (props) => {
     multiHandleChangeDeliveryOption(value, cartUuidArr)
   }
 
-  const getMultiCart = async (confirmAfterGetOrder = false) => {
+  const getMultiCart = async (confirmAfterGetOrder = false, data) => {
     try {
       if (!cartUuid) return
       setCartGroup({
@@ -279,7 +279,7 @@ export const MultiCheckout = (props) => {
         error
       })
       if (confirmAfterGetOrder && result?.status === 'payment_incomplete') {
-        handleConfirmMulticarts()
+        handleConfirmMulticarts(data?.params)
       }
       if (cartsRequireConfirm === null) {
         setCartsRequireConfirm(result?.status === 'payment_incomplete')
@@ -346,11 +346,9 @@ export const MultiCheckout = (props) => {
     }
   }
 
-  const handleConfirmMulticarts = async () => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const paramsObj = Object.fromEntries(urlParams.entries())
+  const handleConfirmMulticarts = async (params = {}) => {
     const data = {
-      ...paramsObj
+      ...params
     }
     const confirmCartRes = await confirmMultiCarts(cartUuid, data)
     if (confirmCartRes.result.order?.uuid || confirmCartRes?.result?.status === 'completed') {
@@ -370,12 +368,27 @@ export const MultiCheckout = (props) => {
   }, [])
 
   useEffect(() => {
-    getMultiCart()
+    if (window.location?.search) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const paramsObj = Object.fromEntries(urlParams.entries())
+      getMultiCart(true, {
+        params: {
+          ...paramsObj
+        }
+      })
+    } else {
+      getMultiCart()
+    }
   }, [JSON.stringify(carts)])
 
   useEffect(() => {
     if (cartsRequireConfirm) {
-      handleConfirmMulticarts()
+      let paramsObj = {}
+      if (window.location?.search) {
+        const urlParams = new URLSearchParams(window.location.search)
+        paramsObj = Object.fromEntries(urlParams.entries())
+      }
+      handleConfirmMulticarts(paramsObj)
     }
   }, [cartsRequireConfirm])
 

@@ -384,17 +384,6 @@ export const MultiCheckout = (props) => {
   }, [JSON.stringify(carts)])
 
   useEffect(() => {
-    if (cartsRequireConfirm) {
-      let paramsObj = {}
-      if (window.location?.search) {
-        const urlParams = new URLSearchParams(window.location.search)
-        paramsObj = Object.fromEntries(urlParams.entries())
-      }
-      handleConfirmMulticarts(paramsObj)
-    }
-  }, [cartsRequireConfirm])
-
-  useEffect(() => {
     if (cartGroup?.result?.status === 'completed') {
       onPlaceOrderClick && onPlaceOrderClick(cartGroup.result, { id: cartGroup.result.id })
     }

@@ -19,7 +19,9 @@ export const MultiCheckout = (props) => {
     userId,
     actionsBeforePlace,
     handleOrderRedirect,
-    isListenOrderUpdate
+    isListenOrderUpdate,
+    returnUrl,
+    urlscheme
   } = props
 
   const qParams = userId ? `?user_id=${userId}` : ''
@@ -66,6 +68,13 @@ export const MultiCheckout = (props) => {
     if (paymethodSelected?.paymethod_data && ['stripe', 'stripe_connect', 'stripe_direct'].includes(paymethodSelected?.paymethod?.gateway)) {
       paymethodData = JSON.stringify({
         source_id: paymethodSelected?.paymethod_data?.id
+      })
+    }
+    if (['epayco'].includes(paymethodSelected?.paymethod?.gateway)) {
+      paymethodSelected.paymethod_data = JSON.stringify({
+        success_url: returnUrl,
+        cancel_url: returnUrl,
+        urlscheme
       })
     }
     let payload = {
@@ -384,13 +393,8 @@ export const MultiCheckout = (props) => {
   }, [JSON.stringify(carts)])
 
   useEffect(() => {
-    if (cartsRequireConfirm) {
-      let paramsObj = {}
-      if (window.location?.search) {
-        const urlParams = new URLSearchParams(window.location.search)
-        paramsObj = Object.fromEntries(urlParams.entries())
-      }
-      handleConfirmMulticarts(paramsObj)
+    if (cartsRequireConfirm && urlscheme) {
+      handleConfirmMulticarts()
     }
   }, [cartsRequireConfirm])
 

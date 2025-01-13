@@ -26,7 +26,8 @@ export const PaymentOptions = (props) => {
     paymethodsCustom,
     UIComponent,
     isKiosk,
-    returnUrl
+    returnUrl,
+    urlscheme
   } = props
 
   const fetchPaymethods = isKiosk
@@ -66,7 +67,7 @@ export const PaymentOptions = (props) => {
       filterPaymentMethods(paymethods)
         .filter(credentials => isCustomerMode
           ? !paymethodsNotAllowed.includes(credentials?.paymethod?.gateway) &&
-            paymethodsCallcenterMode.includes(credentials?.paymethod?.gateway)
+          paymethodsCallcenterMode.includes(credentials?.paymethod?.gateway)
           : ![...paymethodsNotAllowed, stripeLink].includes(credentials?.paymethod?.gateway))
         .map(credentials => {
           return {
@@ -165,6 +166,9 @@ export const PaymentOptions = (props) => {
         _paymethodData.success_url = returnUrl
         _paymethodData.cancel_url = returnUrl
       }
+      if (urlscheme) {
+        _paymethodData.urlscheme = urlscheme
+      }
       changePaymethod(businessId, paymethodSelected.id, JSON.stringify(_paymethodData))
     }
   }, [paymethodSelected, paymethodData])
@@ -173,7 +177,7 @@ export const PaymentOptions = (props) => {
     if (
       paymethodSelected &&
       (['card_delivery', 'cash', 'stripe_redirect'].includes(paymethodSelected?.gateway) ||
-      !paymethodsExisting.includes(paymethodSelected?.gateway))
+        !paymethodsExisting.includes(paymethodSelected?.gateway))
     ) {
       onPaymentChange && onPaymentChange({
         paymethodId: paymethodSelected.id,

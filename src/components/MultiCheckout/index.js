@@ -11,13 +11,18 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
 /**
  * Component to manage Multi businesses checkout page behavior without UI component
  */
+
+const returnMethods = ['epayco']
+
 export const MultiCheckout = (props) => {
   const {
     UIComponent,
     onPlaceOrderClick,
     cartUuid,
     userId,
-    actionsBeforePlace
+    actionsBeforePlace,
+    returnUrl,
+    urlscheme
   } = props
 
   const qParams = userId ? `?user_id=${userId}` : ''
@@ -65,6 +70,9 @@ export const MultiCheckout = (props) => {
       paymethodData = JSON.stringify({
         source_id: paymethodSelected?.paymethod_data?.id
       })
+    }
+    if (returnMethods.includes(paymethodSelected?.paymethod?.gateway)) {
+      paymethodData = JSON.stringify(paymethodSelected.paymethod_data)
     }
     let payload = {
       amount: cartGroup?.result?.balance
@@ -130,7 +138,14 @@ export const MultiCheckout = (props) => {
       : {
           ...paymethodSelected,
           ...paymethod,
-          paymethod_data: paymethod?.paymethod_data
+          paymethod_data: {
+            ...paymethod?.paymethod_data,
+            ...(returnMethods.includes(paymethod?.gateway) && {
+              success_url: returnUrl,
+              cancel_url: returnUrl,
+              urlscheme
+            })
+          }
         })
   }
 

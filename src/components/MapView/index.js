@@ -9,15 +9,12 @@ export const MapView = (props) => {
   const [ordering] = useApi()
   const [session] = useSession()
   const [events] = useEvent()
-  const [businessMarkers, setBusinessMarkers] = useState([])
-  const [isLoadingBusinessMarkers, setIsLoadingBusinessMakers] = useState(true)
-  const [markerGroups, setMarkerGroups] = useState({})
-  const [customerMarkerGroups, setCustomerMarkerGroups] = useState({})
+  const [assingnedOrders, setAssignedOrders] = useState({ orders: [], loading: true })
   const [alertState, setAlertState] = useState({ open: false, content: [], key: null })
 
   const getBusinessLocations = async () => {
     try {
-      setIsLoadingBusinessMakers(true)
+      setAssignedOrders((prevState) => ({ ...prevState, loading: true }))
       const options = {
         query: {
           where: [
@@ -32,22 +29,11 @@ export const MapView = (props) => {
       if (error) {
         setAlertState(result)
       }
-      const markerGroupsObject = result.reduce((acc, order) => {
-        acc[order.business_id] = acc[order.business_id] ? [...acc[order.business_id], order] : [order]
-        return acc
-      }, {})
-      const customerMarkerGroupsObject = result.reduce((acc, order) => {
-        acc[order.customer_id] = acc[order.customer_id] ? [...acc[order.customer_id], order] : [order]
-        return acc
-      }, {})
-
-      setMarkerGroups(markerGroupsObject)
-      setCustomerMarkerGroups(customerMarkerGroupsObject)
-      setBusinessMarkers(result)
+      setAssignedOrders((prevState) => ({ ...prevState, orders: result }))
     } catch (error) {
       setAlertState({ open: true, content: [error.message] })
     } finally {
-      setIsLoadingBusinessMakers(false)
+      setAssignedOrders((prevState) => ({ ...prevState, loading: false }))
     }
   }
 
@@ -58,12 +44,31 @@ export const MapView = (props) => {
         .users(session.user.id)
         .driverLocations()
         .save(location)
-    } catch {}
+    } catch (error) {
+      console.log(error?.message)
+    }
   }
 
   useEffect(() => {
     const handleUpdateOrder = (order) => {
       getBusinessLocations()
+      // setIsLoadingBusinessMakers(true)
+      // console.log('emited', order)
+      // console.log('same driver', order?.driver_id, session?.user?.id)
+      // const markers = markerGroups?.[order?.business_id] ?? []
+      // const customerMakers = customerMarkerGroups?.[order?.customer_id] ?? []
+      // console.log('groups', markerGroups)
+      // setMarkerGroups({
+      //   ...markerGroups,
+      //   [order?.business_id]: order?.driver_id !== session?.user?.id ? markers.filter(_order => order?.id === _order?.id) : [...markers, order]
+      // })
+      // markerGroups[order?.business_id] = order?.driver_id !== session?.user?.id ? markers.filter(_order => order?.id === _order?.id) : [...markers, order]
+      // setCustomerMarkerGroups({
+      //   ...customerMarkerGroups,
+      //   [order?.customer_id]: order?.driver_id !== session?.user?.id ? customerMakers.filter(_order => order?.id === _order?.id) : [...customerMakers, order]
+      // })
+      // customerMarkerGroups[order?.customer_id] = order?.driver_id !== session?.user?.id ? customerMakers.filter(_order => order?.id === _order?.id) : [...customerMakers, order]
+      // setIsLoadingBusinessMakers(false)
     }
     events.on('order_updated', handleUpdateOrder)
     events.on('order_added', handleUpdateOrder)
@@ -79,16 +84,11 @@ export const MapView = (props) => {
         UIComponent && (
           <UIComponent
             {...props}
-            businessMarkers={businessMarkers}
-            customerMarkerGroups={customerMarkerGroups}
-            isLoadingBusinessMarkers={isLoadingBusinessMarkers}
-            markerGroups={markerGroups}
+            assingnedOrders={assingnedOrders}
             getBusinessLocations={getBusinessLocations}
             setDriverLocation={setDriverLocation}
             alertState={alertState}
             setAlertState={setAlertState}
-            setMarkerGroups={setMarkerGroups}
-            setCustomerMarkerGroups={setCustomerMarkerGroups}
           />
         )
       }

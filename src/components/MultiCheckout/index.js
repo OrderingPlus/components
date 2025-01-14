@@ -140,14 +140,14 @@ export const MultiCheckout = (props) => {
       : {
           ...paymethodSelected,
           ...paymethod,
-          paymethod_data: {
-            ...paymethod?.paymethod_data,
-            ...(returnMethods.includes(paymethod?.gateway) && {
-              success_url: returnUrl,
-              cancel_url: returnUrl,
-              urlscheme
-            })
-          }
+          paymethod_data: returnMethods.includes(paymethod?.gateway)
+            ? {
+                ...paymethod?.paymethod_data,
+                success_url: returnUrl,
+                cancel_url: returnUrl,
+                urlscheme
+              }
+            : paymethod?.paymethod_data
         })
   }
 

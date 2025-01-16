@@ -27,7 +27,13 @@ export const PromotionsController = (props) => {
   const location = JSON.stringify(options?.address?.location)
 
   const getOffers = async () => {
-    let params = `?enabled=true&params=${paramsToFetch.join()}&location=${location}&order_type_id=${options?.type}`
+    let params = `?enabled=true&params=${paramsToFetch.join()}`
+    if (location) {
+      params = params + `&location=${location}`
+    }
+    if (options?.type) {
+      params = params + `&order_type_id=${options?.type}`
+    }
     if (franchiseId) {
       params = params + `&franchise_id=${franchiseId}`
     }
@@ -36,7 +42,7 @@ export const PromotionsController = (props) => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.token}`,
+        Authorization: `Bearer ${session?.token}`,
         'X-App-X': ordering.appId,
         'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
         'X-Socket-Id-X': socket?.getId()

@@ -143,8 +143,8 @@ export const MultiCheckout = (props) => {
           paymethod_data: returnMethods.includes(paymethod?.gateway)
             ? {
                 ...paymethod?.paymethod_data,
-                success_url: returnUrl,
-                cancel_url: returnUrl,
+                success_url: returnUrl.replace('undefined', cartGroup?.result?.uuid),
+                cancel_url: returnUrl.replace('undefined', cartGroup?.result?.uuid),
                 urlscheme
               }
             : paymethod?.paymethod_data
@@ -385,7 +385,7 @@ export const MultiCheckout = (props) => {
   }, [])
 
   useEffect(() => {
-    if (window.location?.search) {
+    if (window?.location?.search) {
       const urlParams = new URLSearchParams(window.location.search)
       const paramsObj = Object.fromEntries(urlParams.entries())
       getMultiCart(true, {

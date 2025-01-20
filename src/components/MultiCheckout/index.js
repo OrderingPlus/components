@@ -143,8 +143,8 @@ export const MultiCheckout = (props) => {
           paymethod_data: returnMethods.includes(paymethod?.gateway)
             ? {
                 ...paymethod?.paymethod_data,
-                success_url: returnUrl.replace('undefined', cartGroup?.result?.uuid),
-                cancel_url: returnUrl.replace('undefined', cartGroup?.result?.uuid),
+                success_url: returnUrl?.replace?.('undefined', cartGroup?.result?.uuid),
+                cancel_url: returnUrl?.replace?.('undefined', cartGroup?.result?.uuid),
                 urlscheme
               }
             : paymethod?.paymethod_data

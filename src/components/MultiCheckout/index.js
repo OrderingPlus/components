@@ -387,8 +387,8 @@ export const MultiCheckout = (props) => {
   }, [])
 
   useEffect(() => {
-    if (window?.location?.search) {
-      const urlParams = new URLSearchParams(window.location.search)
+    if (typeof window?.location?.search === 'string') {
+      const urlParams = new URLSearchParams(window?.location?.search)
       const paramsObj = Object.fromEntries(urlParams.entries())
       getMultiCart(true, {
         params: {

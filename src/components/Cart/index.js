@@ -13,7 +13,8 @@ export const Cart = (props) => {
     UIComponent,
     handleEditProduct,
     businessConfigs,
-    commentDelayTime
+    commentDelayTime,
+    callbackAfterUpdateCart
   } = props
 
   /**
@@ -99,17 +100,19 @@ export const Cart = (props) => {
   /**
    * Change product quantity of the cart
    */
-  const changeQuantity = (product, quantity) => {
+  const changeQuantity = async (product, quantity) => {
     if (quantity === 0) {
-      removeProduct(product, cart)
+      await removeProduct(product, cart)
     } else {
-      updateProduct({
+      await updateProduct({
         id: product.id,
         business_id: product.business_id,
         code: product.code,
         quantity
+
       }, cart)
     }
+    callbackAfterUpdateCart && callbackAfterUpdateCart()
   }
 
   /**

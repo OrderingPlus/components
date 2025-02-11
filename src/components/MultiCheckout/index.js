@@ -35,7 +35,7 @@ export const MultiCheckout = (props) => {
    * Session content
    */
   const [{ token }] = useSession()
-  const [{ carts }, { placeMultiCarts, confirmMultiCarts }] = useOrder()
+  const [, { placeMultiCarts, confirmMultiCarts }] = useOrder()
   /**
 * Toast state
 */
@@ -398,7 +398,7 @@ export const MultiCheckout = (props) => {
     } else {
       getMultiCart()
     }
-  }, [JSON.stringify(carts)])
+  }, [])
 
   useEffect(() => {
     if (cartGroup?.result?.status === 'completed') {

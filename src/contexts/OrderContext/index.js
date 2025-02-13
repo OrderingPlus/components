@@ -1095,10 +1095,10 @@ export const OrderProvider = ({
       }
       const response = await fetch(`${ordering.root}/cart_groups/${cartUuid}/confirm`, requestOptions)
       const { result, error } = await response.json()
-      if (!error) {
+      if (!error && result?.carts) {
         result.carts.forEach(cart => {
           if (result.status !== 'completed') {
-            state.carts[`businessId:${cart.business_id}`] = result?.carts?.find(_cart => _cart?.business_id === cart?.business_id)
+            state.carts[`businessId:${cart.business_id}`] = result.carts.find(_cart => _cart?.business_id === cart?.business_id)
             events.emit('cart_updated', result)
           } else {
             delete state.carts[`businessId:${cart.business_id}`]

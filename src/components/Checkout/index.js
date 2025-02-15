@@ -109,9 +109,9 @@ export const Checkout = (props) => {
     refreshConfigs()
     try {
       const parameters = {
-        type: orderState.options?.type
+        type: orderState.options?.type,
+        version: 'v2'
       }
-
       const { content: { result, error } } = await ordering.businesses(businessId).select(propsToFetch).parameters(parameters).get()
       if (!error && cartState.cart?.paymethod_id) {
         const paymethodSelected = result?.paymethods?.find(paymethod => paymethod?.paymethod_id === cartState.cart?.paymethod_id)

@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useTheme } from 'styled-components'
 import SmartBanner from 'smart-app-banner'
 
 export const SmartAppBanner = (props) => {
@@ -9,14 +8,16 @@ export const SmartAppBanner = (props) => {
   const {
     UIComponent,
     storeAndroidId,
-    storeAppleId
+    storeAppleId,
+    appName,
+    logo,
+    description
   } = props
 
-  const theme = useTheme()
   const [, t] = useLanguage()
   useEffect(() => {
     if (!storeAndroidId || !storeAppleId) return
-    const logo = theme?.images?.logos?.isotype
+    const descriptionUpdated = description || document.querySelector('meta[name="description"]').getAttribute('content')
 
     const metas = [
       { name: 'apple-itunes-app', content: `app-id=${storeAppleId}` },
@@ -36,8 +37,8 @@ export const SmartAppBanner = (props) => {
       daysHidden: 15,
       daysReminder: 90,
       appStoreLanguage: 'us',
-      title: t('MOBILE_APPNAME', 'Mobila appname'),
-      author: t('MOBILE_APPNAME_AUTHOR', 'App name author'),
+      title: appName,
+      author: descriptionUpdated,
       button: t('VIEW', 'View'),
       store: {
         ios: t('ON_THE_APP_STORE', 'On the app store'),
@@ -57,7 +58,7 @@ export const SmartAppBanner = (props) => {
       })
       smartBanner.hide()
     }
-  }, [storeAndroidId, storeAppleId])
+  }, [storeAndroidId, storeAppleId, appName, description])
 
   return (
     <>

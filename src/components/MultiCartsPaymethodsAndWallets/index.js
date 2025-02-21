@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useApi } from '../../contexts/ApiContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
+import { useOrder } from '../../contexts/OrderContext'
 
 /**
  * Component to manage Multi carts paymethods and wallets behavior without UI component
@@ -14,7 +15,8 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
     openCarts,
     loyaltyPlansState,
     userId,
-    cartUuid
+    cartUuid,
+    individialWalletsCarts
   } = props
 
   const qParams = userId ? `?user_id=${userId}` : ''
@@ -22,6 +24,7 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
   const [ordering] = useApi()
   const socket = useWebsocket()
   const [{ token, user }] = useSession()
+  const [orderState, { setStateValues }] = useOrder()
 
   const [cartsUuids, setCartsUuids] = useState([])
   const [businessIds, setBusinessIds] = useState([])
@@ -162,6 +165,40 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
     }
   }
 
+  const deleteIndividualWallet = async (cart, wallet) => {
+    try {
+      const response = await fetch(
+        `${ordering.root}/carts/${cart.uuid}/wallets/${wallet.wallet_id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+            'X-Socket-Id-X': socket?.getId()
+          }
+        }
+      )
+      const { error, result } = await response.json()
+      if (error) {
+        setWalletsState({
+          ...walletsState,
+          loading: false,
+          error: result
+        })
+        return
+      }
+      return result
+    } catch (err) {
+      setWalletsState({
+        ...walletsState,
+        loading: false,
+        error: [err.message]
+      })
+    }
+  }
+
   useEffect(() => {
     const _cartsUuids = openCarts.reduce((uuids, cart) => [...uuids, cart.uuid], [])
     setCartsUuids(_cartsUuids)
@@ -178,6 +215,21 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
     if (!cartsUuids.length) return
     getPaymethodsAndWallets()
   }, [JSON.stringify(cartsUuids), JSON.stringify(businessIds)])
+
+  useEffect(() => {
+    if (individialWalletsCarts?.length > 0) {
+      const carts = orderState.carts
+      individialWalletsCarts.forEach(async cart => {
+        cart.payment_events.forEach(async paymentEvent => {
+          if (paymentEvent.wallet_id) {
+            const result = await deleteIndividualWallet(cart, paymentEvent)
+            carts[`businessId:${result.business_id}`] = result
+          }
+        })
+      })
+      setStateValues({ carts })
+    }
+  }, [individialWalletsCarts?.length])
 
   return (
     <>

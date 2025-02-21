@@ -16,7 +16,7 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
     loyaltyPlansState,
     userId,
     cartUuid,
-    individialWalletsCarts
+    individualWalletsCarts
   } = props
 
   const qParams = userId ? `?user_id=${userId}` : ''
@@ -168,7 +168,7 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
   const deleteIndividualWallet = async (cart, wallet) => {
     try {
       const response = await fetch(
-        `${ordering.root}/carts/${cart.uuid}/wallets/${wallet.wallet_id}`,
+        `${ordering.root}/carts/${cart.uuid}/wallets/${wallet.id}`,
         {
           method: 'DELETE',
           headers: {
@@ -187,7 +187,7 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
           loading: false,
           error: result
         })
-        return
+        return null
       }
       return result
     } catch (err) {
@@ -217,19 +217,21 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
   }, [JSON.stringify(cartsUuids), JSON.stringify(businessIds)])
 
   useEffect(() => {
-    if (individialWalletsCarts?.length > 0) {
+    if (individualWalletsCarts?.length > 0) {
       const carts = orderState.carts
-      individialWalletsCarts.forEach(async cart => {
-        cart.payment_events.forEach(async paymentEvent => {
-          if (paymentEvent.wallet_id) {
-            const result = await deleteIndividualWallet(cart, paymentEvent)
-            carts[`businessId:${result.business_id}`] = result
+      individualWalletsCarts.forEach(async cart => {
+        cart.wallets.forEach(async wallet => {
+          if (wallet.id) {
+            const result = await deleteIndividualWallet(cart, wallet)
+            if (result) {
+              carts[`businessId:${result.business_id}`] = result
+            }
           }
         })
       })
       setStateValues({ carts })
     }
-  }, [individialWalletsCarts?.length])
+  }, [individualWalletsCarts?.length])
 
   return (
     <>

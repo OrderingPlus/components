@@ -452,11 +452,19 @@ export const OrderList = props => {
           return valid
         })
       } else {
-        orders = [order, ...orderList.orders]
-        pagination.total++
-        setPagination({
-          ...pagination
-        })
+        /**
+         * It ensures that the last order component is properly managed.
+         * This is for the last order component, because the socket in some cases sends the order with the status undefined
+         */
+        if (pagination.pageSize !== 1) {
+          orders = [order, ...orderList.orders]
+          pagination.total++
+          setPagination({
+            ...pagination
+          })
+        } else {
+          orders = orderList.orders
+        }
       }
       setOrderList({
         ...orderList,

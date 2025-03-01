@@ -24,7 +24,7 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
   const [ordering] = useApi()
   const socket = useWebsocket()
   const [{ token, user }] = useSession()
-  const [orderState, { setStateValues }] = useOrder()
+  const [orderState, { setStateValues, refreshOrderOptions }] = useOrder()
 
   const [cartsUuids, setCartsUuids] = useState([])
   const [businessIds, setBusinessIds] = useState([])
@@ -230,6 +230,7 @@ export const MultiCartsPaymethodsAndWallets = (props) => {
         })
       })
       setStateValues({ carts })
+      refreshOrderOptions()
     }
   }, [individualWalletsCarts?.length])
 

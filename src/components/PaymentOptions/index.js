@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useOrder } from '../../contexts/OrderContext'
 import { useApi } from '../../contexts/ApiContext'
@@ -44,6 +44,12 @@ export const PaymentOptions = (props) => {
   const [isOpenMethod, setIsOpenMethod] = useState({ paymethod: null })
 
   const requestsState = {}
+
+  const paymethodV2Featured = useMemo(() => {
+    const paymethod = paymethodsList?.paymethods?.find(p => p.gateway === props.paySelected?.gateway)
+    return (paymethod?.version === 'v2' &&
+      paymethod.featured) || ''
+  }, [paymethodsList, props.paySelected])
 
   const filterPaymentMethods = (paymentMethods) => {
     const validations = {
@@ -134,12 +140,13 @@ export const PaymentOptions = (props) => {
     setPaymethodData(data)
     if (Object.keys(data).length) {
       const paymethod = props.paySelected || isOpenMethod.paymethod
+
       setPaymethodsSelected(paymethod)
       onPaymentChange && onPaymentChange({
         paymethodId: paymethod?.id,
         id: paymethod?.id,
         gateway: paymethod?.gateway,
-        paymethod,
+        paymethod: paymethod?.paymethod || paymethod,
         credentials: paymethod?.credentials ?? null,
         data
       })
@@ -151,7 +158,7 @@ export const PaymentOptions = (props) => {
         id: paymethodSelected.id,
         name: paymethodSelected.name,
         gateway: paymethodSelected.gateway,
-        paymethod: paymethodSelected,
+        paymethod: paymethodSelected?.paymethod || paymethodSelected,
         data
       })
     } else {
@@ -184,7 +191,7 @@ export const PaymentOptions = (props) => {
         id: paymethodSelected.id,
         name: paymethodSelected.name,
         gateway: paymethodSelected.gateway,
-        paymethod: paymethodSelected,
+        paymethod: paymethodSelected?.paymethod || paymethodSelected,
         data: paymethodData
       })
     } else if (paymethodSelected === null && onPaymentChange) {
@@ -239,6 +246,7 @@ export const PaymentOptions = (props) => {
           paymethodsList={paymethodsList}
           paymethodSelected={paymethodSelected}
           paymethodData={paymethodData}
+          paymethodV2Featured={paymethodV2Featured}
           setPaymethodData={setPaymethodData}
           handlePaymethodClick={handlePaymethodClick}
           handlePaymethodDataChange={handlePaymethodDataChange}

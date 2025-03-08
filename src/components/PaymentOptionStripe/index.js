@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
+import { useOrder } from '../../contexts/OrderContext'
 
 /**
  * Component to manage payment option stripe behavior without UI component
@@ -15,11 +16,13 @@ export const PaymentOptionStripe = (props) => {
     gateway,
     onPaymentChange,
     paySelected,
-    newCardAdded
+    newCardAdded,
+    paymethodSelectedInfo,
+    paymethodV2Featured
   } = props
 
   const [{ token, user }] = useSession()
-
+  const [, { changePaymethod }] = useOrder()
   const [ordering] = useApi()
   const socket = useWebsocket()
   /**
@@ -199,10 +202,104 @@ export const PaymentOptionStripe = (props) => {
     handleCardClick(card)
   }
 
+  const getPaymentUserCards = async () => {
+    const where = {
+      conditions: [{
+        attribute: 'user_paymethod',
+        conditions: [{
+          attribute: 'business_id',
+          value: {
+            condition: '=',
+            value: businessId
+          }
+        }],
+        operator: 'AND'
+      }]
+    }
+    try {
+      const response = await fetch(`${ordering.root}/users/${user.id}/paymethods/${paymethodSelectedInfo?.id}/paymethods?where=${JSON.stringify(where)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+          'X-Socket-Id-X': socket?.getId()
+        }
+      })
+      const content = await response.json()
+      if (!content.error) {
+        const cards = content.result.map(card => ({
+          id: card.id,
+          type: card.type,
+          last4: card?.type_data?.last4,
+          brand: card?.type_data?.brand,
+          card_token: card.external_id
+        }))
+        setCardsList({
+          ...cardsList,
+          loading: false,
+          cards
+        })
+        setCardList && setCardList({
+          ...cardsList,
+          loading: false,
+          cards
+        })
+      }
+    } catch (error) {
+      setCardsList({
+        ...cardsList,
+        loading: false,
+        error
+      })
+      setCardList && setCardList({
+        ...cardsList,
+        loading: false,
+        error
+      })
+    }
+  }
+
+  const deleteUserCard = async (card) => {
+    try {
+      const response = await fetch(`${ordering.root}/users/${user.id}/paymethods/${paymethodSelectedInfo?.id}/paymethods/${card.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+          'X-Socket-Id-X': socket?.getId()
+        }
+      })
+      const content = await response.json()
+      if (!content.error) {
+        if (cardSelected?.id === card?.id) {
+          setCardSelected(null)
+          onPaymentChange && onPaymentChange({
+            ...paymethodSelectedInfo,
+            data: null
+          })
+          changePaymethod(businessId, paymethodSelectedInfo.id, '{}')
+        }
+        setCardsList({
+          ...cardsList,
+          cards: cardsList.cards.filter(c => c.id !== card.id)
+        })
+        setCardList && setCardList({
+          ...cardsList,
+          cards: cardsList.cards.filter(c => c.id !== card.id)
+        })
+      }
+    } catch (error) {
+      console.error(error.message)
+    }
+  }
+
   useEffect(() => {
     if (token) {
-      getCards()
-      if (!props.publicKey) {
+      paymethodV2Featured?.includes?.('get_cards') ? getPaymentUserCards() : getCards()
+      if (!props.publicKey && !paymethodV2Featured) {
         getCredentials()
       }
     }
@@ -211,7 +308,7 @@ export const PaymentOptionStripe = (props) => {
         requestState.paymentCards.cancel()
       }
     }
-  }, [token, businessId, paySelected?.data])
+  }, [token, businessId, paySelected?.data, paymethodV2Featured])
 
   useEffect(() => {
     if (newCardAdded) {
@@ -233,6 +330,7 @@ export const PaymentOptionStripe = (props) => {
           handleNewCard={handleNewCard}
           deleteCard={deleteCard}
           setDefaultCard={setDefaultCard}
+          deleteUserCard={deleteUserCard}
           defaultCardSetActionStatus={defaultCardSetActionStatus}
           paymethodsWithoutSaveCards={paymethodsWithoutSaveCards}
         />

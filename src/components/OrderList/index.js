@@ -43,7 +43,7 @@ export const OrderList = props => {
 
   const [ordering] = useApi()
   const socket = useWebsocket()
-  const [orderState, { reorder }] = useOrder()
+  const [orderState, { reorder, clearCart }] = useOrder()
   const [session] = useSession()
   const [events] = useEvent()
   const [, { showToast }] = useToast()
@@ -624,6 +624,38 @@ export const OrderList = props => {
     }
   }
 
+  /**
+   * Method to remove products from cart
+   */
+  const handleRemoveCart = async (_order) => {
+    const _businessIds = Array.isArray(_order?.business_id) ? _order?.business_id : [_order?.business_id]
+    const orderIds = Array.isArray(_order?.id) ? _order?.id : [_order?.id]
+    const uuids = _businessIds.map((b, index) => ({ uuid: orderState?.carts[`businessId:${b}`]?.uuid, orderIdx: index })) ?? []
+
+    if (!uuids?.length) return
+    try {
+      setOrderList({ ...orderList, loading: true })
+      const errors = []
+      for (const item of uuids) {
+        let _error = null
+        if (item.uuid) {
+          const disableLoading = isCustomerMode
+          const { error, result } = await clearCart(item.uuid, { disableLoading })
+          _error = error ? result[0] : false
+        }
+        _error && errors.push(_error)
+      }
+      handleReorder(orderIds)
+      setOrderList({ ...orderList, loading: false, error: errors })
+    } catch (error) {
+      setOrderList({
+        ...orderList,
+        loading: false,
+        error: [error.message]
+      })
+    }
+  }
+
   useEffect(() => {
     if (profileMessage) return
     if (!orderList.loading && orderBy !== 'last_direct_message_at') {
@@ -719,6 +751,7 @@ export const OrderList = props => {
           businesses={businesses}
           professionals={professionals}
           handleUpdateProfessionals={handleUpdateProfessionals}
+          handleRemoveCart={handleRemoveCart}
           getPage={getPage}
         />
       )}

@@ -487,7 +487,11 @@ export const OrderDetails = (props) => {
       if (isFetchDrivers) {
         getDrivers(props.order?.id ?? orderId)
       }
-    } else if ((!orderState.order || (orderId && orderId !== orderState.order?.uuid)) && !isDriverNotification) {
+    } else if (
+      (!orderState.order ||
+        (orderId && orderId !== (isNaN(parseInt(orderId, 10)) ? orderState.order?.uuid : orderState.order?.id))
+      ) && !isDriverNotification
+    ) {
       getOrder()
     }
 

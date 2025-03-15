@@ -6,7 +6,8 @@ import { useWebsocket } from '../../contexts/WebsocketContext'
 
 export const Sessions = (props) => {
   const {
-    UIComponent
+    UIComponent,
+    sortByDate
   } = props
 
   const [ordering] = useApi()
@@ -36,6 +37,10 @@ export const Sessions = (props) => {
         }
       })
       const { result, error } = await response.json()
+      if (!error && sortByDate) {
+        const sortOrder = sortByDate === 'desc' ? -1 : 1
+        result.sort((a, b) => sortOrder * (new Date(a.created_at) - new Date(b.created_at)))
+      }
       if (!error) {
         setSessionsList({
           loading: false,

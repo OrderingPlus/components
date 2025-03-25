@@ -90,13 +90,13 @@ export const PaymentOptions = (props) => {
    */
   const getPaymentOptions = async () => {
     setPaymethodsList({ ...paymethodsList, loading: true })
-
+    const propsToFetch = ['id', 'name', 'paymethods']
     const headers = {
       'X-Physical-Device-Code-X': `${device_code}`
     }
 
     try {
-      const { content: { error, result } } = await ordering.businesses(businessId).get(device_code ? { headers } : {})
+      const { content: { error, result } } = await ordering.businesses(businessId).select(propsToFetch).get(device_code ? { headers } : {})
       if (!error) {
         paymethodsList.paymethods = parsePaymethods(result.paymethods)
       }

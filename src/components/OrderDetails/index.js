@@ -489,7 +489,7 @@ export const OrderDetails = (props) => {
       }
     } else if (
       (!orderState.order ||
-        (orderId && orderId !== (isNaN(parseInt(orderId, 10)) ? orderState.order?.uuid : orderState.order?.id))
+        (orderId && orderId !== (isNaN(Number(orderId)) ? orderState.order?.uuid : orderState.order?.id))
       ) && !isDriverNotification
     ) {
       getOrder()

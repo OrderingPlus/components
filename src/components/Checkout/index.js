@@ -40,7 +40,7 @@ export const Checkout = (props) => {
   /**
    * Order context
    */
-  const [orderState, { placeCart }] = useOrder()
+  const [orderState, { placeCart, setStateValues }] = useOrder()
   /**
    * Session content
    */
@@ -373,10 +373,14 @@ export const Checkout = (props) => {
         })
       })
       const { result, error } = await response.json()
-      setDeliveryOptionSelected(result?.delivery_option_id)
       if (error) {
         showToast(ToastType.Error, result)
+        return
       }
+      const carts = orderState.carts
+      carts[`businessId:${result.business_id}`] = result
+      setStateValues({ carts })
+      setDeliveryOptionSelected(result?.delivery_option_id)
     } catch (err) {
       showToast(ToastType.Error, err.message)
     }

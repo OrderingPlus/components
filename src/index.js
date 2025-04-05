@@ -137,6 +137,7 @@ import { WalletList } from './components/WalletList'
 import { QueryLoginSpoonity } from './components/QueryLoginSpoonity'
 import { WebsocketStatus } from './components/WebsocketStatus'
 import { ProjectForm } from './components/ProjectForm'
+import { createMergedTheme } from './utils/themeUtils'
 
 import {
   Appointments,
@@ -373,6 +374,7 @@ export {
   OptimizationLoadProvider,
   useOptimizationLoad,
   WebStrategy,
+  createMergedTheme,
   // Constants
   CODES,
   TIMEZONES

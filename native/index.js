@@ -111,6 +111,7 @@ import { WebsocketContext, WebsocketProvider, useWebsocket } from '../src/contex
 import { OrderingContext, OrderingProvider } from './src/contexts/OrderingContext'
 import { ToastType, ToastContext, ToastProvider, useToast } from '../src/contexts/ToastContext'
 import { OrderingThemeContext, OrderingThemeProvider, useOrderingTheme } from '../src/contexts/OrderingThemeContext'
+import { createMergedTheme } from '../src/utils/themeUtils'
 
 import { CODES } from '../src/constants/code-numbers'
 
@@ -258,6 +259,7 @@ export {
   OrderingThemeContext,
   OrderingThemeProvider,
   useOrderingTheme,
+  createMergedTheme,
   // Constants
   CODES
 }

@@ -295,41 +295,20 @@ export const ProductForm = (props) => {
    * @param {number} suboptionId Suboption id
    */
   const removeRelatedOptions = (productCart, suboptionId) => {
-    // Create a queue to process all suboptions that need to be removed
-    const queue = [suboptionId]
-    const processed = new Set()
-
-    while (queue.length > 0) {
-      const currentId = queue.shift()
-
-      // Skip if already processed to avoid infinite recursion
-      if (processed.has(currentId)) continue
-      processed.add(currentId)
-
-      // Find all options that depend on this suboption
-      for (const extra of product.product.extras) {
-        for (const option of extra.options) {
-          if (option.respect_to === currentId) {
-            const optionKey = `id:${option.id}`
-            const suboptions = productCart.options[optionKey]?.suboptions
-
-            if (suboptions) {
-              // Add each suboption to the queue for processing
-              Object.keys(suboptions).forEach(subKey => {
-                const subId = parseInt(subKey.split(':')[1])
-                queue.push(subId)
-              })
-            }
-
-            // Clear the suboptions
-            if (productCart.options[optionKey]) {
-              productCart.options[optionKey].suboptions = {}
-              pizzaState[`option:${option.id}`] = {}
-            }
+    product.product.extras.forEach(_extra => {
+      _extra.options.forEach(_option => {
+        if (_option.respect_to === suboptionId) {
+          const suboptions = productCart.options[`id:${_option.id}`]?.suboptions
+          if (suboptions) {
+            Object.keys(suboptions).map(suboptionKey => removeRelatedOptions(productCart, parseInt(suboptionKey.split(':')[1])))
+          }
+          if (productCart.options[`id:${_option.id}`]) {
+            productCart.options[`id:${_option.id}`].suboptions = {}
+            pizzaState[`option:${_option.id}`] = {}
           }
         }
-      }
-    }
+      })
+    })
   }
 
   /**
@@ -353,168 +332,122 @@ export const ProductForm = (props) => {
    * @param {object} product Product object
    */
   const handleChangeSuboptionState = (state, suboption, option) => {
-    // Create a shallow copy and only deep copy the parts we need to change
-    const newProductCart = { ...productCart }
-
-    // Initialize options if needed
+    const newProductCart = JSON.parse(JSON.stringify(productCart))
     if (!newProductCart.options) {
       newProductCart.options = {}
     }
-
-    // Initialize the specific option if needed
-    const optionKey = `id:${option.id}`
-    if (!newProductCart.options[optionKey]) {
-      newProductCart.options[optionKey] = {
+    if (!newProductCart.options[`id:${option.id}`]) {
+      newProductCart.options[`id:${option.id}`] = {
         id: option.id,
         name: option.name,
         suboptions: {}
       }
     }
-
-    // Create a reference to the current option
-    const currentOption = newProductCart.options[optionKey]
-
-    // Create a copy of the suboptions object only if we're going to modify it
-    if (!currentOption.suboptions) {
-      currentOption.suboptions = {}
-    } else {
-      currentOption.suboptions = { ...currentOption.suboptions }
-    }
-
     let newPizzaState = {}
 
     if (!state.selected) {
-      delete currentOption.suboptions[`id:${suboption.id}`]
+      delete newProductCart.options[`id:${option.id}`].suboptions[`id:${suboption.id}`]
       removeRelatedOptions(newProductCart, suboption.id)
       newPizzaState = handleVerifyPizzaState(state, suboption, option)
     } else {
       if (option.max === 1) {
-        const suboptions = currentOption.suboptions
-        if (Object.keys(suboptions).length > 0) {
-          // Find and remove related options first
-          Object.keys(suboptions).forEach(suboptionKey => {
-            removeRelatedOptions(newProductCart, parseInt(suboptionKey.split(':')[1]))
-          })
-          currentOption.suboptions = {}
+        const suboptions = newProductCart.options[`id:${option.id}`].suboptions
+        if (suboptions) {
+          Object.keys(suboptions).map(suboptionKey => removeRelatedOptions(newProductCart, parseInt(suboptionKey.split(':')[1])))
         }
+        if (newProductCart.options[`id:${option.id}`]) {
+          newProductCart.options[`id:${option.id}`].suboptions = {}
+      }
       }
 
       currentOption.suboptions[`id:${suboption.id}`] = state
+        }
+
+      currentOption.suboptions[`id:${suboption.id}`] = state
+      }
+      newProductCart.options[`id:${option.id}`].suboptions[`id:${suboption.id}`] = state
     }
-
-    const _selectedSuboptions = { ...selectedSuboptions }
     let suboptionsArray = []
-
+    const _selectedSuboptions = selectedSuboptions
     if (state.selected) {
-      if (newProductCart.options) {
-        for (const extraId in product.product.extras) {
-          const extra = product.product.extras[extraId]
-          for (const optionId in extra.options) {
-            const opt = extra.options[optionId]
-            const optKey = `id:${opt.id}`
-            if (newProductCart.options[optKey] &&
-                Object.keys(newProductCart.options[optKey].suboptions || {}).length === 0) {
-              delete newProductCart.options[optKey]
+      for (const extra of product.product.extras) {
+        for (const option of extra.options) {
+          if (Object.keys(newProductCart?.options[`id:${option?.id}`]?.suboptions || {})?.length === 0) {
+            delete newProductCart?.options[`id:${option?.id}`]
+          }
+        }
+      }
+      if (newProductCart?.options) {
+        for (const extra of product.product.extras) {
+          for (const option of extra.options) {
+            for (const suboption of option.suboptions) {
+              if (newProductCart?.options[`id:${option?.id}`]) {
+                if (newProductCart?.options[`id:${option?.id}`]?.suboptions[`id:${suboption?.id}`]) {
+                  _selectedSuboptions[`suboption:${suboption.id}`] = true
+                } else {
+                  _selectedSuboptions[`suboption:${suboption.id}`] = false
+                }
+              } else {
+                _selectedSuboptions[`suboption:${suboption.id}`] = suboption?.preselected || (option?.max === 1 && option?.min === 1 && option?.suboptions?.length === 1)
+              }
+            }
+          }
+        }
+      }
+      const preselectedOptions = []
+      const preselectedSuboptions = []
+      for (const extra of product.product.extras) {
+        for (const option of extra.options) {
+          for (const suboption of option.suboptions) {
+            if (checkSuboptionsSelected(suboption?.id, _selectedSuboptions, dependsSuboptions)) {
+              preselectedOptions.push(option)
+              preselectedSuboptions.push(suboption)
             }
           }
         }
       }
 
-      if (newProductCart.options) {
-        const optionMap = {}
-        const suboptions = {}
+      const states = preselectedSuboptions.map((suboption, i) => {
+        const cartSuboption = newProductCart?.options[`id:${preselectedOptions[i]?.id}`]?.suboptions[`id:${suboption?.id}`] || suboption
+        const price = preselectedOptions[i]?.with_half_option && cartSuboption?.half_price && cartSuboption?.position !== 'whole'
+          ? cartSuboption.half_price
+          : cartSuboption.price
 
-        for (const extra of product.product.extras) {
-          for (const opt of extra.options) {
-            optionMap[opt.id] = opt
-            for (const sub of opt.suboptions) {
-              suboptions[sub.id] = { option: opt, suboption: sub }
-
-              const optKey = `id:${opt.id}`
-              const subKey = `id:${sub.id}`
-
-              if (newProductCart.options[optKey]) {
-                _selectedSuboptions[`suboption:${sub.id}`] =
-                  newProductCart.options[optKey].suboptions?.[subKey] || false
-              } else {
-                _selectedSuboptions[`suboption:${sub.id}`] =
-                  sub.preselected || (opt.max === 1 && opt.min === 1 && opt.suboptions.length === 1)
-              }
-            }
-          }
+        return {
+          id: cartSuboption.id,
+          name: cartSuboption.name,
+          position: state?.id === cartSuboption?.id ? state?.position : cartSuboption.position || 'whole',
+          price: state?.id === cartSuboption?.id ? state.price : price,
+          quantity: state?.id === cartSuboption?.id
+            ? state.quantity
+            : cartSuboption?.quantity || 1,
+          selected: true,
+          total: state?.id === cartSuboption?.id ? state.total : price
         }
-
-        const preselectedOptions = []
-        const preselectedSuboptions = []
-
-        Object.keys(_selectedSuboptions).forEach(key => {
-          if (_selectedSuboptions[key]) {
-            const subId = parseInt(key.split(':')[1])
-            if (checkSuboptionsSelected(subId, _selectedSuboptions, dependsSuboptions)) {
-              const { option: preOption, suboption: preSub } = suboptions[subId] || {}
-              if (preOption && preSub) {
-                preselectedOptions.push(preOption)
-                preselectedSuboptions.push(preSub)
-              }
-            }
-          }
-        })
-
-        // Map states
-        const states = preselectedSuboptions.map((sub, i) => {
-          const option = preselectedOptions[i]
-          const optKey = `id:${option.id}`
-          const subKey = `id:${sub.id}`
-          const cartSuboption = (newProductCart.options[optKey]?.suboptions?.[subKey]) || sub
-
-          const price = option.with_half_option && cartSuboption.half_price &&
-            cartSuboption.position !== 'whole'
-            ? cartSuboption.half_price
-            : cartSuboption.price
-
-          return {
-            id: cartSuboption.id,
-            name: cartSuboption.name,
-            position: state.id === cartSuboption.id ? state.position : cartSuboption.position || 'whole',
-            price: state.id === cartSuboption.id ? state.price : price,
-            quantity: state.id === cartSuboption.id ? state.quantity : cartSuboption.quantity || 1,
-            selected: true,
-            total: state.id === cartSuboption.id ? state.total : price
-          }
-        })
-
-        // Create suboptions array efficiently
-        suboptionsArray = preselectedOptions.map((option, i) => ({
+      })
+      preselectedOptions.map((option, i) => {
+        const defaultSuboption = {
           option,
           suboption: preselectedSuboptions[i],
           state: states[i]
-        }))
-
-        newPizzaState = handleVerifyPizzaState(
-          state, suboption, option, preselectedOptions, preselectedSuboptions, states
-        )
-      }
+        }
+        suboptionsArray = [...suboptionsArray, defaultSuboption]
+      })
+      newPizzaState = handleVerifyPizzaState(state, suboption, option, preselectedOptions, preselectedSuboptions, states)
     }
 
-    // Calculate new balance
-    let newBalance = Object.keys(currentOption.suboptions).length
+    let newBalance = Object.keys(newProductCart.options[`id:${option.id}`].suboptions).length
     if (option.limit_suboptions_by_max) {
-      newBalance = Object.values(currentOption.suboptions).reduce(
-        (count, sub) => count + sub.quantity, 0
-      )
+      newBalance = Object.values(newProductCart.options[`id:${option.id}`].suboptions).reduce((count, suboption) => {
+        return count + suboption.quantity
+      }, 0)
     }
-
-    const hasPreselectedFlow = suboptionsArray.filter(item => item?.suboption?.preselected)
-
-    const isBalanceValid = newBalance <= option.max ||
-      (newPizzaState?.[`option:${option.id}`]?.value <= option.max && option?.with_half_option)
-
-    if (isBalanceValid) {
-      currentOption.balance = newBalance
+    const hasPreselectedFlow = suboptionsArray.filter(state => state?.suboption?.preselected)
+    if (newBalance <= option.max || (newPizzaState?.[`option:${option?.id}`]?.value <= option.max && option?.with_half_option)) {
+      newProductCart.options[`id:${option.id}`].balance = newBalance
       newProductCart.unitTotal = getUnitTotal(newProductCart)
       newProductCart.total = newProductCart.unitTotal * newProductCart.quantity
-
-      if (state.selected && hasPreselectedFlow.length > 0) {
+      if (state.selected && hasPreselectedFlow?.length > 0) {
         handleChangeSuboptionDefault(suboptionsArray, newPizzaState)
         setSelectedSuboptions(_selectedSuboptions)
       } else {

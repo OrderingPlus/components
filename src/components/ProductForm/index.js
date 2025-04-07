@@ -357,13 +357,7 @@ export const ProductForm = (props) => {
         }
         if (newProductCart.options[`id:${option.id}`]) {
           newProductCart.options[`id:${option.id}`].suboptions = {}
-      }
-      }
-
-      currentOption.suboptions[`id:${suboption.id}`] = state
         }
-
-      currentOption.suboptions[`id:${suboption.id}`] = state
       }
       newProductCart.options[`id:${option.id}`].suboptions[`id:${suboption.id}`] = state
     }

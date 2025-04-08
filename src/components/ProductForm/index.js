@@ -350,7 +350,7 @@ export const ProductForm = (props) => {
       removeRelatedOptions(newProductCart, suboption.id)
       newPizzaState = handleVerifyPizzaState(state, suboption, option)
     } else {
-      if (option.min === option.max && option.min === 1) {
+      if (option.max === 1) {
         const suboptions = newProductCart.options[`id:${option.id}`].suboptions
         if (suboptions) {
           Object.keys(suboptions).map(suboptionKey => removeRelatedOptions(newProductCart, parseInt(suboptionKey.split(':')[1])))
@@ -467,7 +467,7 @@ export const ProductForm = (props) => {
         delete newProductCart.options[`id:${option.id}`].suboptions[`id:${suboption.id}`]
         removeRelatedOptions(newProductCart, suboption.id)
       } else {
-        if ((option.min === option.max) && option.min === 1) {
+        if (option.max === 1) {
           const suboptions = newProductCart.options[`id:${option.id}`].suboptions
           if (suboptions) {
             Object.keys(suboptions).map(suboptionKey => removeRelatedOptions(newProductCart, parseInt(suboptionKey.split(':')[1])))
@@ -753,7 +753,7 @@ export const ProductForm = (props) => {
               [`suboption:${preselectedSuboptions[i]?.id}`]: (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
             }
           }
-          const suboptionValue = (states[i]?.position === 'whole' || (option?.max === 1 && option?.min === 1) ? 1 : 0.5) * states[i].quantity
+          const suboptionValue = (states[i]?.position === 'whole' || (option?.max === 1) ? 1 : 0.5) * states[i].quantity
 
           const value = suboptionValue + (newPizzaState[`option:${option?.id}`].value || 0)
           newPizzaState[`option:${option?.id}`].value = value

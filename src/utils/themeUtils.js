@@ -117,13 +117,13 @@ export const getMergedDeliveryTypeImages = (theme, orderingTheme) => {
 
   return {
     ...theme.images.deliveryTypes,
-    delivery: orderTypes?.delivery?.components?.image || theme.images.deliveryTypes.delivery,
-    pickup: orderTypes?.pickup?.components?.image || theme.images.deliveryTypes.pickUp,
-    eat_in: orderTypes?.eat_in?.components?.image || theme.images.deliveryTypes.eatIn,
-    curbside: orderTypes?.curbside?.components?.image || theme.images.deliveryTypes.curbside,
-    drive_thru: orderTypes?.drive_thru?.components?.image || theme.images.deliveryTypes.driveThru,
-    catering_delivery: orderTypes?.catering_delivery?.components?.image || theme.images.deliveryTypes.cateringDelivery,
-    catering_pickup: orderTypes?.catering_pickup?.components?.image || theme.images.deliveryTypes.cateringPickup
+    delivery: orderTypes?.delivery?.components?.image || theme.images.deliveryTypes?.delivery,
+    pickup: orderTypes?.pickup?.components?.image || theme.images.deliveryTypes?.pickUp,
+    eat_in: orderTypes?.eat_in?.components?.image || theme.images.deliveryTypes?.eatIn,
+    curbside: orderTypes?.curbside?.components?.image || theme.images.deliveryTypes?.curbside,
+    drive_thru: orderTypes?.drive_thru?.components?.image || theme.images.deliveryTypes?.driveThru,
+    catering_delivery: orderTypes?.catering_delivery?.components?.image || theme.images.deliveryTypes?.cateringDelivery,
+    catering_pickup: orderTypes?.catering_pickup?.components?.image || theme.images.deliveryTypes?.cateringPickup
   }
 }
 

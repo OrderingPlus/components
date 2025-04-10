@@ -100,7 +100,7 @@ export const getMergedLogoImages = (theme, orderingTheme, settings) => {
 
   return {
     ...theme.images.logos,
-    logotype: (settings.isApp ? headerLogo?.image : logo) || theme.images.logos.logotype
+    logotype: (settings?.isApp ? headerLogo?.image : logo) || theme.images.logos.logotype
   }
 }
 

@@ -455,6 +455,13 @@ export const OrderProvider = ({
 
       if (!error) {
         state.carts[`businessId:${result.business_id}`] = result
+        setState(prevState => ({
+          ...prevState,
+          carts: {
+            ...prevState.carts,
+            [`businessId:${result.business_id}`]: result
+          }
+        }))
         events.emit('cart_product_added', product, result)
         if (product?.favorite) {
           events.emit('wishlist_product_added_to_cart', product, result)
@@ -565,6 +572,11 @@ export const OrderProvider = ({
       })
       if (!error) {
         state.carts[`businessId:${result.business_id}`] = result
+        setState(prevState => {
+          const updatedCarts = prevState.carts
+          updatedCarts[`businessId:${result.business_id}`] = result
+          return { ...prevState, carts: updatedCarts }
+        })
         events.emit('cart_product_removed', product, result)
         events.emit('cart_updated', result)
       } else {

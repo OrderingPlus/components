@@ -241,6 +241,7 @@ export const Checkout = (props) => {
 
     setPlacing(false)
     onPlaceOrderClick && onPlaceOrderClick(payload, _paymethodSelected, cartResult)
+    return { paymethod: _paymethodSelected, cart: cartResult }
   }
 
   const handlePaymethodChange = (paymethod) => {

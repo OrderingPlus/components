@@ -13,7 +13,8 @@ export const ProductOptionSuboption = (props) => {
     suboption,
     onChange,
     isOrigin,
-    pizzaState
+    pizzaState,
+    disableDeselection
   } = props
 
   /**
@@ -54,6 +55,13 @@ export const ProductOptionSuboption = (props) => {
     const shouldApplyHalfLogic = option?.with_half_option && option?.allow_suboption_quantity && option?.limit_suboptions_by_max
     const remainingBalance = option.max - balance
     const canOnlySelectHalf = shouldApplyHalfLogic && remainingBalance < 1 && remainingBalance > 0
+
+    if (disableDeselection && (
+      (option?.min === 1 && option?.max === 1 && state.selected) ||
+      (option?.min === 1 && balance === 1 && state.selected)
+    )) {
+      return
+    }
 
     if (selectStatus && option.limit_suboptions_by_max && minMaxValidation && !canBeSelectedByHalf) {
       return

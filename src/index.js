@@ -42,6 +42,7 @@ import { LanguageSelector } from './components/LanguageSelector'
 import { LoginForm } from './components/LoginForm'
 import { LoginGuest } from './components/LoginGuest'
 import { LogoutAction } from './components/LogoutAction'
+import { LocationsMap } from './components/LocationsMap'
 import { MainSearch } from './components/MainSearch'
 import { MenuControl } from './components/MenuControl'
 import { MomentOption } from './components/MomentOption'
@@ -220,6 +221,7 @@ export {
   LoginForm,
   LoginGuest,
   LogoutAction,
+  LocationsMap,
   MainSearch,
   MenuControl,
   MomentOption,

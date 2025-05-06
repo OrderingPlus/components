@@ -325,5 +325,6 @@ BusinessSearchList.propTypes = {
 }
 
 const defaultProps = {
-  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
+  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },
+  propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'featured', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id']
 }

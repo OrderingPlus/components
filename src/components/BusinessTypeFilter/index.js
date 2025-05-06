@@ -8,6 +8,7 @@ export const BusinessTypeFilter = (props) => {
     businessTypes,
     onChangeBusinessType,
     defaultBusinessType,
+    hideAllCategory,
     UIComponent
   } = props
 
@@ -48,7 +49,7 @@ export const BusinessTypeFilter = (props) => {
       })
       const { error, result, pagination } = await response.json()
       if (!error) {
-        if (result.length > 0) {
+        if (result.length > 0 && !hideAllCategory) {
           result.unshift({ id: null, enabled: true, image: null, name: 'All' })
         }
         setTypesState({

@@ -8,7 +8,8 @@ export const WalletList = (props) => {
   const {
     UIComponent,
     isWalletCashEnabled,
-    isWalletPointsEnabled
+    isWalletPointsEnabled,
+    walletType
   } = props
 
   const [ordering] = useApi()
@@ -81,14 +82,21 @@ export const WalletList = (props) => {
       const { error, result } = await response.json()
 
       if (!error && result?.length > 0) {
-        const cashWallet = isWalletCashEnabled ? result.find(wallet => wallet.type === 'cash') : null
-        const pointsWallet = isWalletPointsEnabled ? result.find(wallet => wallet.type === 'credit_point') : null
+        if (walletType) {
+          const selectedWallet = result.find(wallet => wallet.type === walletType)
+          if (selectedWallet && !props.notFetchTransactionsInWallets) {
+            getTransactions(selectedWallet.id)
+          }
+        } else {
+          const cashWallet = isWalletCashEnabled ? result.find(wallet => wallet.type === 'cash') : null
+          const pointsWallet = isWalletPointsEnabled ? result.find(wallet => wallet.type === 'credit_point') : null
 
-        if (!props.notFetchTransactionsInWallets) {
-          if (cashWallet) {
-            getTransactions(cashWallet.id)
-          } else if (pointsWallet) {
-            getTransactions(pointsWallet.id)
+          if (!props.notFetchTransactionsInWallets) {
+            if (cashWallet) {
+              getTransactions(cashWallet.id)
+            } else if (pointsWallet) {
+              getTransactions(pointsWallet.id)
+            }
           }
         }
       }

@@ -464,13 +464,16 @@ export const UserFormDetails = (props) => {
     setNotificationsGroup({ ...notificationsGroup, ...state })
   }
 
-  const handleChangeNotifications = (value) => {
+  const handleChangeNotifications = (value, callback) => {
     setFormState({
       ...formState,
       changes: {
         ...formState?.changes,
         settings: { email: { newsletter: value?.email, promotions: value?.email }, notification: { newsletter: value?.notification, promotions: value?.notification }, sms: { newsletter: value?.sms, promotions: value?.sms } }
       }
+    })
+    callback && callback({
+      settings: { email: { newsletter: value?.email, promotions: value?.email }, notification: { newsletter: value?.notification, promotions: value?.notification }, sms: { newsletter: value?.sms, promotions: value?.sms } }
     })
   }
 

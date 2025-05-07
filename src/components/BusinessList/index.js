@@ -135,7 +135,9 @@ export const BusinessList = (props) => {
       if (!isSortByReview && !isOfferBusinesses) {
         const paginationParams = {
           page: newFetch ? 1 : paginationProps.currentPage + 1,
-          page_size: paginationProps.pageSize
+          page_size: paginationProps.pageSize,
+          version: 'v2',
+          orderBy: 'distance'
         }
         parameters = { ...parameters, ...paginationParams }
       }
@@ -763,6 +765,6 @@ BusinessList.propTypes = {
 }
 
 const defaultProps = {
-  propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'featured', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id'],
+  propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id'],
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

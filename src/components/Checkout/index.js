@@ -152,6 +152,7 @@ export const Checkout = (props) => {
       showToast(ToastType.Info, t('CART_IN_PROGRESS', 'Cart in progress'))
       return
     }
+    const _cart = businessId && typeof businessId === 'number' ? orderState.carts?.[`businessId:${businessId}`] : orderState.carts?.['businessId:null']
     const _paymethodSelected = paymethod ?? paymethodSelected
     let paymethodData = _paymethodSelected?.data
     if (_paymethodSelected?.paymethod && ['stripe', 'stripe_connect', 'stripe_direct'].includes(_paymethodSelected?.paymethod?.gateway)) {
@@ -160,10 +161,10 @@ export const Checkout = (props) => {
       }
     }
     let payload = {
-      amount: cart?.balance ?? cart?.total
+      amount: _cart?.balance ?? _cart?.total
     }
 
-    if (cart?.offer_id) payload.offer_id = cart?.offer_id
+    if (_cart?.offer_id) payload.offer_id = _cart?.offer_id
 
     if (_paymethodSelected?.paymethod) {
       payload = {
@@ -176,15 +177,15 @@ export const Checkout = (props) => {
     if (orderTypesDelivery.includes(orderState?.options?.type)) {
       payload = {
         ...payload,
-        delivery_zone_id: cart?.business_id ? cart.delivery_zone_id : 0
+        delivery_zone_id: _cart?.business_id ? _cart.delivery_zone_id : 0
       }
     }
 
     if (handleCustomClick) {
-      handleCustomClick(payload, _paymethodSelected, cart)
+      handleCustomClick(payload, _paymethodSelected, _cart)
       return
     }
-    if (!cart) return
+    if (!_cart) return
     payload = {
       paymethod_id: paymentOptions?.paymethod_id,
       ...payload,
@@ -200,7 +201,7 @@ export const Checkout = (props) => {
     if (paymethodsWithoutSaveCard.includes(_paymethodSelected?.paymethod?.gateway)) {
       delete payload.paymethod_data
     }
-    const result = await placeCart(cart.uuid, payload)
+    const result = await placeCart(_cart.uuid, payload)
     if (result?.error || !result) {
       setErrors(result?.result)
       if (dismissPlatformPay && _paymethodSelected?.paymethod?.gateway === 'apple_pay') {

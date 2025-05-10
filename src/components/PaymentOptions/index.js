@@ -27,7 +27,8 @@ export const PaymentOptions = (props) => {
     UIComponent,
     isKiosk,
     returnUrl,
-    urlscheme
+    urlscheme,
+    usePaymenthodSelectedForV2
   } = props
 
   const fetchPaymethods = isKiosk
@@ -46,10 +47,10 @@ export const PaymentOptions = (props) => {
   const requestsState = {}
 
   const paymethodV2Featured = useMemo(() => {
-    const paymethod = paymethodsList?.paymethods?.find(p => p.gateway === props.paySelected?.gateway)
+    const paymethod = paymethodsList?.paymethods?.find(p => usePaymenthodSelectedForV2 ? (p.gateway === paymethodSelected?.gateway || p.gateway === props.paySelected?.gateway) : p.gateway === props.paySelected?.gateway)
     return (paymethod?.version === 'v2' &&
       paymethod.featured) || ''
-  }, [paymethodsList, props.paySelected])
+  }, [paymethodsList, props.paySelected, paymethodSelected?.gateway])
 
   const filterPaymentMethods = (paymentMethods) => {
     const validations = {

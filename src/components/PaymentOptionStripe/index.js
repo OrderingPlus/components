@@ -298,7 +298,7 @@ export const PaymentOptionStripe = (props) => {
 
   useEffect(() => {
     if (token) {
-      paymethodV2Featured?.includes?.('get_cards') ? getPaymentUserCards() : getCards()
+      paymethodSelectedInfo?.featured?.includes('get_cards') ? getPaymentUserCards() : getCards()
       if (!props.publicKey && !paymethodV2Featured) {
         getCredentials()
       }
@@ -308,7 +308,7 @@ export const PaymentOptionStripe = (props) => {
         requestState.paymentCards.cancel()
       }
     }
-  }, [token, businessId, paySelected?.data, paymethodV2Featured])
+  }, [token, businessId, paySelected?.data, paymethodV2Featured, paymethodSelectedInfo?.id])
 
   useEffect(() => {
     if (newCardAdded) {

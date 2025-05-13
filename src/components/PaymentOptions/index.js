@@ -40,14 +40,14 @@ export const PaymentOptions = (props) => {
   const orderTotal = orderState.carts?.[`businessId:${businessId}`]?.total || 0
 
   const [paymethodsList, setPaymethodsList] = useState({ paymethods: [], loading: true, error: null })
-  const [paymethodSelected, setPaymethodsSelected] = useState(null)
+  const [paymethodSelected, setPaymethodsSelected] = useState(props.paySelected ?? null)
   const [paymethodData, setPaymethodData] = useState({})
   const [isOpenMethod, setIsOpenMethod] = useState({ paymethod: null })
 
   const requestsState = {}
 
   const paymethodV2Featured = useMemo(() => {
-    const paymethod = paymethodsList?.paymethods?.find(p => usePaymenthodSelectedForV2 ? (p.gateway === paymethodSelected?.gateway || p.gateway === props.paySelected?.gateway) : p.gateway === props.paySelected?.gateway)
+    const paymethod = paymethodsList?.paymethods?.find(p => usePaymenthodSelectedForV2 ? (p.gateway === paymethodSelected?.gateway) : p.gateway === props.paySelected?.gateway)
     return (paymethod?.version === 'v2' &&
       paymethod.featured) || ''
   }, [paymethodsList, props.paySelected, paymethodSelected?.gateway])
@@ -140,7 +140,7 @@ export const PaymentOptions = (props) => {
   const handlePaymethodDataChange = (data) => {
     setPaymethodData(data)
     if (Object.keys(data).length) {
-      const paymethod = props.paySelected || isOpenMethod.paymethod
+      const paymethod = (usePaymenthodSelectedForV2 ? paymethodSelected : props.paySelected) || props.paySelected
 
       setPaymethodsSelected(paymethod)
       onPaymentChange && onPaymentChange({
@@ -168,7 +168,7 @@ export const PaymentOptions = (props) => {
   }
 
   useEffect(() => {
-    if (paymethodSelected && !props.disableAutoUpdate) {
+    if (paymethodSelected && (!props.disableAutoUpdate || paymethodSelected?.gateway === 'izipay')) {
       const _paymethodData = paymethodData
       if (redirectMethods.includes(paymethodSelected?.gateway)) {
         _paymethodData.success_url = returnUrl

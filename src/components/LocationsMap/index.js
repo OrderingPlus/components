@@ -28,7 +28,7 @@ export const LocationsMap = (props) => {
         map,
         icon: {
           url: business.icon,
-          scaledSize: new window.google.maps.Size(55, 55)
+          scaledSize: new window.google.maps.Size(30, 30)
         }
       })
 
@@ -37,6 +37,12 @@ export const LocationsMap = (props) => {
           const infowindow = new window.google.maps.InfoWindow()
           infowindow.setContent(business.markerPopup)
           infowindow.open(map, marker)
+
+          infowindow.addListener('closeclick', () => {
+            if (boundMap) {
+              map.fitBounds(boundMap)
+            }
+          })
 
           if (markerRef.current) {
             markerRef.current.close()
@@ -80,6 +86,12 @@ export const LocationsMap = (props) => {
         const infowindow = new window.google.maps.InfoWindow()
         infowindow.setContent(content)
         infowindow.open(googleMap, marker)
+
+        infowindow.addListener('closeclick', () => {
+          if (boundMap) {
+            googleMap.fitBounds(boundMap)
+          }
+        })
 
         if (markerRef.current) {
           markerRef.current.close()

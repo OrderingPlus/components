@@ -73,12 +73,12 @@ export const PurchaseGiftCard = (props) => {
     }
   }
 
-  const handleAccept = async () => {
+  const handleAccept = async (product) => {
     const giftCard = {
-      id: selectedProduct?.id,
+      id: product?.id ?? selectedProduct?.id,
       quantity: 1
     }
-    if (giftCart && selectedProduct?.id === giftCart.products[0]?.id) {
+    if (giftCart && (product?.id ?? selectedProduct?.id) === giftCart.products[0]?.id) {
       if (handleCustomGoToCheckout) {
         handleCustomGoToCheckout(giftCart.uuid)
       } else {

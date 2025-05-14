@@ -22,7 +22,7 @@ export const PaymentOptionStripe = (props) => {
   } = props
 
   const [{ token, user }] = useSession()
-  const [, { changePaymethod }] = useOrder()
+  const [orderState, { changePaymethod }] = useOrder()
   const [ordering] = useApi()
   const socket = useWebsocket()
   /**
@@ -297,6 +297,7 @@ export const PaymentOptionStripe = (props) => {
   }
 
   useEffect(() => {
+    if (orderState?.loading) return
     if (token) {
       paymethodSelectedInfo?.featured?.includes('get_cards') ? getPaymentUserCards() : getCards()
       if (!props.publicKey && !paymethodV2Featured) {
@@ -308,7 +309,7 @@ export const PaymentOptionStripe = (props) => {
         requestState.paymentCards.cancel()
       }
     }
-  }, [token, businessId, paySelected?.data, paymethodV2Featured, paymethodSelectedInfo?.id])
+  }, [token, businessId, paymethodSelectedInfo?.id, paymethodV2Featured, orderState?.loading])
 
   useEffect(() => {
     if (newCardAdded) {

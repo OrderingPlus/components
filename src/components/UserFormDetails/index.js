@@ -305,7 +305,7 @@ export const UserFormDetails = (props) => {
         validationFields.fields?.checkout?.[fieldName]?.required)
   }
 
-  const handleToggleAvalaibleStatusDriver = async (newValue) => {
+  const handleToggleAvalaibleStatusDriver = async (newValue, callbackAfterUpdateUser) => {
     try {
       setUserState({ ...userState, loadingDriver: true })
       const response = await ordering
@@ -330,6 +330,7 @@ export const UserFormDetails = (props) => {
           ...session.user,
           ...response.content.result
         })
+        callbackAfterUpdateUser && callbackAfterUpdateUser()
       }
     } catch (err) {
       if (err.constructor.name !== 'Cancel') {

@@ -140,7 +140,7 @@ export const PaymentOptions = (props) => {
   const handlePaymethodDataChange = (data) => {
     setPaymethodData(data)
     if (Object.keys(data).length) {
-      const paymethod = (usePaymenthodSelectedForV2 ? paymethodSelected : props.paySelected) || props.paySelected
+      const paymethod = (usePaymenthodSelectedForV2 ? paymethodSelected : props.paySelected || isOpenMethod.paymethod) || props.paySelected || isOpenMethod.paymethod
 
       setPaymethodsSelected(paymethod)
       onPaymentChange && onPaymentChange({

@@ -299,7 +299,7 @@ export const PaymentOptionStripe = (props) => {
   useEffect(() => {
     if (orderState?.loading) return
     if (token) {
-      paymethodSelectedInfo?.featured?.includes('get_cards') ? getPaymentUserCards() : getCards()
+      (paymethodSelectedInfo?.featured?.includes('get_cards') || paymethodSelectedInfo?.paymethod?.featured?.includes('get_cards')) ? getPaymentUserCards() : getCards()
       if (!props.publicKey && !paymethodV2Featured) {
         getCredentials()
       }

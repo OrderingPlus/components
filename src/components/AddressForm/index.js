@@ -145,7 +145,7 @@ export const AddressForm = (props) => {
     }
     if (!auth && !userByToken?.session?.token) {
       changeAddress(
-        { ...values, ...formState.changes },
+        { ...values, ...formState.changes, default: values?.default ?? formState.changes?.default ?? true },
         { country_code: values?.country_code ?? formState.changes?.country_code }
       )
       onSaveAddress && onSaveAddress(formState.changes)
@@ -154,7 +154,7 @@ export const AddressForm = (props) => {
 
     setFormState({ ...formState, loading: true })
     try {
-      const data = { ...values, ...formState.changes }
+      const data = { ...values, ...formState.changes, default: values?.default ?? formState.changes?.default ?? true }
       Object.keys(data).forEach(key => {
         if (data[key] === null) {
           delete data[key]

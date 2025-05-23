@@ -281,7 +281,7 @@ export const AddressForm = (props) => {
         orderBy: 'distance'
       }
       const conditions = []
-      const propsToFetch = ['name', 'address', 'location', 'distance', 'open', 'schedule', 'slug']
+      const propsToFetch = ['name', 'description', 'address', 'location', 'distance', 'open', 'schedule', 'slug']
       const paginationParams = {
         page: 1,
         page_size: 5

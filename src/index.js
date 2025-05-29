@@ -138,6 +138,7 @@ import { WalletList } from './components/WalletList'
 import { QueryLoginSpoonity } from './components/QueryLoginSpoonity'
 import { WebsocketStatus } from './components/WebsocketStatus'
 import { ProjectForm } from './components/ProjectForm'
+import { ProductFormTypeCoupon } from './components/ProductFormTypeCoupon'
 import { createMergedTheme } from './utils/themeUtils'
 
 import {
@@ -244,6 +245,7 @@ export {
   Popup,
   ProductComponent,
   ProductForm,
+  ProductFormTypeCoupon,
   ProductShare,
   ProductImages,
   ProductIngredient,

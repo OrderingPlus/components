@@ -94,7 +94,6 @@ import { MapView } from '../src/components/MapView'
 import { UserVerification } from '../src/components/UserVerification'
 import { WalletList } from '../src/components/WalletList'
 import { MultiCartCreate } from '../src/components/MultiCartCreate'
-import { ProductFormTypeCoupon } from '../src/components/ProductFormTypeCoupon'
 import { WebsocketStatus } from '../src/components/WebsocketStatus'
 
 import { ApiContext, ApiProvider, useApi } from '../src/contexts/ApiContext'
@@ -183,7 +182,6 @@ export {
   PlaceSpot,
   PhoneAutocomplete,
   ProductForm,
-  ProductFormTypeCoupon,
   ProductImages,
   ProductIngredient,
   ProductItemAccordion,

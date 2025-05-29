@@ -25,7 +25,8 @@ export const ProductForm = (props) => {
     handleUpdateProducts,
     handleUpdateProfessionals,
     handleChangeProfessional,
-    setProductLoading
+    setProductLoading,
+    typeCoupon
   } = props
 
   const requestsState = {}
@@ -75,6 +76,15 @@ export const ProductForm = (props) => {
    * dictionary of respect_to suboptions
    */
   const [dependsSuboptions, setDependsSuboptions] = useState([])
+
+  /**
+   * coupon options
+   */
+  const [couponOptions, setCouponOptions] = useState([])
+  /**
+   * coupon options state
+   */
+  const [couponOptionsState, setCouponOptionsState] = useState({})
 
   const [professionalListState, setProfessionalListState] = useState({ loading: false, professionals: [], error: null })
 
@@ -1005,6 +1015,30 @@ export const ProductForm = (props) => {
     }
   }, [isService, isCartProduct, professionalList])
 
+  if (typeCoupon) {
+    useEffect(() => {
+      if (!product?.loading && product?.product && product.product?.extras?.length > 0) {
+        const couponOptions = []
+        const couponOptionsStateCurrent = {}
+        for (const extra of product.product?.extras) {
+          if (extra?.options) {
+            for (const option of extra?.options) {
+              if (option?.external_id === `${product?.product?.external_id}:COUPONOPTION:${couponOptions.length + 1}`) {
+                couponOptions.push({
+                  ...option,
+                  hasCustomizeSuboptions: extra?.options?.some((option) => option?.external_id.includes(`${product?.product?.external_id}:COUPONOPTION:${couponOptions.length + 1}:`))
+                })
+                couponOptionsStateCurrent[`${option?.external_id}`] = false // valid when user select all suboptions or when user click add button
+              }
+            }
+          }
+        }
+        setCouponOptions(couponOptions)
+        setCouponOptionsState(couponOptionsStateCurrent)
+      }
+    }, [JSON.stringify(product.product), product?.loading])
+  }
+
   return (
     <>
       {
@@ -1019,6 +1053,9 @@ export const ProductForm = (props) => {
             actionStatus={actionStatus}
             maxProductQuantity={maxProductQuantity}
             pizzaState={pizzaState}
+            couponOptions={couponOptions}
+            couponOptionsState={couponOptionsState}
+            setCouponOptionsState={setCouponOptionsState}
             setPizzaState={setPizzaState}
             increment={increment}
             decrement={decrement}

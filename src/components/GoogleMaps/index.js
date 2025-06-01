@@ -26,7 +26,8 @@ export const GoogleMaps = (props) => {
     fallbackIcon,
     manualZoom,
     avoidFitBounds,
-    allowMarkerPopups
+    allowMarkerPopups,
+    initialBusinessesToCenter
   } = props
 
   const [{ optimizeImage }] = useUtils()
@@ -70,6 +71,7 @@ export const GoogleMaps = (props) => {
           scaledSize: new window.google.maps.Size(35, 35)
         }
       })
+
       if (businessMap && !noDistanceValidation) {
         const isNear = validateResult(googleMap, marker, marker.getPosition())
         if (isNear) {
@@ -88,7 +90,9 @@ export const GoogleMaps = (props) => {
               onBusinessClick && onBusinessClick(locations[i]?.slug, locations[i])
             }
           })
-          bounds.extend(marker.position)
+          if (!initialBusinessesToCenter || i < initialBusinessesToCenter) {
+            bounds.extend(marker.position)
+          }
           locationMarkers.push(marker)
           businessesNear = businessesNear + 1
         } else {
@@ -107,7 +111,9 @@ export const GoogleMaps = (props) => {
             onBusinessClick && onBusinessClick(locations[i]?.slug, locations[i])
           }
         })
-        bounds.extend(marker.position)
+        if (!initialBusinessesToCenter || i < initialBusinessesToCenter) {
+          bounds.extend(marker.position)
+        }
         locationMarkers.push(marker)
       }
     }
@@ -496,5 +502,10 @@ GoogleMaps.propTypes = {
   /**
    * handleChangeAddressMap, function to set address when pin is moved
    */
-  handleChangeAddressMap: PropTypes.func
+  handleChangeAddressMap: PropTypes.func,
+  /**
+   * Number of businesses to consider for initial map centering.
+   * If not provided, it will center on all businesses.
+   */
+  initialBusinessesToCenter: PropTypes.number
 }

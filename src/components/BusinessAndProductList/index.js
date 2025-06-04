@@ -514,7 +514,6 @@ export const BusinessAndProductList = (props) => {
     try {
       setCategoryState({ ...curCategoryState, loading: true })
       const [lazyRes, featuredRes] = await getLazyProducts({ page: 1, pageSize })
-
       const { content } = lazyRes
       const error = content?.error
       const result = content?.result
@@ -607,7 +606,7 @@ export const BusinessAndProductList = (props) => {
             ? productsListFeatured
             : searchValue
               ? [...productsListFeatured, ...productsList].filter((product, i, _hash) => _hash.findIndex(_product => _product?.id === product?.id) === i)
-              : [...productsListFeatured, ...curCategoryState.products.concat(productsList)]
+              : [...productsListFeatured, ...curCategoryState.products.concat(productsList)].filter((product, i, _hash) => _hash.findIndex(_product => _product?.id === product?.id) === i)
         }
 
         categoriesState[categoryKey] = newcategoryState

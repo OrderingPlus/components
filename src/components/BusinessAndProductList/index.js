@@ -310,7 +310,7 @@ export const BusinessAndProductList = (props) => {
       iterateCategories(businessObj?.categories)
       const categoriesList = [].concat(...businessObj?.categories.map(category => category.children))
       const categories = isUseParentCategory ? categoriesList : businessObj?.categories
-      const parentCategory = categories?.find(category => category.category_id === categorySelected.id) ?? {}
+      const parentCategory = categories?.find(category => category?.category_id === categorySelected?.id) ?? {}
       const categoryFinded = subCategoriesList.find(subCat => subCat.id === parentCategory.category_id) ?? {}
 
       const productsFiltered = businessObj?.categories
@@ -342,16 +342,19 @@ export const BusinessAndProductList = (props) => {
       }
 
       const productsToFilter = avoidProductDuplicate ? _categoriesCustom : businessObj?.categories
-      const productsFiltered = productsToFilter?.reduce(
-        (products, category) => [
-          ...products,
-          ...category.products.map(product => ({
-            ...product,
-            ...(category.slug ? { category: { ...product?.category, slug: category.slug } } : {})
-          }))
-        ], []
+      const productsFiltered = (productsToFilter || [])?.reduce(
+        (products, category) => {
+          if (!category?.products) return products
+          return [
+            ...products,
+            ...category.products.map(product => ({
+              ...product,
+              ...(category.slug ? { category: { ...product?.category, slug: category.slug } } : {})
+            }))
+          ]
+        }, []
       ).filter(
-        product => isMatchSearch(product.name, product.description, product?.price)
+        product => product && isMatchSearch(product.name, product.description, product?.price)
       )
       categoryState.products = productsFiltered || []
     }
@@ -440,12 +443,7 @@ export const BusinessAndProductList = (props) => {
     if (categorySelected.id === 'featured' && searchValue) {
       parameters.params = 'features'
       where = {
-        conditions: [
-          {
-            conditions: searchConditions,
-            conector: 'OR'
-          }
-        ],
+        conditions: searchConditions,
         conector: 'AND'
       }
     }

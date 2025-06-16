@@ -24,7 +24,8 @@ export const Checkout = (props) => {
     isKiosk,
     isCustomerMode,
     isListenOrderUpdate,
-    handleOrderRedirect
+    handleOrderRedirect,
+    instructionsOptionsDefault
   } = props
 
   const [ordering] = useApi()
@@ -53,7 +54,7 @@ export const Checkout = (props) => {
   /**
    * Delivery Instructions options
    */
-  const [instructionsOptions, setInstructionsOptions] = useState({ loading: false, result: [{ id: null, enabled: true, name: t('EITHER_WAY', 'Either way') }], error: null })
+  const [instructionsOptions, setInstructionsOptions] = useState({ loading: false, result: instructionsOptionsDefault ?? [{ id: null, enabled: true, name: t('EITHER_WAY', 'Either way') }], error: null })
   /**
    * Delivery instructions selected
    */

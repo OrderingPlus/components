@@ -156,7 +156,7 @@ export const AddressForm = (props) => {
     try {
       const data = { ...values, ...formState.changes, default: values?.default ?? formState.changes?.default ?? true }
       Object.keys(data).forEach(key => {
-        if (data[key] === null) {
+        if (data[key] === null && !addressState.address?.id) {
           delete data[key]
         }
       })

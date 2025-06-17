@@ -44,7 +44,18 @@ export const AutocompleteInput = (props) => {
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, options)
       autocomplete.addListener('place_changed', () => {
         const place = autocomplete.getPlace()
-        const addressObj = {}
+        const addressObj = {
+          street_number: null,
+          neighborhood: null,
+          route: null,
+          city: null,
+          locality: null,
+          sublocality: null,
+          country: null,
+          country_code: null,
+          state: null,
+          state_code: null
+        }
         const cityFallback = place?.address_components.find(component => component.types.includes('administrative_area_level_2'))
         if (place?.address_components) {
           for (const component of place.address_components) {
@@ -62,7 +73,7 @@ export const AutocompleteInput = (props) => {
               addressObj.route = component.long_name
             }
             if (addressType === 'locality') {
-              addressObj.city = component.long_name || cityFallback.long_name
+              addressObj.city = component.long_name || cityFallback?.long_name
               addressObj.locality = component.long_name
             }
             if (component.types?.includes('sublocality')) {

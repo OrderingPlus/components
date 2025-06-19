@@ -23,7 +23,6 @@ export const Checkout = (props) => {
     isApp,
     isKiosk,
     isCustomerMode,
-    isListenOrderUpdate,
     handleOrderRedirect,
     instructionsOptionsDefault
   } = props

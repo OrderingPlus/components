@@ -160,6 +160,7 @@ const defaultProps = {
   propsToFetch: [
     'id',
     'name',
+    'description',
     'header',
     'logo',
     'location',

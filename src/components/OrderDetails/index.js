@@ -194,7 +194,32 @@ export const OrderDetails = (props) => {
     try {
       const bodyToSend = Object.keys(isAcceptOrReject || {}).length > 0 ? isAcceptOrReject : { status }
       setOrderState({ ...orderState, loading: true })
-      const { content: { result, error } } = await ordering.setAccessToken(token).orders(orderState.order?.id ?? orderId).save(bodyToSend)
+
+      const isFormData = bodyToSend && bodyToSend instanceof FormData
+
+      let result, error
+
+      if (isFormData) {
+        const response = await fetch(`${ordering.root}/orders/${orderState?.order?.id ?? orderId}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+            'X-Socket-Id-X': socket?.getId()
+          },
+          body: bodyToSend
+        })
+
+        const responseData = await response.json()
+        result = responseData.result
+        error = responseData.error
+      } else {
+        const requestOptions = {}
+        const { content } = await ordering.setAccessToken(token).orders(orderState.order?.id ?? orderId).save(bodyToSend, requestOptions)
+        result = content.result
+        error = content.error
+      }
 
       if (!error) {
         setOrderState({
@@ -226,6 +251,7 @@ export const OrderDetails = (props) => {
         return null
       }
     } catch (err) {
+      console.log('❌ Error en handleChangeOrderStatus:', err)
       setOrderState({ ...orderState, loading: false, error: [err?.message || t('NETWORK_ERROR', 'Network Error')] })
       return null
     }

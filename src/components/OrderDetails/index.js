@@ -251,7 +251,6 @@ export const OrderDetails = (props) => {
         return null
       }
     } catch (err) {
-      console.log('❌ Error en handleChangeOrderStatus:', err)
       setOrderState({ ...orderState, loading: false, error: [err?.message || t('NETWORK_ERROR', 'Network Error')] })
       return null
     }

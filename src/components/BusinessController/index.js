@@ -11,6 +11,7 @@ import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import isBetween from 'dayjs/plugin/isBetween'
 import { useWebsocket } from '../../contexts/WebsocketContext'
+import { createDayjsWithTimezone } from '../../constants/timezones'
 
 dayjs.extend(timezone)
 dayjs.extend(isBetween)
@@ -207,7 +208,7 @@ export const BusinessController = (props) => {
       let timeout = null
       let timeoutCloseSoon = null
       if (!businessState.business?.timezone) return
-      const currentDate = dayjs().tz(businessState.business?.timezone)
+      const currentDate = createDayjsWithTimezone(businessState.business?.timezone)
       let lapse = null
 
       if (businessState.business?.today?.enabled) {

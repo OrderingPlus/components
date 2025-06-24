@@ -114,6 +114,7 @@ import { OrderingThemeContext, OrderingThemeProvider, useOrderingTheme } from '.
 import { createMergedTheme } from '../src/utils/themeUtils'
 
 import { CODES } from '../src/constants/code-numbers'
+import { TIMEZONES, createDayjsWithTimezone } from '../src/constants/timezones'
 
 export {
   AddressDetails,
@@ -261,5 +262,7 @@ export {
   useOrderingTheme,
   createMergedTheme,
   // Constants
-  CODES
+  CODES,
+  TIMEZONES,
+  createDayjsWithTimezone
 }

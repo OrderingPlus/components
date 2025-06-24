@@ -171,7 +171,7 @@ import {
 } from './components/OrdersDashboardComponents'
 
 import { CODES } from './constants/code-numbers'
-import { TIMEZONES } from './constants/timezones'
+import { TIMEZONES, createDayjsWithTimezone } from './constants/timezones'
 
 export {
   AddressDetails,
@@ -379,5 +379,6 @@ export {
   createMergedTheme,
   // Constants
   CODES,
-  TIMEZONES
+  TIMEZONES,
+  createDayjsWithTimezone
 }

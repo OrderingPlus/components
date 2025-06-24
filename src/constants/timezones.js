@@ -1,3 +1,8 @@
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+
+dayjs.extend(timezone)
+
 export const TIMEZONES = {
   'Europe/Andorra': 'Andorra',
   'Asia/Dubai': 'United Arab Emirates',
@@ -424,4 +429,63 @@ export const TIMEZONES = {
   'Indian/Mayotte': 'Mayotte',
   'Africa/Lusaka': 'Zambia',
   'Africa/Harare': 'Zimbabwe'
+}
+
+/**
+ * Validates if a timezone is valid for dayjs
+ * @param {string} timezone - The timezone to validate
+ * @returns {boolean} - True if the timezone is valid
+ */
+export const isValidTimezone = (timezone) => {
+  if (!timezone || typeof timezone !== 'string') {
+    return false
+  }
+
+  try {
+    // Check if the timezone is in our list of valid timezones
+    if (TIMEZONES[timezone]) {
+      return true
+    }
+
+    // Check if dayjs can handle the timezone
+    dayjs().tz(timezone)
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
+/**
+ * Gets a valid timezone, if the provided one is not valid, returns the local timezone
+ * @param {string} timezone - The timezone to validate
+ * @returns {string} - A valid timezone
+ */
+export const getValidTimezone = (timezone) => {
+  if (isValidTimezone(timezone)) {
+    return timezone
+  }
+
+  // If not valid, try to get the local timezone from the device
+  try {
+    const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    if (isValidTimezone(localTimezone)) {
+      return localTimezone
+    }
+  } catch (error) {
+    // If we can't get the local timezone, use UTC as fallback
+  }
+
+  // Fallback to UTC if everything else fails
+  return 'UTC'
+}
+
+/**
+ * Creates a dayjs date with validated timezone
+ * @param {string} timezone - The timezone to use
+ * @param {any} date - The date (optional, defaults to current date)
+ * @returns {dayjs.Dayjs} - Dayjs object with validated timezone
+ */
+export const createDayjsWithTimezone = (timezone, date = null) => {
+  const validTimezone = getValidTimezone(timezone)
+  return date ? dayjs(date).tz(validTimezone) : dayjs().tz(validTimezone)
 }

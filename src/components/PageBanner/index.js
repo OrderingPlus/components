@@ -12,7 +12,8 @@ export const PageBanner = (props) => {
   const {
     UIComponent,
     position,
-    businessId
+    businessId,
+    isProjectChange
   } = props
 
   const [ordering] = useApi()
@@ -87,7 +88,14 @@ export const PageBanner = (props) => {
   useEffect(() => {
     if (!position) return
     handleGetPageBanner()
-  }, [position, businessId, JSON.stringify(orderState.options?.address?.location), orderState?.options?.type, orderState.options?.moment])
+  }, [position, businessId, JSON.stringify(orderState.options?.address?.location), orderState?.options?.type, orderState.options?.moment, ordering?.project])
+
+  useEffect(() => {
+    if (!position) return
+    if (isProjectChange) {
+      handleGetPageBanner()
+    }
+  }, [ordering?.project, isProjectChange])
 
   return (
     <>
@@ -105,5 +113,9 @@ PageBanner.propTypes = {
   /**
    * UI Component, this must be containt all graphic elements and use parent props
    */
-  UIComponent: PropTypes.elementType
+  UIComponent: PropTypes.elementType,
+  /**
+   * Callback function called when project changes and loading starts
+   */
+  isProjectChange: PropTypes.bool
 }

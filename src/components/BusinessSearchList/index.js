@@ -50,7 +50,7 @@ export const BusinessSearchList = (props) => {
   }, [filters, JSON.stringify(orderState?.options)])
 
   const handleChangeTermValue = (val) => {
-    const returnAllProductsValidation = val?.length < 2 && termValue?.length >= 2
+    const returnAllProductsValidation = (val?.length < 2 && termValue?.length >= 2) || val === ''
     setTermValue(val)
     if ((returnAllProductsValidation || val?.length >= 2)) {
       const valueLoweredCase = val.toLowerCase()

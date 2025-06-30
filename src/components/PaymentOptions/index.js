@@ -12,7 +12,7 @@ const paymethodsExisting = ['stripe', 'stripe_direct', 'stripe_connect', 'paypal
 const paymethodsNotAllowed = ['paypal_express', 'authorize']
 const paymethodsCallcenterMode = ['cash', 'card_delivery', 'ivrpay', '100_coupon', stripeLink]
 const redirectMethods = ['stripe_checkout', 'checkout_pro_mercadopago', 'epayco', 'interswitch', 'izipay']
-
+const paymethodsWithAutoUpdate = ['izipay', 'globalpay']
 /**
  * Component to manage payment options behavior without UI component
  */
@@ -168,7 +168,7 @@ export const PaymentOptions = (props) => {
   }
 
   useEffect(() => {
-    if (paymethodSelected && (!props.disableAutoUpdate || paymethodSelected?.gateway === 'izipay')) {
+    if (paymethodSelected && (!props.disableAutoUpdate || paymethodsWithAutoUpdate.includes(paymethodSelected?.gateway))) {
       const _paymethodData = paymethodData
       if (redirectMethods.includes(paymethodSelected?.gateway)) {
         _paymethodData.success_url = returnUrl

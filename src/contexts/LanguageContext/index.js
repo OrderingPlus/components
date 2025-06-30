@@ -115,9 +115,9 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
   const setLanguage = async (language) => {
     if (!language || language.id === state.language?.id) return
     const _language = { id: language.id, code: language.code, rtl: language.rtl }
+    setState({ ...state, loading: true, language: _language })
     await strategy.setItem('language', _language, true)
     apiHelper.setLanguage(language?.code)
-    setState({ ...state, loading: true, language: _language })
   }
 
   /**

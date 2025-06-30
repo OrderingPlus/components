@@ -13,7 +13,7 @@ export const OrderingThemeContext = createContext()
  * This provider has a reducer for manage themes and layouts state
  * @param {props} props
  */
-export const OrderingThemeProvider = ({ children, settings, isValidColor }) => {
+export const OrderingThemeProvider = ({ children, settings, isValidColor, noValidateColors }) => {
   const [state, setState] = useState({
     loading: true,
     theme: {},
@@ -52,9 +52,7 @@ export const OrderingThemeProvider = ({ children, settings, isValidColor }) => {
   const getThemes = async (themes = null) => {
     const requestOptions = {
       method: 'GET',
-      headers: {
-        'X-App-X': settings.appId
-      }
+      headers: { 'X-App-X': settings.appId }
     }
     try {
       let error = themes?.error ?? null
@@ -66,10 +64,10 @@ export const OrderingThemeProvider = ({ children, settings, isValidColor }) => {
         result = res?.result
       }
       if (!error) {
-        result = validateFixColors(result)
+        result = noValidateColors ? result : validateFixColors(result)
         setState({
           ...state,
-          theme: result.values,
+          theme: result?.values,
           loading: false,
           error: false
         })

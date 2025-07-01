@@ -624,5 +624,5 @@ Checkout.propTypes = {
 }
 
 const defaultProps = {
-  propsToFetch: ['id', 'slug', 'name', 'email', 'cellphone', 'address', 'address_notes', 'paymethods', 'logo', 'location', 'configs']
+  propsToFetch: ['id', 'slug', 'name', 'description', 'email', 'cellphone', 'address', 'address_notes', 'paymethods', 'logo', 'location', 'configs']
 }

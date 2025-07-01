@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { useOrder } from '../../contexts/OrderContext'
 import { useConfig } from '../../contexts/ConfigContext'
@@ -45,7 +45,7 @@ export const Checkout = (props) => {
   /**
    * Session content
    */
-  const [{ token }] = useSession()
+  const [{ token, user }] = useSession()
   /**
    * Toast state
    */
@@ -105,6 +105,8 @@ export const Checkout = (props) => {
    */
 
   const paymethodsWithoutSaveCard = ['credomatic']
+
+  const globalPayIFrameUrl = useMemo(() => `https://globalpay.plugins.orderingplus.com/${ordering.project}/views/card_form/user/${user?.id}/business/${businessDetails?.business?.id}`, [user, businessDetails])
 
   const getBusiness = async () => {
     refreshConfigs()
@@ -514,6 +516,30 @@ export const Checkout = (props) => {
     }
   }
 
+  const createBusinessUserPaymethod = async (values = {}, callback = () => {}) => {
+    try {
+      const response = await fetch(`${ordering.root}/business/${businessId}/paymethods/${paymethodSelected?.id}/users/${user?.id}/paymethods`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+          'X-Socket-Id-X': socket?.getId()
+        },
+        body: JSON.stringify(values)
+      })
+      const { result, error } = await response.json()
+      if (error) {
+        showToast(ToastType.Error, result)
+        return
+      }
+      callback?.(result)
+    } catch (err) {
+      showToast(ToastType.Error, err.message)
+    }
+  }
+
   useEffect(() => {
     if (businessId && typeof businessId === 'number') {
       getBusiness()
@@ -598,6 +624,8 @@ export const Checkout = (props) => {
           handleChangeDeliveryOption={handleChangeDeliveryOption}
           handleConfirmCredomaticPage={handleConfirmCredomaticPage}
           checkoutFieldsState={checkoutFieldsState}
+          globalPayIFrameUrl={globalPayIFrameUrl}
+          createBusinessUserPaymethod={createBusinessUserPaymethod}
         />
       )}
     </>

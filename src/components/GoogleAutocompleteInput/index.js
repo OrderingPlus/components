@@ -54,7 +54,8 @@ export const AutocompleteInput = (props) => {
           country: null,
           country_code: null,
           state: null,
-          state_code: null
+          state_code: null,
+          zipcode: null
         }
         const cityFallback = place?.address_components.find(component => component.types.includes('administrative_area_level_2'))
         if (place?.address_components) {

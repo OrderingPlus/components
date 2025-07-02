@@ -25,7 +25,7 @@ export const OrderReview = (props) => {
   const [, t] = useLanguage()
   const [, { showToast }] = useToast()
   const [stars, setStars] = useState({ quality: defaultStar, punctuality: defaultStar, service: defaultStar, packaging: defaultStar, comments: '' })
-  const [formState, setFormState] = useState({ loading: false, result: { error: false } })
+  const [formState, setFormState] = useState({ loading: false, result: { error: false }, changes: [] })
 
   const reviewOrder = async (body) => {
     let headers = {
@@ -83,13 +83,13 @@ export const OrderReview = (props) => {
       } else {
         const body = {
           ...staticBody,
-          order_id: order.id,
-          business_id: order.business_id
+          order_id: order.id.length ? order.id[0] : order.id,
+          business_id: order.business_id.length ? order.business_id[0] : order.business_id
         }
         const { response, result, error } = await reviewOrder(body)
         !error && callback?.()
         onSaveReview && onSaveReview(response)
-        setFormState({ loading: false, result, error })
+        setFormState({ loading: false, result, error, changes: [] })
         if (!error) {
           handleUpdateOrderList && handleUpdateOrderList(order.id, { review: result })
           isToast && showToast(ToastType.Success, t('ORDER_REVIEW_SUCCESS_CONTENT', 'Thank you, Order review successfully submitted!'))
@@ -125,6 +125,12 @@ export const OrderReview = (props) => {
       comments: e.target.value
     })
   }
+
+  const handleChangeFormState = (changes) => {
+    const _changes = [...changes]
+    setFormState({ ...formState, changes: _changes })
+  }
+
   return (
     <>
       {UIComponent && (
@@ -137,6 +143,7 @@ export const OrderReview = (props) => {
           handleChangeInput={handleChangeInput}
           handleChangeRating={handleChangeRating}
           setStars={setStars}
+          handleChangeFormState={handleChangeFormState}
         />
       )}
     </>

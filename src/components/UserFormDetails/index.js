@@ -29,7 +29,9 @@ export const UserFormDetails = (props) => {
     onClose,
     isOrderTypeValidationField,
     checkoutFields,
-    setUserConfirmPhone
+    setUserConfirmPhone,
+    isWalletCashEnabled,
+    isWalletPointsEnabled
   } = props
 
   const [ordering] = useApi()
@@ -46,6 +48,7 @@ export const UserFormDetails = (props) => {
   const [verifyPhoneState, setVerifyPhoneState] = useState({ loading: false, result: { error: false } })
   const [removeAccountState, setAccountState] = useState({ loading: false, error: null, result: null })
   const [cellphoneStartZero, setCellphoneStartZero] = useState(null)
+  const [wallets, setWallets] = useState({ loading: false, result: { error: false } })
 
   const requestsState = {}
   const accessToken = useDefualtSessionManager ? session.token : props.accessToken
@@ -550,6 +553,66 @@ export const UserFormDetails = (props) => {
     }
   }
 
+  const getWallets = async () => {
+    if (!isWalletCashEnabled && !isWalletPointsEnabled) return
+    try {
+      setWallets({
+        ...wallets,
+        loading: true
+      })
+      const response = await fetch(
+        `${ordering.root}/users/${userId ?? session.user.id}/wallets`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+            'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+            'X-Socket-Id-X': socket?.getId()
+          }
+        }
+      )
+      const { error, result } = await response.json()
+
+      if (!error && result?.length > 0) {
+        const cashWallet = result.find(wallet => wallet.type === 'cash')
+        const pointsWallet = result.find(wallet => wallet.type === 'credit_point')
+        setWallets({
+          ...wallets,
+          loading: false,
+          result: {
+            error: false,
+            result: {
+              cash: cashWallet,
+              points: pointsWallet
+            }
+          }
+        })
+      } else {
+        setWallets({
+          ...wallets,
+          loading: false,
+          result: {
+            error: true,
+            result: error
+          }
+        })
+      }
+    } catch (err) {
+      if (err.constructor.name !== 'Cancel') {
+        setWallets({
+          ...wallets,
+          result: {
+            error: true,
+            result: err.message
+          },
+          loading: false
+        })
+      }
+    }
+  }
+
   useEffect(() => {
     updatePromotions(
       singleNotifications?.loading ? singleNotifications?.changes : notificationsGroup?.changes,
@@ -584,6 +647,12 @@ export const UserFormDetails = (props) => {
     }
   }, [socket?.socket])
 
+  useEffect(() => {
+    if (isWalletPointsEnabled || isWalletCashEnabled) {
+      getWallets()
+    }
+  }, [])
+
   return (
     <>
       {UIComponent && (
@@ -598,6 +667,7 @@ export const UserFormDetails = (props) => {
           showField={showField}
           singleNotifications={singleNotifications}
           notificationsGroup={notificationsGroup}
+          wallets={wallets}
           setFormState={setFormState}
           isRequiredField={isRequiredField}
           handleChangeInput={handleChangeInput}

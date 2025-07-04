@@ -519,7 +519,7 @@ export const Checkout = (props) => {
 
   const createBusinessUserPaymethod = async (values = {}, callback = () => {}) => {
     try {
-      const response = await fetch(`${ordering.root}/business/${businessId}/paymethods/${paymethodSelected?.id}/users/${user?.id}/paymethods`, {
+      const response = await fetch(`${ordering.root}/business/${businessId}/paymethods/${paymethodSelected?.id || values?.paymethodId}/users/${user?.id}/paymethods`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

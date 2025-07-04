@@ -413,18 +413,42 @@ export const PaymentOptionStripe = (props) => {
             type_data: JSON.stringify(payment?.data?.card_data),
             type: 'card'
           }, (result) => {
-            setCardsList({
-              ...cardsList,
-              cards: [...cardsList.cards, result]
-            })
-            setCardList && setCardList({
-              ...cardsList,
-              cards: [...cardsList.cards, {
+            setCardsList((prev) => ({
+              ...prev,
+              loading: false,
+              cards: [...prev.cards, {
                 ...result,
                 ...result.type_data,
                 id: result.id,
                 card_token: result.external_id
               }]
+            }))
+            setCardList && setCardList((prev) => ({
+              ...prev,
+              loading: false,
+              cards: [...prev.cards, {
+                ...result,
+                ...result.type_data,
+                id: result.id,
+                card_token: result.external_id
+              }]
+            }))
+            onPaymentChange({
+              ...paymethodSelectedInfo,
+              data: {
+                ...result,
+                ...result.type_data,
+                id: result.id,
+                card_token: result.external_id,
+                card: {
+                  ...result.type_data
+                }
+              }
+            })
+            handleCardClick({
+              ...result.type_data,
+              id: result.id,
+              card_token: result.external_id
             })
             setOpenModal && setOpenModal(prev => ({ ...prev, iframe: false }))
           })

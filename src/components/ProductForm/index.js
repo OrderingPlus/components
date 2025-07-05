@@ -1033,10 +1033,11 @@ export const ProductForm = (props) => {
         for (const extra of product.product?.extras) {
           if (extra?.options) {
             for (const option of extra?.options) {
-              if (option?.external_id === `${product?.product?.external_id}:COUPONOPTION:${couponOptions.length + 1}`) {
+              const lastExternalId = option?.external_id?.split(':')?.pop()
+              if (option?.external_id === `${product?.product?.external_id}:COUPONOPTION:${lastExternalId}`) {
                 couponOptions.push({
                   ...option,
-                  hasCustomizeSuboptions: extra?.options?.some((option) => option?.external_id.includes(`${product?.product?.external_id}:COUPONOPTION:${couponOptions.length + 1}:`))
+                  hasCustomizeSuboptions: extra?.options?.some((option) => option?.external_id.includes(`${product?.product?.external_id}:COUPONOPTION:${lastExternalId}:`))
                 })
                 couponOptionsStateCurrent[`${option?.external_id}`] = false // valid when user select all suboptions or when user click add button
               }

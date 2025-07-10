@@ -366,6 +366,14 @@ export const PaymentOptionStripe = (props) => {
         showToast(ToastType.Error, result)
         return
       }
+      if (cardSelected?.id === card?.id) {
+        setCardSelected(null)
+        onPaymentChange && onPaymentChange({
+          ...paymethodSelectedInfo,
+          data: null
+        })
+        changePaymethod(businessId, paymethodSelectedInfo.id, '{}')
+      }
       setCardsList({
         ...cardsList,
         cards: cardsList.cards.filter(c => c.id !== card.id)

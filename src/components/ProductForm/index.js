@@ -169,7 +169,10 @@ export const ProductForm = (props) => {
         selected: true
       }
     }
-    const quantity = (productAddedToCartLength && product?.maximum_per_order) ? (product?.maximum_per_order - productAddedToCartLength) : props.productCart?.quantity
+    const stock = product?.maximum_per_order - productAddedToCartLength
+    const initialQuantity = ((productAddedToCartLength || 0) + product?.minimum_per_order) > product?.maximum_per_order
+      ? product?.maximum_per_order - (productAddedToCartLength || 0)
+      : product?.minimum_per_order || 1
     const newProductCart = {
       ...props.productCart,
       id: product.id,
@@ -178,11 +181,11 @@ export const ProductForm = (props) => {
       businessId: props.businessId,
       categoryId: product.category_id,
       inventoried: product.inventoried,
-      stock: product.quantity,
+      stock,
       ingredients: props.productCart?.ingredients || ingredients,
       options: props.productCart?.options || {},
       comment: props.productCart?.comment || null,
-      quantity: quantity || 1,
+      quantity: initialQuantity,
       favorite: product?.favorite
     }
     newProductCart.unitTotal = getUnitTotal(newProductCart)

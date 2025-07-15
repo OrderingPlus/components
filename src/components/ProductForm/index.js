@@ -169,10 +169,14 @@ export const ProductForm = (props) => {
         selected: true
       }
     }
-    const stock = product?.maximum_per_order - productAddedToCartLength
-    const initialQuantity = ((productAddedToCartLength || 0) + product?.minimum_per_order) > product?.maximum_per_order
-      ? product?.maximum_per_order - (productAddedToCartLength || 0)
-      : product?.minimum_per_order || 1
+    const stock = (product?.maximum_per_order || 0) - (productAddedToCartLength || 0)
+    const initialStock = stock > 0 ? stock : 1
+    const minimumPerOrder = product?.minimum_per_order || 0
+    const maximumPerOrder = product?.maximum_per_order || 0
+    const productAddedToCartLengthUpdated = productAddedToCartLength || 0
+    const initialQuantity = (productAddedToCartLengthUpdated + minimumPerOrder) > maximumPerOrder && (minimumPerOrder > 0 && maximumPerOrder > 0)
+      ? maximumPerOrder - productAddedToCartLengthUpdated
+      : minimumPerOrder
     const newProductCart = {
       ...props.productCart,
       id: product.id,
@@ -181,7 +185,7 @@ export const ProductForm = (props) => {
       businessId: props.businessId,
       categoryId: product.category_id,
       inventoried: product.inventoried,
-      stock,
+      stock: initialStock,
       ingredients: props.productCart?.ingredients || ingredients,
       options: props.productCart?.options || {},
       comment: props.productCart?.comment || null,

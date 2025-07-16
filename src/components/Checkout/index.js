@@ -571,6 +571,15 @@ export const Checkout = (props) => {
   }, [cart?.delivery_option_id])
 
   useEffect(() => {
+    if (instructionsOptionsDefault && instructionsOptionsDefault.length > 0 && (deliveryOptionSelected === undefined || deliveryOptionSelected === null) && instructionsOptions?.result && instructionsOptions.result.length > 0) {
+      const firstEnabledOption = instructionsOptions.result.find(option => option?.enabled)
+      if (firstEnabledOption) {
+        setDeliveryOptionSelected(firstEnabledOption.id)
+      }
+    }
+  }, [instructionsOptions?.result, instructionsOptionsDefault])
+
+  useEffect(() => {
     const handleCartUpdate = (cart) => {
       if (cart?.status !== 1 || !cart?.order?.uuid) return
       handleOrderRedirect && handleOrderRedirect(cart?.order?.uuid)

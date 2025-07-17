@@ -186,7 +186,8 @@ export const ProductForm = (props) => {
     const productAddedToCartLengthUpdated = productAddedToCartLength || 0
     const initialQuantity = (productAddedToCartLengthUpdated + minimumPerOrder) > maximumPerOrder && (minimumPerOrder > 0 && maximumPerOrder > 0)
       ? maximumPerOrder - productAddedToCartLengthUpdated
-      : minimumPerOrder
+      : minimumPerOrder || initialStock
+
     const newProductCart = {
       ...props.productCart,
       id: product.id,

@@ -759,6 +759,21 @@ export const BusinessAndProductList = (props) => {
           .products(productId || props.product?.id)
           .parameters(parameters)
           .get({ cancelToken: source })
+        if (result?.extras && Array.isArray(result.extras) && result?.extras?.length > 0) {
+          result.extras = result.extras.sort((a, b) => (a?.rank || 0) - (b?.rank || 0))
+
+          result.extras.forEach(extra => {
+            if (extra?.options && Array.isArray(extra?.options) && extra?.options?.length > 0) {
+              extra.options = extra.options.sort((a, b) => (a?.rank || 0) - (b?.rank || 0))
+
+              extra.options.forEach(option => {
+                if (option?.suboptions && Array.isArray(option?.suboptions) && option?.suboptions?.length > 0) {
+                  option.suboptions = option.suboptions.sort((a, b) => (a?.rank || 0) - (b?.rank || 0))
+                }
+              })
+            }
+          })
+        }
         const product = Array.isArray(result) ? null : result
 
         setNotFound(!result)

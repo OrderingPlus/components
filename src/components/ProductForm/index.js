@@ -484,7 +484,7 @@ export const ProductForm = (props) => {
       newProductCart.options[`id:${option.id}`].balance = newBalance
       newProductCart.unitTotal = getUnitTotal(newProductCart)
       newProductCart.total = newProductCart.unitTotal * newProductCart.quantity
-      if (state.selected && hasPreselectedFlow?.length > 0) {
+      if (state.selected && hasPreselectedFlow?.length > 0 && option.min === 1 && option.max === 1) {
         handleChangeSuboptionDefault(suboptionsArray, newPizzaState)
         setSelectedSuboptions(_selectedSuboptions)
       } else {
@@ -816,8 +816,7 @@ export const ProductForm = (props) => {
     }
     setPizzaState(newPizzaState)
     return newPizzaState
-  }
-  /**
+  } /**
    * Init product cart when product changed
    */
   useEffect(() => {

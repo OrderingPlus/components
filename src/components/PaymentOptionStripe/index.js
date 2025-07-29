@@ -302,6 +302,14 @@ export const PaymentOptionStripe = (props) => {
 
   const getBusinessUserPaymethods = async () => {
     try {
+      setCardsList({
+        ...cardsList,
+        loading: true
+      })
+      setCardList && setCardList({
+        ...cardsList,
+        loading: true
+      })
       const response = await fetch(`${ordering.root}/business/${businessId}/paymethods/${paymethodSelectedInfo?.id}/users/${user.id}/paymethods`, {
         headers: {
           'Content-Type': 'application/json',
@@ -388,11 +396,23 @@ export const PaymentOptionStripe = (props) => {
   }
 
   useEffect(() => {
-    if (orderState?.loading) return
     if (token) {
-      (paymethodSelectedInfo?.featured?.includes('get_cards') || paymethodSelectedInfo?.paymethod?.featured?.includes('get_cards'))
-        ? gateway === 'globalpay' ? getBusinessUserPaymethods() : getPaymentUserCards()
-        : getCards()
+      if ((paymethodSelectedInfo?.featured?.includes('get_cards') || paymethodSelectedInfo?.paymethod?.featured?.includes('get_cards'))) {
+        if (orderState?.loading) {
+          setCardsList((prev) => ({
+            ...prev,
+            loading: true
+          }))
+          setCardList && setCardList((prev) => ({
+            ...prev,
+            loading: true
+          }))
+        } else {
+          ['izipay'].includes(gateway) ? getPaymentUserCards() : getBusinessUserPaymethods()
+        }
+      } else {
+        getCards()
+      }
       if (!props.publicKey && !paymethodV2Featured) {
         getCredentials()
       }

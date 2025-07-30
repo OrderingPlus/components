@@ -61,6 +61,10 @@ export const LoginForm = (props) => {
    * @param {object} credentials Login credentials email/cellphone and password
    */
   const handleLoginClick = async (values) => {
+    const headers = {
+      'X-App-X': ordering?.appId,
+      'X-INTERNAL-PRODUCT-X': ordering?.appInternalName
+    }
     if (handleCustomLogin) {
       handleCustomLogin(values || credentials, loginTab)
       return
@@ -124,7 +128,7 @@ export const LoginForm = (props) => {
 
       if (isGuest && user?.guest_id) _credentials.guest_token = user?.guest_id
 
-      const { content: { error, result } } = await ordering.users().auth(_credentials)
+      const { content: { error, result } } = await ordering.users().auth(_credentials, { headers })
 
       if (isReCaptchaEnable && window?.grecaptcha) {
         _credentials.recaptcha_type === 'v2' && window.grecaptcha.reset()

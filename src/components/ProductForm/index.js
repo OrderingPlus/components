@@ -606,7 +606,7 @@ export const ProductForm = (props) => {
       }
       const errors = checkErrors()
       const isMultiProduct = JSON.parse(product?.product?.meta || '{}')?.external_type === 'coupon'
-      const hasAlreadyCoupon = cart?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value && isMultiProduct
+      const hasAlreadyCoupon = !props?.allowMultiCoupons && cart?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value && isMultiProduct
 
       if ((Object.keys(errors).length === 0 || isService) && !hasAlreadyCoupon) {
         let successful = true

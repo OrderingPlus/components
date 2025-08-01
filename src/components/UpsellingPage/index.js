@@ -22,15 +22,8 @@ export const UpsellingPage = (props) => {
     if (products?.length || businessId) {
       if (products?.length && !props.uuid) {
         getUpsellingProducts(products)
-      } else {
-        if (useSuggestiveUpselling) {
-          setUpsellingProducts({
-            ...upsellingProducts,
-            loading: false
-          })
-        } else {
-          getProducts()
-        }
+      } else if (!useSuggestiveUpselling) {
+        getProducts()
       }
     } else {
       setUpsellingProducts({
@@ -49,9 +42,9 @@ export const UpsellingPage = (props) => {
   }, [orderState.loading, upsellingProducts.loading])
 
   useEffect(() => {
-    if (!cartProducts?.length || !useSuggestiveUpselling || upsellingProducts.loading || orderState.loading) return
+    if (!cartProducts?.length || !useSuggestiveUpselling || orderState.loading) return
     getSuggestiveProducts()
-  }, [cartProducts?.length, orderState.loading, upsellingProducts.loading])
+  }, [cartProducts?.length, orderState.loading])
 
   /**
    * getting products if array of product is not defined

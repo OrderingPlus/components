@@ -151,15 +151,6 @@ export const BusinessSimpleList = (props) => {
     orderState.options?.address_id
   ])
 
-  useEffect(() => {
-    if (searchValue !== undefined) {
-      setBusinessesList({
-        ...businessesList,
-        businesses: businessesList.businesses.filter((business) => business?.description?.toLowerCase().includes(searchValue?.toLowerCase()))
-      })
-    }
-  }, [searchValue])
-
   return (
     UIComponent && (
       <UIComponent

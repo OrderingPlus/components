@@ -956,7 +956,7 @@ export const OrderProvider = ({
       let headers = {
         'X-Socket-Id-X': socket?.getId(),
         'X-Country-Code-X': countryCode,
-        'X-App-X': ordering?.appId
+        'X-APP-X': ordering?.appId
       }
       if (userAgent) {
         headers = { ...headers, 'User-Agent': userAgent }

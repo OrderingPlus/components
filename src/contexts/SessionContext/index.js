@@ -66,6 +66,7 @@ export const SessionProvider = ({ children, strategy }) => {
       loading: false,
       device_code: values?.device_code || null
     })
+    return values?.user
   }
 
   const logout = async () => {

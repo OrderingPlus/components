@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { useSession } from '../SessionContext'
 import { useApi } from '../ApiContext'
 import { useWebsocket } from '../WebsocketContext'
@@ -31,7 +31,8 @@ export const OrderProvider = ({
   franchiseId,
   isDisabledDefaultOpts,
   businessSlug,
-  userAgent
+  userAgent,
+  enableCouponsRetries = false
 }) => {
   const [confirmAlert, setConfirm] = useState({ show: false })
   const [alert, setAlert] = useState({ show: false })
@@ -69,6 +70,10 @@ export const OrderProvider = ({
     confirmAlert,
     alert
   })
+
+  const intervalRetriesRef = useRef(null)
+  const timeIntervalProduct = 4000
+  const retriesProduct = 4
 
   /**
    * Refresh order options and carts from API
@@ -190,6 +195,27 @@ export const OrderProvider = ({
             : err.message
       setAlert({ show: true, content: [message] })
       setState({ ...state, loading: false })
+    }
+  }
+
+  const refreshOrderOptionsWithRetries = async (cart, product, endpointResult) => {
+    if (!enableCouponsRetries) {
+      return
+    }
+    const hasCouponForRetries = cart?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value ||
+    product?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value ||
+    endpointResult?.endpoint_type === 'multi_product'
+
+    if (hasCouponForRetries) {
+      let retries = 0
+      clearInterval(intervalRetriesRef.current)
+      intervalRetriesRef.current = setInterval(() => {
+        retries++
+        if (retriesProduct === retries) {
+          clearInterval(intervalRetriesRef.current)
+        }
+        refreshOrderOptions()
+      }, timeIntervalProduct)
     }
   }
 
@@ -469,6 +495,7 @@ export const OrderProvider = ({
         events.emit('cart_updated', result)
         events.emit('product_added', product, result)
         isQuickAddProduct && !isDisableToast && showToast(ToastType.Success, t('PRODUCT_ADDED_NOTIFICATION', 'Product _PRODUCT_ added succesfully').replace('_PRODUCT_', product.name))
+        refreshOrderOptionsWithRetries(cart, product)
       } else {
         setAlert({ show: true, content: result })
       }
@@ -535,6 +562,7 @@ export const OrderProvider = ({
         events.emit('cart_updated', result)
         events.emit('product_added', product, result)
         isQuickAddProduct && !isDisableToast && showToast(ToastType.Success, t('PRODUCT_ADDED_NOTIFICATION', 'Product _PRODUCT_ added succesfully').replace('_PRODUCT_', product.name))
+        refreshOrderOptionsWithRetries(cart, product, result)
       } else {
         setAlert({ show: true, content: result })
       }
@@ -579,6 +607,7 @@ export const OrderProvider = ({
         })
         events.emit('cart_product_removed', product, result)
         events.emit('cart_updated', result)
+        refreshOrderOptionsWithRetries(cart, product)
       } else {
         setAlert({ show: true, content: result })
       }
@@ -654,6 +683,7 @@ export const OrderProvider = ({
         events.emit('cart_product_updated', product, result)
         events.emit('cart_updated', result)
         isQuickAddProduct && !isDisableToast && showToast(ToastType.Success, t('PRODUCT_UPDATED_NOTIFICATION', 'Product _PRODUCT_ updated succesfully').replace('_PRODUCT_', product.name))
+        refreshOrderOptionsWithRetries(cart, product)
       } else {
         setAlert({ show: true, content: result })
       }
@@ -933,7 +963,7 @@ export const OrderProvider = ({
       let headers = {
         'X-Socket-Id-X': socket?.getId(),
         'X-Country-Code-X': countryCode,
-        'X-App-X': ordering?.appId
+        'X-APP-X': ordering?.appId
       }
       if (userAgent) {
         headers = { ...headers, 'User-Agent': userAgent }
@@ -1361,25 +1391,37 @@ export const OrderProvider = ({
         showToast(ToastType.Info, t('UPDATING_CART_INFO', 'Updating cart information...'))
       }
 
-      if (cart.status === 1) {
-        if (state.carts[`businessId:${cart.business_id}`]) {
-          delete state.carts[`businessId:${cart.business_id}`]
-        }
-      } else {
-        const cartFinded = Object.values(state.carts).find(_cart => _cart?.uuid === cart?.uuid)
-        const oldBusinessId = cartFinded?.business_id
-        const newBusinessId = cart?.business_id
-
-        if (!oldBusinessId || oldBusinessId === newBusinessId) {
-          state.carts[`businessId:${cart.business_id}`] = {
-            ...state.carts[`businessId:${cart.business_id}`],
-            ...cart
+      setState(prevState => {
+        const newState = { ...prevState }
+        if (cart.status === 1) {
+          const newCarts = { ...prevState.carts }
+          delete newCarts[`businessId:${cart.business_id}`]
+          return {
+            ...newState,
+            carts: newCarts
           }
         } else {
-          delete state.carts[`businessId:${oldBusinessId}`]
-          state.carts[`businessId:${newBusinessId}`] = cart
+          const cartFinded = Object.values(prevState.carts).find(_cart => _cart?.uuid === cart?.uuid)
+          const oldBusinessId = cartFinded?.business_id
+          const newBusinessId = cart?.business_id
+          const newCarts = { ...prevState.carts }
+
+          if (!oldBusinessId || oldBusinessId === newBusinessId) {
+            newCarts[`businessId:${cart.business_id}`] = {
+              ...newCarts[`businessId:${cart.business_id}`],
+              ...cart
+            }
+          } else {
+            delete newCarts[`businessId:${oldBusinessId}`]
+            newCarts[`businessId:${newBusinessId}`] = cart
+          }
+
+          return {
+            ...newState,
+            carts: newCarts
+          }
         }
-      }
+      })
     }
     const handleOrderOptionUpdate = ({ carts, ...options }) => {
       if (!isDisableToast) {
@@ -1409,7 +1451,7 @@ export const OrderProvider = ({
       socket.off('carts_update', handleCartUpdate)
       socket.off('order_options_update', handleOrderOptionUpdate)
     }
-  }, [state, socket])
+  }, [state.carts, state.options, state.loading, socket])
 
   /**
    * Join to carts room

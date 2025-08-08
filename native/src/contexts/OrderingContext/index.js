@@ -29,7 +29,7 @@ export const OrderingContext = createContext()
  * Use restOfProps on contexts that requiere extra settings that aren't in the sdk
  * This prop doesn't need permission from sdk.
  */
-export const OrderingProvider = ({ Alert, isValidColor, noValidateColors, settings, children, isDisableToast, isDisabledDefaultOpts }) => {
+export const OrderingProvider = ({ Alert, isValidColor, noValidateColors, settings, children, isDisableToast, isDisabledDefaultOpts, enableCouponsRetries = false }) => {
   const nativeStrategy = new NativeStrategy()
   const restOfSettings = {
     project: settings.project,
@@ -63,6 +63,7 @@ export const OrderingProvider = ({ Alert, isValidColor, noValidateColors, settin
                                   franchiseId={settings?.franchiseSlug ?? settings?.franchiseId}
                                   businessSlug={settings?.businessSlug}
                                   userAgent={settings?.userAgent}
+                                  enableCouponsRetries={enableCouponsRetries}
                                 >
                                   <BusinessProvider
                                     businessId={settings?.businessSlug ?? settings?.businessId}

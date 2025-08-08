@@ -31,7 +31,8 @@ export const OrderProvider = ({
   franchiseId,
   isDisabledDefaultOpts,
   businessSlug,
-  userAgent
+  userAgent,
+  enableCouponsRetries = false
 }) => {
   const [confirmAlert, setConfirm] = useState({ show: false })
   const [alert, setAlert] = useState({ show: false })
@@ -197,8 +198,14 @@ export const OrderProvider = ({
     }
   }
 
-  const refreshOrderOptionsWithRetries = async (cart, product) => {
-    const hasCouponForRetries = cart?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value || product?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value
+  const refreshOrderOptionsWithRetries = async (cart, product, endpointResult) => {
+    if (!enableCouponsRetries) {
+      return
+    }
+    const hasCouponForRetries = cart?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value ||
+    product?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value ||
+    endpointResult?.endpoint_type === 'multi_product'
+
     if (hasCouponForRetries) {
       let retries = 0
       clearInterval(intervalRetriesRef.current)
@@ -555,7 +562,7 @@ export const OrderProvider = ({
         events.emit('cart_updated', result)
         events.emit('product_added', product, result)
         isQuickAddProduct && !isDisableToast && showToast(ToastType.Success, t('PRODUCT_ADDED_NOTIFICATION', 'Product _PRODUCT_ added succesfully').replace('_PRODUCT_', product.name))
-        refreshOrderOptionsWithRetries(cart, product)
+        refreshOrderOptionsWithRetries(cart, product, result)
       } else {
         setAlert({ show: true, content: result })
       }

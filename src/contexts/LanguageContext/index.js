@@ -155,7 +155,8 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
     const appInternalName = restOfProps.app_internal_name ?? null
     if (appInternalName !== null) {
       const prefix = `${appInternalName.toUpperCase()}_`
-      if (!key?.startsWith(prefix)) {
+      if (!key?.startsWith || !key?.substring) return fallback ?? key
+      if (!key?.startsWith?.(prefix)) {
         key = `${prefix}${key}`
       } else {
         originalKey = key.substring(prefix.length)

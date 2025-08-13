@@ -213,7 +213,7 @@ export const Checkout = (props) => {
       }
       refreshOrderOptions()
       setPlacing(false)
-      return
+      return { error: true, result }
     }
 
     const cartResult = result?.result

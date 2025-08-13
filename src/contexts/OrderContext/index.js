@@ -567,10 +567,10 @@ export const OrderProvider = ({
       } else {
         setAlert({ show: true, content: result })
       }
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return !error
     } catch (err) {
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return false
     }
   }

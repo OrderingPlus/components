@@ -200,12 +200,16 @@ export const Checkout = (props) => {
       }
     }
 
+    console.log('payload place card', payload);
+
     setPlacing(true)
     await onChangeSpot()
     if (paymethodsWithoutSaveCard.includes(_paymethodSelected?.paymethod?.gateway)) {
       delete payload.paymethod_data
     }
     const result = await placeCart(_cart.uuid, payload)
+    console.log('result place card', JSON.stringify(result ?? 'null'));
+
     if (result?.error || !result) {
       setErrors(result?.result)
       if (dismissPlatformPay && _paymethodSelected?.paymethod?.gateway === 'apple_pay') {

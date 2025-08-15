@@ -184,9 +184,15 @@ export const ProductForm = (props) => {
     const minimumPerOrder = product?.minimum_per_order || 0
     const maximumPerOrder = product?.maximum_per_order || 0
     const productAddedToCartLengthUpdated = productAddedToCartLength || 0
-    const initialQuantity = (productAddedToCartLengthUpdated + minimumPerOrder) > maximumPerOrder && (minimumPerOrder > 0 && maximumPerOrder > 0)
-      ? maximumPerOrder - productAddedToCartLengthUpdated
-      : minimumPerOrder || initialStock
+
+    let initialQuantity
+    if (editMode && props?.productCart?.quantity) {
+      initialQuantity = props?.productCart?.quantity
+    } else {
+      initialQuantity = (productAddedToCartLengthUpdated + minimumPerOrder) > maximumPerOrder && (minimumPerOrder > 0 && maximumPerOrder > 0)
+        ? maximumPerOrder - productAddedToCartLengthUpdated
+        : minimumPerOrder || initialStock
+    }
 
     const newProductCart = {
       ...props.productCart,

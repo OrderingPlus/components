@@ -118,7 +118,10 @@ export const OrderProvider = ({
         const { carts, ...options } = result
         const newCarts = {}
         carts.forEach(cart => {
-          newCarts[`businessId:${cart.business_id}`] = cart
+          const cartFinded = state.carts[`businessId:${cart.business_id}`]
+          newCarts[`businessId:${cart.business_id}`] = dayjs(cartFinded?.updated_at).isAfter(dayjs(cart?.updated_at))
+            ? cartFinded
+            : cart
         })
         setState(prevState => ({ ...prevState, options: { ...prevState.options, ...options }, carts: newCarts }))
         if (!countryCodeFromLocalStorage && options?.address?.country_code) {
@@ -1360,7 +1363,7 @@ export const OrderProvider = ({
           'Content-Type': 'application/json'
         }
       })
-    } catch (err) {}
+    } catch (err) { }
   }
 
   useEffect(() => {
@@ -1410,6 +1413,9 @@ export const OrderProvider = ({
           }
         } else {
           const cartFinded = Object.values(prevState.carts).find(_cart => _cart?.uuid === cart?.uuid)
+          if (dayjs(cartFinded?.updated_at).isAfter(dayjs(cart?.updated_at))) {
+            return prevState
+          }
           const oldBusinessId = cartFinded?.business_id
           const newBusinessId = cart?.business_id
           const newCarts = { ...prevState.carts }
@@ -1438,7 +1444,10 @@ export const OrderProvider = ({
 
       const newCarts = {}
       carts.forEach(cart => {
-        newCarts[`businessId:${cart.business_id}`] = cart
+        const cartFinded = state.carts[`businessId:${cart.business_id}`]
+        newCarts[`businessId:${cart.business_id}`] = dayjs(cartFinded?.updated_at).isAfter(dayjs(cart?.updated_at))
+          ? cartFinded
+          : cart
       })
       const newState = {
         ...state,

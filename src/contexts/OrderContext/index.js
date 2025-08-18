@@ -118,9 +118,9 @@ export const OrderProvider = ({
         const { carts, ...options } = result
         const newCarts = {}
         carts.forEach(cart => {
-          const cartFinded = state.carts[`businessId:${cart.business_id}`]
-          newCarts[`businessId:${cart.business_id}`] = dayjs(cartFinded?.updated_at).isAfter(dayjs(cart?.updated_at))
-            ? cartFinded
+          const cartFound = state.carts[`businessId:${cart.business_id}`]
+          newCarts[`businessId:${cart.business_id}`] = dayjs(cartFound?.updated_at).isAfter(dayjs(cart?.updated_at))
+            ? cartFound
             : cart
         })
         setState(prevState => ({ ...prevState, options: { ...prevState.options, ...options }, carts: newCarts }))
@@ -1412,11 +1412,11 @@ export const OrderProvider = ({
             carts: newCarts
           }
         } else {
-          const cartFinded = Object.values(prevState.carts).find(_cart => _cart?.uuid === cart?.uuid)
-          if (dayjs(cartFinded?.updated_at).isAfter(dayjs(cart?.updated_at))) {
+          const cartFound = Object.values(prevState.carts).find(_cart => _cart?.uuid === cart?.uuid)
+          if (dayjs(cartFound?.updated_at).isAfter(dayjs(cart?.updated_at))) {
             return prevState
           }
-          const oldBusinessId = cartFinded?.business_id
+          const oldBusinessId = cartFound?.business_id
           const newBusinessId = cart?.business_id
           const newCarts = { ...prevState.carts }
 
@@ -1444,9 +1444,9 @@ export const OrderProvider = ({
 
       const newCarts = {}
       carts.forEach(cart => {
-        const cartFinded = state.carts[`businessId:${cart.business_id}`]
-        newCarts[`businessId:${cart.business_id}`] = dayjs(cartFinded?.updated_at).isAfter(dayjs(cart?.updated_at))
-          ? cartFinded
+        const cartFound = state.carts[`businessId:${cart.business_id}`]
+        newCarts[`businessId:${cart.business_id}`] = dayjs(cartFound?.updated_at).isAfter(dayjs(cart?.updated_at))
+          ? cartFound
           : cart
       })
       const newState = {

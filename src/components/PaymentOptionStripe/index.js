@@ -396,20 +396,9 @@ export const PaymentOptionStripe = (props) => {
   }
 
   useEffect(() => {
-    if (token) {
+    if (token && !orderState?.loading) {
       if ((paymethodSelectedInfo?.featured?.includes('get_cards') || paymethodSelectedInfo?.paymethod?.featured?.includes('get_cards'))) {
-        if (orderState?.loading) {
-          setCardsList((prev) => ({
-            ...prev,
-            loading: true
-          }))
-          setCardList && setCardList((prev) => ({
-            ...prev,
-            loading: true
-          }))
-        } else {
-          ['izipay'].includes(gateway) ? getPaymentUserCards() : getBusinessUserPaymethods()
-        }
+        ['izipay'].includes(gateway) ? getPaymentUserCards() : getBusinessUserPaymethods()
       } else {
         getCards()
       }

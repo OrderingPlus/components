@@ -218,6 +218,12 @@ export const OrderProvider = ({
     }
   }
 
+  const clearTimeout = () => {
+    if (intervalRetriesRef.current) {
+      clearInterval(intervalRetriesRef.current)
+    }
+  }
+
   const checkAddress = (address) => {
     const props = ['address', 'address_notes', 'zipcode', 'location', 'internal_number']
     const values = []
@@ -1512,7 +1518,8 @@ export const OrderProvider = ({
     setStateInitialValues,
     handleOrderStateLoading,
     createReservation,
-    handleLogEvent
+    handleLogEvent,
+    clearTimeout
   }
 
   const copyState = JSON.parse(JSON.stringify(state))

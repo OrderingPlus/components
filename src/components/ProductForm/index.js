@@ -209,7 +209,7 @@ export const ProductForm = (props) => {
     }
 
     const initialQuantity = calculateInitialQuantity()
-    
+
     const newProductCart = {
       ...props.productCart,
       id: product.id,

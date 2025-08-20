@@ -436,18 +436,6 @@ export const BusinessAndProductList = (props) => {
       conector: 'OR'
     }
 
-    if (categorySelected.id === 'featured') {
-      parameters.params = 'features'
-    }
-
-    if (categorySelected.id === 'featured' && searchValue) {
-      parameters.params = 'features'
-      where = {
-        conditions: searchConditions,
-        conector: 'AND'
-      }
-    }
-
     const source = {}
     requestsState.products = source
     const promises = []
@@ -463,11 +451,14 @@ export const BusinessAndProductList = (props) => {
     promises.push(await productEndpoint.get({ cancelToken: source }))
 
     if (isUseParentCategory && (!categorySelected.id || categorySelected.id === 'featured')) {
-      parameters.params = 'features'
-      productEndpoint = where?.conditions?.length > 0
-        ? ordering.businesses(businessState.business.id).products().parameters(parameters).where(where)
-        : ordering.businesses(businessState.business.id).products().parameters(parameters)
-
+      where.conditions.push({
+        attribute: 'featured',
+        value: {
+          condition: '=',
+          value: true
+        }
+      })
+      productEndpoint = ordering.businesses(businessState.business.id).products().parameters(parameters).where(where)
       promises.push(await productEndpoint.get({ cancelToken: source }))
     }
 

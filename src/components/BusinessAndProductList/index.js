@@ -431,6 +431,16 @@ export const BusinessAndProductList = (props) => {
       )
     }
 
+    if (categorySelected.id === 'featured') {
+      searchConditions.push({
+        attribute: 'featured',
+        value: {
+          condition: '=',
+          value: true
+        }
+      })
+    }
+
     where = {
       conditions: searchConditions,
       conector: 'OR'

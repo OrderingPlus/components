@@ -48,7 +48,7 @@ export const OrderingProvider = ({ Alert, settings, children, enableCouponsRetri
               <ConfigProvider strategy={webStrategy}>
                 <OrderingThemeProvider settings={Object.assign(settings.api, restOfSettings)}>
                   <SiteProvider appId={settings.app_id}>
-                    <UtilsProviders>
+                    <UtilsProviders strategy={webStrategy}>
                       <ToastProvider>
                         <ValidationFieldsProvider appId={settings.app_id}>
                           <SessionProvider strategy={webStrategy}>

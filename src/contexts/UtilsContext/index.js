@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { useConfig } from '../ConfigContext'
 import { useLanguage } from '../LanguageContext'
 import { useApi } from '../ApiContext'
+import { useEvent } from '../EventContext'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -22,10 +23,12 @@ export const UtilsContext = createContext()
  * This provider has a reducer for manage utils functions
  * @param {props} props
  */
-export const UtilsProviders = ({ children }) => {
+export const UtilsProviders = ({ children, strategy }) => {
   const [languageState, t] = useLanguage()
   const [configState] = useConfig()
   const [ordering] = useApi()
+  const [events] = useEvent()
+  const [currencyUpdateTrigger, setCurrencyUpdateTrigger] = useState(0)
   // const [localObject, setLocalObject] = useState({})
 
   const refreshLocalObject = () => {
@@ -116,22 +119,37 @@ export const UtilsProviders = ({ children }) => {
     dayjs.locale('auto', localeObject)
     dayjs.updateLocale('auto', localeObject)
   }
-  const parsePrice = (value, options = {}) => {
-    const formatNumber = {
-      decimal: options?.decimal || configState.configs.format_number_decimal_length?.value || 2,
-      separator: options?.separator || configState.configs.format_number_decimal_separator?.value || ',',
-      thousand: options?.thousand || configState.configs.format_number_thousand_separator?.value || '.',
-      currency: options?.currency || configState.configs.format_number_currency?.value || '$',
-      currencyPosition: options?.currencyPosition || configState.configs.currency_position?.value || 'left'
+  const [currentCurrency, setCurrentCurrency] = useState(null)
+
+  const parsePrice = useMemo(() => {
+    return (value, options = {}) => {
+      let convertedValue = value
+      const hasEcocashConfig = configState?.configs?.ecocash_currencies?.value && configState?.configs?.ecocash_exchange_rate?.value
+      if (value && hasEcocashConfig && currentCurrency) {
+        const stripeCurrency = configState?.configs?.stripe_currency?.value
+        const exchangeRate = configState?.configs?.ecocash_exchange_rate?.value
+
+        if (currentCurrency && currentCurrency !== stripeCurrency && exchangeRate) {
+          convertedValue = value * parseFloat(exchangeRate)
+        }
+      }
+
+      const formatNumber = {
+        decimal: options?.decimal || configState.configs.format_number_decimal_length?.value || 2,
+        separator: options?.separator || configState.configs.format_number_decimal_separator?.value || ',',
+        thousand: options?.thousand || configState.configs.format_number_thousand_separator?.value || '.',
+        currency: options?.currency || configState.configs.format_number_currency?.value || '$',
+        currencyPosition: options?.currencyPosition || configState.configs.currency_position?.value || 'left'
+      }
+      let number = parseNumber(convertedValue, formatNumber)
+      if (formatNumber.currencyPosition?.toLowerCase() === 'left') {
+        number = formatNumber.currency + ' ' + number
+      } else {
+        number = number + ' ' + formatNumber.currency
+      }
+      return number
     }
-    let number = parseNumber(value, formatNumber)
-    if (formatNumber.currencyPosition?.toLowerCase() === 'left') {
-      number = formatNumber.currency + ' ' + number
-    } else {
-      number = number + ' ' + formatNumber.currency
-    }
-    return number
-  }
+  }, [currentCurrency, configState])
 
   const parseNumber = (value, options = {}) => {
     value = parseFloat(value) || 0
@@ -353,6 +371,32 @@ export const UtilsProviders = ({ children }) => {
       refreshLocalObject()
     }
   }, [languageState])
+
+  useEffect(() => {
+    const loadCurrency = async () => {
+      try {
+        const currency = await strategy.getItem('currency')
+        setCurrentCurrency(currency)
+      } catch (err) {
+        console.warn('Failed to get currency from storage:', err)
+        setCurrentCurrency(null)
+      }
+    }
+
+    loadCurrency()
+  }, [currencyUpdateTrigger, strategy])
+
+  useEffect(() => {
+    const handleCurrencyChange = () => {
+      setCurrencyUpdateTrigger(prev => prev + 1)
+    }
+
+    events.on('currencyChanged', handleCurrencyChange)
+    return () => {
+      events.off('currencyChanged', handleCurrencyChange)
+    }
+  }, [events])
+
   return (
     <UtilsContext.Provider value={[functions]}>
       {children}

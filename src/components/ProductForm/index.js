@@ -179,14 +179,36 @@ export const ProductForm = (props) => {
         selected: true
       }
     }
-    const stock = (product?.maximum_per_order || 0) - (productAddedToCartLength || 0)
-    const initialStock = stock > 0 ? stock : 1
-    const minimumPerOrder = product?.minimum_per_order || 0
+
+    const isEdit = props.productCart?.code
     const maximumPerOrder = product?.maximum_per_order || 0
+    const minimumPerOrder = product?.minimum_per_order || 0
     const productAddedToCartLengthUpdated = productAddedToCartLength || 0
-    const initialQuantity = (productAddedToCartLengthUpdated + minimumPerOrder) > maximumPerOrder && (minimumPerOrder > 0 && maximumPerOrder > 0)
-      ? maximumPerOrder - productAddedToCartLengthUpdated
-      : minimumPerOrder || initialStock
+
+    const calculateStock = () => {
+      if (isEdit) {
+        return maximumPerOrder
+      }
+      return maximumPerOrder - productAddedToCartLengthUpdated
+    }
+
+    const stock = calculateStock()
+    const initialStock = Math.max(stock, 1)
+
+    const calculateInitialQuantity = () => {
+      if (isEdit) {
+        return props.productCart?.quantity
+      }
+      const isOverMaximum = (productAddedToCartLengthUpdated + minimumPerOrder) > maximumPerOrder
+      const hasOrderLimits = minimumPerOrder > 0 && maximumPerOrder > 0
+
+      if (isOverMaximum && hasOrderLimits) {
+        return maximumPerOrder - productAddedToCartLengthUpdated
+      }
+      return minimumPerOrder || initialStock
+    }
+
+    const initialQuantity = calculateInitialQuantity()
 
     const newProductCart = {
       ...props.productCart,
@@ -606,7 +628,7 @@ export const ProductForm = (props) => {
       }
       const errors = checkErrors()
       const isMultiProduct = JSON.parse(product?.product?.meta || '{}')?.external_type === 'coupon'
-      const hasAlreadyCoupon = cart?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value && isMultiProduct
+      const hasAlreadyCoupon = !props?.allowMultiCoupons && cart?.metafields?.find?.(meta => meta?.key === 'pulse_coupons')?.value && isMultiProduct
 
       if ((Object.keys(errors).length === 0 || isService) && !hasAlreadyCoupon) {
         let successful = true

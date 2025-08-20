@@ -206,6 +206,7 @@ export const Checkout = (props) => {
       delete payload.paymethod_data
     }
     const result = await placeCart(_cart.uuid, payload)
+
     if (result?.error || !result) {
       setErrors(result?.result)
       if (dismissPlatformPay && _paymethodSelected?.paymethod?.gateway === 'apple_pay') {
@@ -213,7 +214,7 @@ export const Checkout = (props) => {
       }
       refreshOrderOptions()
       setPlacing(false)
-      return
+      return { error: true, result }
     }
 
     const cartResult = result?.result

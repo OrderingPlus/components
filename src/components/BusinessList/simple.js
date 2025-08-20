@@ -23,6 +23,7 @@ export const BusinessSimpleList = (props) => {
   const [orderType, setOrderType] = useState(props.orderType)
   const [businessesList, setBusinessesList] = useState({ businesses: [], loading: false, error: null })
   const [requestsState, setRequestsState] = useState({})
+  const [searchValue, setSearchValue] = useState('')
   const [paginationProps, setPaginationProps] = useState({
     currentPage: (paginationSettings.controlType === 'pages' && paginationSettings.initialPage && paginationSettings.initialPage >= 1) ? paginationSettings.initialPage - 1 : 0,
     pageSize: paginationSettings.pageSize ?? 10,
@@ -128,6 +129,16 @@ export const BusinessSimpleList = (props) => {
     }
   }
 
+  /**
+ * Change text to search
+ * @param {string} search Search value
+ */
+  const handleChangeSearch = (search) => {
+    if (search !== undefined) {
+      setSearchValue(search)
+    }
+  }
+
   useEffect(() => {
     setOrderType(props.orderType)
   }, [props.orderType])
@@ -146,6 +157,8 @@ export const BusinessSimpleList = (props) => {
         {...props}
         setOrderType={setOrderType}
         businessesList={businessesList}
+        handleChangeSearch={handleChangeSearch}
+        searchValue={searchValue}
       />
     )
   )

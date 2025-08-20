@@ -155,6 +155,7 @@ export const BusinessReservation = (props) => {
    * generate a list of available hours
    */
   const generateHourList = (selectedDate, schedule, is12Hours, options) => {
+    if (!schedule) return []
     const date = options?.preorderLeadTime ? new Date(new Date().getTime() + options?.preorderLeadTime * 60000) : new Date()
     const times = []
     for (let k = 0; k < schedule[selectedDate.getDay()].lapses.length; k++) {

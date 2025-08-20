@@ -382,6 +382,7 @@ export const BusinessAndProductList = (props) => {
 
     let where = null
     const searchConditions = []
+    const filterConditions = []
     if (searchValue) {
       if (isSearchByName) {
         searchConditions.push(
@@ -408,7 +409,7 @@ export const BusinessAndProductList = (props) => {
     }
 
     if (priceFilterValues?.min) {
-      searchConditions.push(
+      filterConditions.push(
         {
           attribute: 'price',
           value: {
@@ -420,7 +421,7 @@ export const BusinessAndProductList = (props) => {
     }
 
     if (priceFilterValues?.max) {
-      searchConditions.push(
+      filterConditions.push(
         {
           attribute: 'price',
           value: {
@@ -432,7 +433,7 @@ export const BusinessAndProductList = (props) => {
     }
 
     if (categorySelected.id === 'featured') {
-      searchConditions.push({
+      filterConditions.push({
         attribute: 'featured',
         value: {
           condition: '=',
@@ -442,8 +443,22 @@ export const BusinessAndProductList = (props) => {
     }
 
     where = {
-      conditions: searchConditions,
-      conector: 'OR'
+      conditions: [],
+      conector: 'AND'
+    }
+
+    if (searchConditions.length > 0) {
+      where.conditions.push({
+        conditions: searchConditions,
+        conector: 'OR'
+      })
+    }
+
+    if (filterConditions.length > 0) {
+      where.conditions.push({
+        conditions: filterConditions,
+        conector: 'AND'
+      })
     }
 
     const source = {}
@@ -461,13 +476,15 @@ export const BusinessAndProductList = (props) => {
     promises.push(await productEndpoint.get({ cancelToken: source }))
 
     if (isUseParentCategory && (!categorySelected.id || categorySelected.id === 'featured')) {
-      where.conditions.push({
-        attribute: 'featured',
-        value: {
-          condition: '=',
-          value: true
-        }
-      })
+      if (!categorySelected.id) {
+        where.conditions.push({
+          attribute: 'featured',
+          value: {
+            condition: '=',
+            value: true
+          }
+        })
+      }
       productEndpoint = ordering.businesses(businessState.business.id).products().parameters(parameters).where(where)
       promises.push(await productEndpoint.get({ cancelToken: source }))
     }

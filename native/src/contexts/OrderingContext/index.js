@@ -49,7 +49,7 @@ export const OrderingProvider = ({ Alert, isValidColor, noValidateColors, settin
               <ConfigProvider strategy={nativeStrategy}>
                 <OrderingThemeProvider settings={Object.assign(settings.api, restOfSettings)} isValidColor={isValidColor} noValidateColors={noValidateColors}>
                   <SiteProvider appId={settings.app_id}>
-                    <UtilsProviders>
+                    <UtilsProviders strategy={nativeStrategy}>
                       <ToastProvider>
                         <ValidationFieldsProvider appId={settings.app_id}>
                           <SessionProvider strategy={nativeStrategy}>

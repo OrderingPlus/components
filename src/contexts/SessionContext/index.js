@@ -119,7 +119,7 @@ export const SessionProvider = ({ children, strategy }) => {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `bearer ${state.token}`,
-          'X-App-X': ordering?.appId
+          'X-APP-X': ordering?.appId
         }
       }
       const response = await fetch(`${ordering.root}/users/${state.user?.id}`, requestOptions)

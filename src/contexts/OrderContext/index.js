@@ -118,14 +118,12 @@ export const OrderProvider = ({
         const { carts, ...options } = result
 
         if (!Array.isArray(carts)) {
-          console.log('Invalid carts data received:', carts)
           return
         }
 
         const newCarts = {}
         carts.forEach(cart => {
           if (!cart || typeof cart !== 'object' || !cart.business_id) {
-            console.log('Invalid cart item received:', cart)
             return
           }
 
@@ -1436,7 +1434,6 @@ export const OrderProvider = ({
       }
 
       setState(prevState => {
-        // Validar datos de entrada del socket
         if (!cart || typeof cart !== 'object' || !cart.business_id) {
           console.warn('Invalid cart data received from socket:', cart)
           return prevState

@@ -217,7 +217,7 @@ export const OrderProvider = ({
         : !err.message
             ? t('NETWORK_ERROR', 'Network error')
             : err.message
-      setAlert({ show: true, content: [message] })
+      setAlert({ show: true, content: message })
       setState(prevState => ({ ...prevState, loading: false }))
     }
   }
@@ -462,7 +462,7 @@ export const OrderProvider = ({
         const message = err?.message?.includes('Internal error')
           ? 'INTERNAL_ERROR'
           : err.message
-        setAlert({ show: true, content: [message] })
+        setAlert({ show: true, content: message })
         setState(prevState => ({ ...prevState, loading: false }))
         state.loading = false
         return false

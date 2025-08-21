@@ -116,14 +116,41 @@ export const OrderProvider = ({
 
       if (!error) {
         const { carts, ...options } = result
+
+        if (!Array.isArray(carts)) {
+          console.log('Invalid carts data received:', carts)
+          return
+        }
+
         const newCarts = {}
         carts.forEach(cart => {
+          if (!cart || typeof cart !== 'object' || !cart.business_id) {
+            console.log('Invalid cart item received:', cart)
+            return
+          }
+
           const cartFound = state.carts[`businessId:${cart.business_id}`]
-          newCarts[`businessId:${cart.business_id}`] = dayjs(cartFound?.updated_at).isAfter(dayjs(cart?.updated_at))
-            ? cartFound
-            : cart
+
+          if (cartFound?.updated_at && cart?.updated_at) {
+            const cartFoundTime = dayjs(cartFound.updated_at)
+            const cartTime = dayjs(cart.updated_at)
+
+            if (cartFoundTime.isValid() && cartTime.isValid() && cartFoundTime.isAfter(cartTime)) {
+              newCarts[`businessId:${cart.business_id}`] = { ...cartFound }
+            } else {
+              newCarts[`businessId:${cart.business_id}`] = { ...cart }
+            }
+          } else {
+            newCarts[`businessId:${cart.business_id}`] = { ...cart }
+          }
         })
-        setState(prevState => ({ ...prevState, options: { ...prevState.options, ...options }, carts: newCarts }))
+
+        setState(prevState => ({
+          ...prevState,
+          options: { ...prevState.options, ...options },
+          carts: newCarts
+        }))
+
         if (!countryCodeFromLocalStorage && options?.address?.country_code) {
           await updateOrderOptions({ country_code: options?.address?.country_code })
         }
@@ -1409,9 +1436,16 @@ export const OrderProvider = ({
       }
 
       setState(prevState => {
+        // Validar datos de entrada del socket
+        if (!cart || typeof cart !== 'object' || !cart.business_id) {
+          console.warn('Invalid cart data received from socket:', cart)
+          return prevState
+        }
+
         const newState = { ...prevState }
+        const newCarts = { ...prevState.carts }
+
         if (cart.status === 1) {
-          const newCarts = { ...prevState.carts }
           delete newCarts[`businessId:${cart.business_id}`]
           return {
             ...newState,
@@ -1419,21 +1453,27 @@ export const OrderProvider = ({
           }
         } else {
           const cartFound = Object.values(prevState.carts).find(_cart => _cart?.uuid === cart?.uuid)
-          if (dayjs(cartFound?.updated_at).isAfter(dayjs(cart?.updated_at))) {
-            return prevState
+
+          if (cartFound?.updated_at && cart?.updated_at) {
+            const cartFoundTime = dayjs(cartFound.updated_at)
+            const cartTime = dayjs(cart.updated_at)
+
+            if (cartFoundTime.isValid() && cartTime.isValid() && cartFoundTime.isAfter(cartTime)) {
+              return prevState
+            }
           }
+
           const oldBusinessId = cartFound?.business_id
           const newBusinessId = cart?.business_id
-          const newCarts = { ...prevState.carts }
 
           if (!oldBusinessId || oldBusinessId === newBusinessId) {
             newCarts[`businessId:${cart.business_id}`] = {
-              ...newCarts[`businessId:${cart.business_id}`],
+              ...(newCarts[`businessId:${cart.business_id}`] || {}),
               ...cart
             }
           } else {
             delete newCarts[`businessId:${oldBusinessId}`]
-            newCarts[`businessId:${newBusinessId}`] = cart
+            newCarts[`businessId:${newBusinessId}`] = { ...cart }
           }
 
           return {
@@ -1451,22 +1491,24 @@ export const OrderProvider = ({
       const newCarts = {}
       carts.forEach(cart => {
         const cartFound = state.carts[`businessId:${cart.business_id}`]
-        newCarts[`businessId:${cart.business_id}`] = dayjs(cartFound?.updated_at).isAfter(dayjs(cart?.updated_at))
+        newCarts[`businessId:${cart.business_id}`] = cartFound && dayjs(cartFound?.updated_at).isAfter(dayjs(cart?.updated_at))
           ? cartFound
           : cart
       })
-      const newState = {
-        ...state,
-        options: {
-          ...state.options,
-          ...options
-        },
-        carts: {
-          ...state.carts,
-          ...newCarts
+      setState((prevState) => {
+        const newState = {
+          ...prevState,
+          options: {
+            ...prevState.options,
+            ...options
+          },
+          carts: {
+            ...prevState.carts,
+            ...newCarts
+          }
         }
-      }
-      setState({ ...newState, loading: false })
+        return newState
+      })
     }
     socket.on('carts_update', handleCartUpdate)
     socket.on('order_options_update', handleOrderOptionUpdate)

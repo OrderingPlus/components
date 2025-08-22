@@ -151,7 +151,7 @@ export const Checkout = (props) => {
   /**
    * Method to handle click on Place order
    */
-  const handlerClickPlaceOrder = async (paymentOptions, payloadProps, confirmPayment, dismissPlatformPay, paymethod = null) => {
+  const handlerClickPlaceOrder = async (paymentOptions, payloadProps, confirmPayment, dismissPlatformPay, paymethod = null, options = {}) => {
     if (placing) {
       showToast(ToastType.Info, t('CART_IN_PROGRESS', 'Cart in progress'))
       return
@@ -246,7 +246,7 @@ export const Checkout = (props) => {
     }
 
     setPlacing(false)
-    onPlaceOrderClick && onPlaceOrderClick(payload, _paymethodSelected, cartResult)
+    onPlaceOrderClick && onPlaceOrderClick(payload, _paymethodSelected, cartResult, options)
     return { paymethod: _paymethodSelected, cart: cartResult }
   }
 

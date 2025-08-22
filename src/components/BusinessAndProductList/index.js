@@ -310,7 +310,7 @@ export const BusinessAndProductList = (props) => {
       iterateCategories(businessObj?.categories)
       const categoriesList = [].concat(...businessObj?.categories.map(category => category.children))
       const categories = isUseParentCategory ? categoriesList : businessObj?.categories
-      const parentCategory = categories?.find(category => category.category_id === categorySelected.id) ?? {}
+      const parentCategory = categories?.find(category => category?.category_id === categorySelected?.id) ?? {}
       const categoryFinded = subCategoriesList.find(subCat => subCat.id === parentCategory.category_id) ?? {}
 
       const productsFiltered = businessObj?.categories
@@ -342,16 +342,19 @@ export const BusinessAndProductList = (props) => {
       }
 
       const productsToFilter = avoidProductDuplicate ? _categoriesCustom : businessObj?.categories
-      const productsFiltered = productsToFilter?.reduce(
-        (products, category) => [
-          ...products,
-          ...category.products.map(product => ({
-            ...product,
-            ...(category.slug ? { category: { ...product?.category, slug: category.slug } } : {})
-          }))
-        ], []
+      const productsFiltered = (productsToFilter || [])?.reduce(
+        (products, category) => {
+          if (!category?.products) return products
+          return [
+            ...products,
+            ...category.products.map(product => ({
+              ...product,
+              ...(category.slug ? { category: { ...product?.category, slug: category.slug } } : {})
+            }))
+          ]
+        }, []
       ).filter(
-        product => isMatchSearch(product.name, product.description, product?.price)
+        product => product && isMatchSearch(product.name, product.description, product?.price)
       )
       categoryState.products = productsFiltered || []
     }
@@ -379,6 +382,7 @@ export const BusinessAndProductList = (props) => {
 
     let where = null
     const searchConditions = []
+    const filterConditions = []
     if (searchValue) {
       if (isSearchByName) {
         searchConditions.push(
@@ -405,7 +409,7 @@ export const BusinessAndProductList = (props) => {
     }
 
     if (priceFilterValues?.min) {
-      searchConditions.push(
+      filterConditions.push(
         {
           attribute: 'price',
           value: {
@@ -417,7 +421,7 @@ export const BusinessAndProductList = (props) => {
     }
 
     if (priceFilterValues?.max) {
-      searchConditions.push(
+      filterConditions.push(
         {
           attribute: 'price',
           value: {
@@ -428,26 +432,33 @@ export const BusinessAndProductList = (props) => {
       )
     }
 
-    where = {
-      conditions: searchConditions,
-      conector: 'OR'
-    }
-
     if (categorySelected.id === 'featured') {
-      parameters.params = 'features'
+      filterConditions.push({
+        attribute: 'featured',
+        value: {
+          condition: '=',
+          value: true
+        }
+      })
     }
 
-    if (categorySelected.id === 'featured' && searchValue) {
-      parameters.params = 'features'
-      where = {
-        conditions: [
-          {
-            conditions: searchConditions,
-            conector: 'OR'
-          }
-        ],
+    where = {
+      conditions: [],
+      conector: 'AND'
+    }
+
+    if (searchConditions.length > 0) {
+      where.conditions.push({
+        conditions: searchConditions,
+        conector: 'OR'
+      })
+    }
+
+    if (filterConditions.length > 0) {
+      where.conditions.push({
+        conditions: filterConditions,
         conector: 'AND'
-      }
+      })
     }
 
     const source = {}
@@ -465,11 +476,16 @@ export const BusinessAndProductList = (props) => {
     promises.push(await productEndpoint.get({ cancelToken: source }))
 
     if (isUseParentCategory && (!categorySelected.id || categorySelected.id === 'featured')) {
-      parameters.params = 'features'
-      productEndpoint = where?.conditions?.length > 0
-        ? ordering.businesses(businessState.business.id).products().parameters(parameters).where(where)
-        : ordering.businesses(businessState.business.id).products().parameters(parameters)
-
+      if (!categorySelected.id) {
+        where.conditions.push({
+          attribute: 'featured',
+          value: {
+            condition: '=',
+            value: true
+          }
+        })
+      }
+      productEndpoint = ordering.businesses(businessState.business.id).products().parameters(parameters).where(where)
       promises.push(await productEndpoint.get({ cancelToken: source }))
     }
 
@@ -761,6 +777,21 @@ export const BusinessAndProductList = (props) => {
           .products(productId || props.product?.id)
           .parameters(parameters)
           .get({ cancelToken: source })
+        if (result?.extras && Array.isArray(result.extras) && result?.extras?.length > 0) {
+          result.extras = result.extras.sort((a, b) => (a?.rank || 0) - (b?.rank || 0))
+
+          result.extras.forEach(extra => {
+            if (extra?.options && Array.isArray(extra?.options) && extra?.options?.length > 0) {
+              extra.options = extra.options.sort((a, b) => (a?.rank || 0) - (b?.rank || 0))
+
+              extra.options.forEach(option => {
+                if (option?.suboptions && Array.isArray(option?.suboptions) && option?.suboptions?.length > 0) {
+                  option.suboptions = option.suboptions.sort((a, b) => (a?.rank || 0) - (b?.rank || 0))
+                }
+              })
+            }
+          })
+        }
         const product = Array.isArray(result) ? null : result
 
         setNotFound(!result)

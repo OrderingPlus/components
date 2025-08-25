@@ -81,7 +81,7 @@ export const OrderProvider = ({
   const refreshOrderOptions = async () => {
     try {
       if (!state.loading) {
-        setState({ ...state, loading: true })
+        setState(prevState => ({ ...prevState, loading: true }))
       }
       const countryCodeFromLocalStorage = await strategy.getItem('country-code')
       const customerFromLocalStorage = await strategy.getItem('user-customer', true)
@@ -116,14 +116,38 @@ export const OrderProvider = ({
 
       if (!error) {
         const { carts, ...options } = result
-        state.carts = {}
-        carts.forEach(cart => {
-          state.carts[`businessId:${cart.business_id}`] = cart
-        })
-        state.options = {
-          ...state.options,
-          ...options
+
+        if (!Array.isArray(carts)) {
+          return
         }
+
+        const newCarts = {}
+        carts.forEach(cart => {
+          if (!cart || typeof cart !== 'object' || !cart.business_id) {
+            return
+          }
+
+          const cartFound = state.carts[`businessId:${cart.business_id}`]
+
+          if (cartFound?.updated_at && cart?.updated_at) {
+            const cartFoundTime = dayjs(cartFound.updated_at)
+            const cartTime = dayjs(cart.updated_at)
+
+            if (cartFoundTime.isValid() && cartTime.isValid() && cartFoundTime.isAfter(cartTime)) {
+              newCarts[`businessId:${cart.business_id}`] = { ...cartFound }
+            } else {
+              newCarts[`businessId:${cart.business_id}`] = { ...cart }
+            }
+          } else {
+            newCarts[`businessId:${cart.business_id}`] = { ...cart }
+          }
+        })
+
+        setState(prevState => ({
+          ...prevState,
+          options: { ...prevState.options, ...options },
+          carts: newCarts
+        }))
 
         if (!countryCodeFromLocalStorage && options?.address?.country_code) {
           await updateOrderOptions({ country_code: options?.address?.country_code })
@@ -181,11 +205,11 @@ export const OrderProvider = ({
         if (options && Object.keys(options).length > 0) {
           updateOrderOptions(options)
         } else {
-          setState({ ...state, loading: false })
+          setState(prevState => ({ ...prevState, loading: false }))
         }
         await strategy.removeItem('options')
       } else {
-        setState({ ...state, loading: false })
+        setState(prevState => ({ ...prevState, loading: false }))
       }
     } catch (err) {
       const message = err?.message?.includes('Internal error')
@@ -194,7 +218,7 @@ export const OrderProvider = ({
             ? t('NETWORK_ERROR', 'Network error')
             : err.message
       setAlert({ show: true, content: [message] })
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
     }
   }
 
@@ -216,6 +240,12 @@ export const OrderProvider = ({
         }
         refreshOrderOptions()
       }, timeIntervalProduct)
+    }
+  }
+
+  const clearTimeout = () => {
+    if (intervalRetriesRef.current) {
+      clearInterval(intervalRetriesRef.current)
     }
   }
 
@@ -385,7 +415,7 @@ export const OrderProvider = ({
         user_id: userCustomerId || session.user.id
       }
       try {
-        setState({ ...state, loading: true })
+        setState(prevState => ({ ...prevState, loading: true }))
         const options = {}
         state.loading = true
         options.headers = {
@@ -417,18 +447,15 @@ export const OrderProvider = ({
           .save(body, options)
         if (!error) {
           const { carts, ...options } = result
-          state.carts = {}
+          const newCarts = {}
           carts.forEach(cart => {
-            state.carts[`businessId:${cart.business_id}`] = cart
+            newCarts[`businessId:${cart.business_id}`] = cart
           })
-          state.options = {
-            ...state.options,
-            ...options
-          }
+          setState(prevState => ({ ...prevState, options: { ...prevState.options, ...options }, carts: newCarts }))
         } else {
           setAlert({ show: true, content: result })
         }
-        setState({ ...state, loading: false })
+        setState(prevState => ({ ...prevState, loading: false }))
         state.loading = false
         return !error
       } catch (err) {
@@ -436,7 +463,7 @@ export const OrderProvider = ({
           ? 'INTERNAL_ERROR'
           : err.message
         setAlert({ show: true, content: [message] })
-        setState({ ...state, loading: false })
+        setState(prevState => ({ ...prevState, loading: false }))
         state.loading = false
         return false
       }
@@ -480,13 +507,13 @@ export const OrderProvider = ({
       const { content: { error, result } } = await ordering.setAccessToken(session.token).carts().addProduct(body, { headers })
 
       if (!error) {
-        state.carts[`businessId:${result.business_id}`] = result
+        const newCarts = {
+          ...state.carts,
+          [`businessId:${result.business_id}`]: result
+        }
         setState(prevState => ({
           ...prevState,
-          carts: {
-            ...prevState.carts,
-            [`businessId:${result.business_id}`]: result
-          }
+          carts: newCarts
         }))
         events.emit('cart_product_added', product, result)
         if (product?.favorite) {
@@ -495,18 +522,20 @@ export const OrderProvider = ({
         events.emit('cart_updated', result)
         events.emit('product_added', product, result)
         isQuickAddProduct && !isDisableToast && showToast(ToastType.Success, t('PRODUCT_ADDED_NOTIFICATION', 'Product _PRODUCT_ added succesfully').replace('_PRODUCT_', product.name))
-        refreshOrderOptionsWithRetries(cart, product)
+        setTimeout(() => {
+          refreshOrderOptionsWithRetries(cart, product)
+        }, 1000)
       } else {
         setAlert({ show: true, content: result })
       }
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       if (isPlatformProduct) {
         return { error, result }
       } else {
         return !error
       }
     } catch (err) {
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       if (isPlatformProduct) {
         return { error: true, result: err.message }
       } else {
@@ -527,7 +556,7 @@ export const OrderProvider = ({
     isQuickAddProduct
   ) => {
     try {
-      setState({ ...state, loading: true })
+      setState(prevState => ({ ...prevState, loading: true }))
       const countryCode = await strategy.getItem('country-code')
       const customerFromLocalStorage = await strategy.getItem('user-customer', true)
       const userCustomerId = customerFromLocalStorage?.id
@@ -554,7 +583,11 @@ export const OrderProvider = ({
       })
       const { result, error } = await response.json()
       if (!error) {
-        state.carts[`businessId:${result.business_id}`] = result
+        const newCarts = {
+          ...state.carts,
+          [`businessId:${result.business_id}`]: result
+        }
+        setState(prevState => ({ ...prevState, carts: newCarts }))
         events.emit('cart_product_added', product, result)
         if (product?.favorite) {
           events.emit('wishlist_product_added_to_cart', product, result)
@@ -562,14 +595,16 @@ export const OrderProvider = ({
         events.emit('cart_updated', result)
         events.emit('product_added', product, result)
         isQuickAddProduct && !isDisableToast && showToast(ToastType.Success, t('PRODUCT_ADDED_NOTIFICATION', 'Product _PRODUCT_ added succesfully').replace('_PRODUCT_', product.name))
-        refreshOrderOptionsWithRetries(cart, product, result)
+        setTimeout(() => {
+          refreshOrderOptionsWithRetries(cart, product, result)
+        }, 1000)
       } else {
         setAlert({ show: true, content: result })
       }
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return !error
     } catch (err) {
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return false
     }
   }
@@ -579,7 +614,7 @@ export const OrderProvider = ({
    */
   const removeProduct = async (product, cart) => {
     try {
-      setState({ ...state, loading: true })
+      setState(prevState => ({ ...prevState, loading: true }))
       const countryCode = await strategy.getItem('country-code')
       const customerFromLocalStorage = await strategy.getItem('user-customer', true)
       const userCustomerId = customerFromLocalStorage?.id
@@ -599,22 +634,23 @@ export const OrderProvider = ({
         }
       })
       if (!error) {
-        state.carts[`businessId:${result.business_id}`] = result
-        setState(prevState => {
-          const updatedCarts = prevState.carts
-          updatedCarts[`businessId:${result.business_id}`] = result
-          return { ...prevState, carts: updatedCarts }
-        })
+        const newCarts = {
+          ...state.carts,
+          [`businessId:${result.business_id}`]: result
+        }
+        setState(prevState => ({ ...prevState, carts: newCarts }))
         events.emit('cart_product_removed', product, result)
         events.emit('cart_updated', result)
-        refreshOrderOptionsWithRetries(cart, product)
+        setTimeout(() => {
+          refreshOrderOptionsWithRetries(cart, product)
+        }, 1000)
       } else {
         setAlert({ show: true, content: result })
       }
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return !error
     } catch (err) {
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return false
     }
   }
@@ -663,7 +699,7 @@ export const OrderProvider = ({
    */
   const updateProduct = async (product, cart, isQuickAddProduct) => {
     try {
-      setState({ ...state, loading: true })
+      setState(prevState => ({ ...prevState, loading: true }))
       const countryCode = await strategy.getItem('country-code')
       const customerFromLocalStorage = await strategy.getItem('user-customer', true)
       const userCustomerId = customerFromLocalStorage?.id
@@ -679,18 +715,24 @@ export const OrderProvider = ({
         }
       })
       if (!error) {
-        state.carts[`businessId:${result.business_id}`] = result
+        const newCarts = {
+          ...state.carts,
+          [`businessId:${result.business_id}`]: result
+        }
+        setState(prevState => ({ ...prevState, carts: newCarts }))
         events.emit('cart_product_updated', product, result)
         events.emit('cart_updated', result)
         isQuickAddProduct && !isDisableToast && showToast(ToastType.Success, t('PRODUCT_UPDATED_NOTIFICATION', 'Product _PRODUCT_ updated succesfully').replace('_PRODUCT_', product.name))
-        refreshOrderOptionsWithRetries(cart, product)
+        setTimeout(() => {
+          refreshOrderOptionsWithRetries(cart, product)
+        }, 1000)
       } else {
         setAlert({ show: true, content: result })
       }
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return !error
     } catch (err) {
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return false
     }
   }
@@ -1352,7 +1394,7 @@ export const OrderProvider = ({
           'Content-Type': 'application/json'
         }
       })
-    } catch (err) {}
+    } catch (err) { }
   }
 
   useEffect(() => {
@@ -1392,28 +1434,43 @@ export const OrderProvider = ({
       }
 
       setState(prevState => {
+        if (!cart || typeof cart !== 'object' || !cart.business_id) {
+          console.warn('Invalid cart data received from socket:', cart)
+          return prevState
+        }
+
         const newState = { ...prevState }
+        const newCarts = { ...prevState.carts }
+
         if (cart.status === 1) {
-          const newCarts = { ...prevState.carts }
           delete newCarts[`businessId:${cart.business_id}`]
           return {
             ...newState,
             carts: newCarts
           }
         } else {
-          const cartFinded = Object.values(prevState.carts).find(_cart => _cart?.uuid === cart?.uuid)
-          const oldBusinessId = cartFinded?.business_id
+          const cartFound = Object.values(prevState.carts).find(_cart => _cart?.uuid === cart?.uuid)
+
+          if (cartFound?.updated_at && cart?.updated_at) {
+            const cartFoundTime = dayjs(cartFound.updated_at)
+            const cartTime = dayjs(cart.updated_at)
+
+            if (cartFoundTime.isValid() && cartTime.isValid() && cartFoundTime.isAfter(cartTime)) {
+              return prevState
+            }
+          }
+
+          const oldBusinessId = cartFound?.business_id
           const newBusinessId = cart?.business_id
-          const newCarts = { ...prevState.carts }
 
           if (!oldBusinessId || oldBusinessId === newBusinessId) {
             newCarts[`businessId:${cart.business_id}`] = {
-              ...newCarts[`businessId:${cart.business_id}`],
+              ...(newCarts[`businessId:${cart.business_id}`] || {}),
               ...cart
             }
           } else {
             delete newCarts[`businessId:${oldBusinessId}`]
-            newCarts[`businessId:${newBusinessId}`] = cart
+            newCarts[`businessId:${newBusinessId}`] = { ...cart }
           }
 
           return {
@@ -1430,20 +1487,25 @@ export const OrderProvider = ({
 
       const newCarts = {}
       carts.forEach(cart => {
-        newCarts[`businessId:${cart.business_id}`] = cart
+        const cartFound = state.carts[`businessId:${cart.business_id}`]
+        newCarts[`businessId:${cart.business_id}`] = cartFound && dayjs(cartFound?.updated_at).isAfter(dayjs(cart?.updated_at))
+          ? cartFound
+          : cart
       })
-      const newState = {
-        ...state,
-        options: {
-          ...state.options,
-          ...options
-        },
-        carts: {
-          ...state.carts,
-          ...newCarts
+      setState((prevState) => {
+        const newState = {
+          ...prevState,
+          options: {
+            ...prevState.options,
+            ...options
+          },
+          carts: {
+            ...prevState.carts,
+            ...newCarts
+          }
         }
-      }
-      setState({ ...newState, loading: false })
+        return newState
+      })
     }
     socket.on('carts_update', handleCartUpdate)
     socket.on('order_options_update', handleOrderOptionUpdate)
@@ -1495,7 +1557,8 @@ export const OrderProvider = ({
     setStateInitialValues,
     handleOrderStateLoading,
     createReservation,
-    handleLogEvent
+    handleLogEvent,
+    clearTimeout
   }
 
   const copyState = JSON.parse(JSON.stringify(state))

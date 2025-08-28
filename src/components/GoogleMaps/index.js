@@ -40,6 +40,7 @@ export const GoogleMaps = (props) => {
   const [userActivity, setUserActivity] = useState(false)
   const [googleReady] = useGoogleMaps(apiKey)
   const markerRef = useRef()
+  const activeInfoWindowRef = useRef(null)
 
   const location = fixedLocation || props.location
   const center = { lat: location?.lat, lng: location?.lng }
@@ -101,11 +102,22 @@ export const GoogleMaps = (props) => {
       } else {
         marker.addListener('click', () => {
           if (locations[i]?.markerPopup && allowMarkerPopups) {
+            if (activeInfoWindowRef.current) {
+              activeInfoWindowRef.current.close()
+            }
+
             const infowindow = new window.google.maps.InfoWindow()
             infowindow.setContent(locations[i]?.markerPopup)
             infowindow.open(map, marker)
+
+            activeInfoWindowRef.current = infowindow
+
             window.google.maps.event.addListenerOnce(infowindow, 'domready', () => {
               document.getElementById(`order-now-${locations[i]?.id}`)?.addEventListener('click', () => locations[i]?.onBusinessCustomClick())
+            })
+
+            window.google.maps.event.addListenerOnce(infowindow, 'closeclick', () => {
+              activeInfoWindowRef.current = null
             })
           } else {
             onBusinessClick && onBusinessClick(locations[i]?.slug, locations[i])
@@ -421,6 +433,10 @@ export const GoogleMaps = (props) => {
       if (businessMap && googleMap) {
         if (markerRef?.current) {
           markerRef?.current?.close && markerRef.current.close()
+        }
+        if (activeInfoWindowRef.current) {
+          activeInfoWindowRef.current.close()
+          activeInfoWindowRef.current = null
         }
         markers.forEach(marker => {
           marker.setMap(null)

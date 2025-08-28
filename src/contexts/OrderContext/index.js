@@ -1259,7 +1259,18 @@ export const OrderProvider = ({
   const getLastOrderHasNoReview = async () => {
     if (session?.token) {
       const pastOrderTypes = [1, 2, 5, 6, 10, 11, 12, 15, 16, 17]
-      const where = [{ attribute: 'status', value: pastOrderTypes }]
+      const where = [
+        { attribute: 'status', value: pastOrderTypes },
+        {
+          attribute: 'products',
+          conditions: [{
+            attribute: 'type',
+            value: {
+              condition: '!=',
+              value: 'gift_card'
+            }
+          }]
+        }]
       if (franchiseId) {
         where.push({
           attribute: 'ref_business',

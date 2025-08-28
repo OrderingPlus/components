@@ -159,17 +159,7 @@ export const OrderList = props => {
               attribute: 'type',
               value: {
                 condition: '=',
-                value: 'item'
-              }
-            }]
-          },
-          {
-            attribute: 'products',
-            conditions: [{
-              attribute: 'type',
-              value: {
-                condition: '=',
-                value: 'service'
+                value: ['item', 'service']
               }
             }]
           },
@@ -182,6 +172,15 @@ export const OrderList = props => {
           }
         ]
       })
+    }
+
+    if (options.query.where.length > 0) {
+      options.query.where = {
+        conditions: options.query.where,
+        conector: 'AND'
+      }
+    } else {
+      delete options.query.where
     }
 
     const source = {}

@@ -416,7 +416,6 @@ export const BusinessList = (props) => {
     orderState.options?.address?.address,
     JSON.stringify(orderState.options?.address?.location),
     ordering?.countryCode,
-    orderState.loading,
     businessTypeSelected,
     priceLevelSelected,
     searchValue,

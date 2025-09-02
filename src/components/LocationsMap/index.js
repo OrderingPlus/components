@@ -8,7 +8,8 @@ export const LocationsMap = (props) => {
     mapControls,
     location,
     activeInfoWindow,
-    forceCenter
+    forceCenter,
+    listenLocations
   } = props
 
   const divRef = useRef()
@@ -72,6 +73,11 @@ export const LocationsMap = (props) => {
       generateMarkers(map)
     }
   }, [googleReady])
+
+  useEffect(() => {
+    if (!googleMap || !listenLocations || !googleReady) return
+    generateMarkers(googleMap)
+  }, [googleMap, locations])
 
   useEffect(() => {
     if (googleMap && activeInfoWindow) {

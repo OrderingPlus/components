@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useOrder } from '../../contexts/OrderContext'
 import { useConfig } from '../../contexts/ConfigContext'
@@ -57,13 +57,14 @@ export const Cart = (props) => {
    */
   const maxCartProductConfig = (stateConfig.configs.max_product_amount ? parseInt(stateConfig.configs.max_product_amount) : 100) - totalBalance
   /**
-   * Timeout for update cart comment
-   */
-  let timeout = null
-  /**
-   * Cart comment stagged
+   * Previous comment value
    */
   let previousComment
+  /**
+   * Refs for managing timeout and abort controller
+   */
+  const timeoutRef = React.useRef(null)
+  const abortControllerRef = React.useRef(null)
   /**
    * Catering preorder
    */
@@ -121,39 +122,62 @@ export const Cart = (props) => {
   const handleChangeComment = (value, userId) => {
     try {
       if (previousComment !== value) {
-        clearTimeout(timeout)
-        timeout = setTimeout(async function () {
-          setCommentState({ ...commentState, loading: true })
-          const uuid = cart?.uuid
-          const body = { comment: value }
-          if (userId) body.user_id = userId
-          const response = await fetch(`${ordering.root}/carts/${uuid}`, {
-            'Content-Type': 'application/json',
-            method: 'PUT',
-            body: JSON.stringify(body),
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-              'X-App-X': ordering.appId,
-              'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
-              'X-Socket-Id-X': socket?.getId()
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort()
+        }
+
+        timeoutRef.current = setTimeout(async function () {
+          try {
+            setCommentState(prev => ({ ...prev, loading: true }))
+
+            abortControllerRef.current = new AbortController()
+
+            const uuid = cart?.uuid
+            const body = { comment: value }
+            if (userId) body.user_id = userId
+
+            const response = await fetch(`${ordering.root}/carts/${uuid}`, {
+              method: 'PUT',
+              body: JSON.stringify(body),
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+                'X-App-X': ordering.appId,
+                'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+                'X-Socket-Id-X': socket?.getId()
+              },
+              signal: abortControllerRef.current.signal
+            })
+
+            const { result, error } = await response.json()
+
+            abortControllerRef.current = null
+
+            if (error) {
+              setCommentState(prev => ({ ...prev, loading: false, error: true, result }))
+              showToast(ToastType.Error, result)
+              return
             }
-          })
-          const { result, error } = await response.json()
-          if (error) {
-            setCommentState({ ...commentState, loading: false, error: true, result })
-            showToast(ToastType.Error, result)
-            return
+            const carts = orderState.carts
+            carts[`businessId:${result.business_id}`] = result
+            setStateValues({ carts })
+            setCommentState(prev => ({ ...prev, loading: false, error: null, result }))
+          } catch (err) {
+            if (err.name !== 'AbortError') {
+              setCommentState(prev => ({ ...prev, loading: false, error: true, result: err.message }))
+              showToast(ToastType.Error, err.message)
+            }
+            abortControllerRef.current = null
           }
-          const carts = orderState.carts
-          carts[`businessId:${result.business_id}`] = result
-          setStateValues({ carts })
-          setCommentState({ ...commentState, loading: false, error: null, result })
         }, commentDelayTime ?? 750)
       }
       previousComment = value
     } catch (err) {
-      setCommentState({ ...commentState, loading: false, error: true, result: err.message })
+      setCommentState(prev => ({ ...prev, loading: false, error: true, result: err.message }))
       showToast(ToastType.Error, err.message)
     }
   }
@@ -169,6 +193,17 @@ export const Cart = (props) => {
     if (userId) dataOffer.user_id = userId
     removeOffer(dataOffer)
   }
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
 
   return (
     <>

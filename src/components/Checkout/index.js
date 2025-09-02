@@ -199,7 +199,10 @@ export const Checkout = (props) => {
         ...paymentOptions
       }
     }
-
+    if (options.returnUrl) {
+      payload.paymethod_data.success_url = options.returnUrl
+      payload.paymethod_data.cancel_url = options.returnUrl
+    }
     setPlacing(true)
     await onChangeSpot()
     if (paymethodsWithoutSaveCard.includes(_paymethodSelected?.paymethod?.gateway)) {

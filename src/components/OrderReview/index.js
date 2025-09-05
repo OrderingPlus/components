@@ -93,6 +93,7 @@ export const OrderReview = (props) => {
         if (!error) {
           handleUpdateOrderList && handleUpdateOrderList(order.id, { review: result })
           isToast && showToast(ToastType.Success, t('ORDER_REVIEW_SUCCESS_CONTENT', 'Thank you, Order review successfully submitted!'))
+          return true
         }
       }
     } catch (err) {

@@ -17,6 +17,7 @@ export const PaymentOptionWallet = (props) => {
   const [{ token, user }] = useSession()
 
   const [walletsState, setWalletsState] = useState({ result: [], loyaltyPlans: [], loading: true, error: null })
+  const [loading, setLoading] = useState(false)
   const [errorState, setErrorState] = useState(null)
 
   const getRedemptionRate = (wallet, loyaltyPlans) => {
@@ -108,6 +109,7 @@ export const PaymentOptionWallet = (props) => {
 
   const selectWallet = async (wallet) => {
     try {
+      setLoading(true)
       const response = await fetch(
         `${ordering.root}/carts/${cart.uuid}/wallets`,
         {
@@ -134,11 +136,14 @@ export const PaymentOptionWallet = (props) => {
       setStateValues({ carts })
     } catch (err) {
       setErrorState([err?.message])
+    } finally {
+      setLoading(false)
     }
   }
 
   const deletetWalletSelected = async (wallet) => {
     try {
+      setLoading(true)
       const response = await fetch(
         `${ordering.root}/carts/${cart.uuid}/wallets/${wallet.id}`,
         {
@@ -162,6 +167,8 @@ export const PaymentOptionWallet = (props) => {
       setStateValues({ carts })
     } catch (err) {
       setErrorState([err?.message])
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -177,6 +184,7 @@ export const PaymentOptionWallet = (props) => {
           {...props}
           errorState={errorState}
           setErrorState={setErrorState}
+          loading={loading}
           walletsState={walletsState}
           selectWallet={selectWallet}
           deletetWalletSelected={deletetWalletSelected}

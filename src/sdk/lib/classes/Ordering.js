@@ -276,54 +276,56 @@ const Ordering = /** @class */ (function () {
     return [root, _options]
   }
   Ordering.prototype.makeRequest = function (method, url, data, options) {
-    const promise = new Promise(function (resolve, reject) {
-      const xhr = new window.XMLHttpRequest()
-      /**
+      const promise = new Promise(function (resolve, reject) {
+          const xhr = new window.XMLHttpRequest();
+          /**
            * Parse query to request
            */
-      const query = Object.entries(options.params || {}).map(function (entry) {
-        return entry[0] + '=' + entry[1]
-      }).join('&')
-      xhr.open(method, url + (query ? '?' + query : ''))
-      /**
+          const query = Object.entries(options.params || {}).map(function (entry) {
+              return entry[0] + "=" + entry[1];
+          }).join('&');
+          xhr.open(method, url + (query ? "?" + query : ''));
+          /**
            * Add headers to request
            */
-      Object.entries(options.headers || {}).forEach(function (entry) {
-        xhr.setRequestHeader(entry[0], entry[1])
-      })
-      /**
+          Object.entries(options.headers || {}).forEach(function (entry) {
+              xhr.setRequestHeader(entry[0], entry[1]);
+          });
+          /**
            * Create cancel request
            */
-      if (options.cancelToken && typeof options.cancelToken === 'object') {
-        options.cancelToken.cancel = function () {
-          xhr.abort()
-        }
-      }
-      xhr.onload = function () {
-        if (this.status < 500) {
-          const data_1 = options.json ? JSON.parse(this.response) : this.response
-          resolve({
-            request: this,
-            data: data_1,
-            status: this.status,
-            statusText: this.statusText
-          })
-        } else {
-          reject(new Error('Internal error'))
-        }
-      }
-      xhr.onerror = function (err) {
-        reject(err)
-      }
-      if (options.json) {
-        xhr.setRequestHeader('Content-Type', 'application/json')
-        xhr.send(data ? JSON.stringify(data) : null)
-      } else {
-        xhr.send()
-      }
-    })
-    return promise
-  }
+          if (options.cancelToken && typeof options.cancelToken === 'object') {
+              options.cancelToken.cancel = function () {
+                  xhr.abort();
+              };
+          }
+          xhr.onload = function () {
+              if (xhr.status < 500) {
+                  const data_1 = options.json ? JSON.parse(xhr.response) : xhr.response;
+                  resolve({
+                      request: xhr,
+                      data: data_1,
+                      status: xhr.status,
+                      statusText: xhr.statusText
+                  });
+              }
+              else {
+                  reject(new Error('Internal error'));
+              }
+          };
+          xhr.onerror = function (err) {
+              reject(err);
+          };
+          if (options.json) {
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              xhr.send(data ? JSON.stringify(data) : null);
+          }
+          else {
+              xhr.send();
+          }
+      });
+      return promise;
+  };
   Ordering.prototype.get = function (path, options) {
     if (options === void 0) { options = { CastClass: null, json: true, system: false } }
     return __awaiter(this, void 0, void 0, function () {

@@ -15,7 +15,6 @@ import { BusinessReviews } from '../src/components/BusinessReviews'
 import { BusinessSortControl } from '../src/components/BusinessSortControl'
 import { BusinessTypeFilter } from '../src/components/BusinessTypeFilter'
 import { BusinessSearchList } from '../src/components/BusinessSearchList'
-import { CardForm } from '../src/components/StripeElementsForm/CardForm'
 import { Cart } from '../src/components/Cart'
 import { CartStoresListing } from '../src/components/CartStoresListing'
 import { Checkout } from '../src/components/Checkout'
@@ -134,7 +133,6 @@ export {
   BusinessSortControl,
   BusinessTypeFilter,
   BusinessSearchList,
-  CardForm,
   Cart,
   CartStoresListing,
   Checkout,

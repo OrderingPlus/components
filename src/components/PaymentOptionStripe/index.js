@@ -409,10 +409,6 @@ export const PaymentOptionStripe = (props) => {
         getBusinessUserPaymethods()
       }
     }
-
-    return () => {
-      requestState.paymentCards?.cancel?.()
-    }
   }, [token, orderState?.loading, gateway, paymethodSelectedInfo?.featured, paymethodSelectedInfo?.paymethod?.featured])
 
   useEffect(() => {

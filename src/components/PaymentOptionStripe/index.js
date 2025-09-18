@@ -396,22 +396,39 @@ export const PaymentOptionStripe = (props) => {
   }
 
   useEffect(() => {
-    if (token && !orderState?.loading) {
-      if ((paymethodSelectedInfo?.featured?.includes('get_cards') || paymethodSelectedInfo?.paymethod?.featured?.includes('get_cards'))) {
-        ['izipay'].includes(gateway) ? getPaymentUserCards() : getBusinessUserPaymethods()
+    if (!token || orderState?.loading) return
+
+    const hasGetCardsFeature =
+      paymethodSelectedInfo?.featured?.includes('get_cards') ||
+      paymethodSelectedInfo?.paymethod?.featured?.includes('get_cards')
+
+    if (hasGetCardsFeature) {
+      if (gateway === 'izipay') {
+        getPaymentUserCards()
       } else {
-        getCards()
-      }
-      if (!props.publicKey && !paymethodV2Featured) {
-        getCredentials()
+        getBusinessUserPaymethods()
       }
     }
+  }, [token, orderState?.loading, gateway, paymethodSelectedInfo?.featured, paymethodSelectedInfo?.paymethod?.featured])
+
+  useEffect(() => {
+    if (!token) return
+
+    const hasGetCardsFeature =
+      paymethodSelectedInfo?.featured?.includes('get_cards') ||
+      paymethodSelectedInfo?.paymethod?.featured?.includes('get_cards')
+
+    if (!hasGetCardsFeature) {
+      getCards()
+    }
+    if (!props.publicKey && !paymethodV2Featured) {
+      getCredentials()
+    }
+
     return () => {
-      if (requestState.paymentCards && requestState.paymentCards.cancel) {
-        requestState.paymentCards.cancel()
-      }
+      requestState.paymentCards?.cancel?.()
     }
-  }, [token, businessId, paymethodSelectedInfo?.id, paymethodV2Featured, orderState?.loading])
+  }, [token, props.publicKey, paymethodV2Featured, paymethodSelectedInfo?.featured, paymethodSelectedInfo?.paymethod?.featured])
 
   useEffect(() => {
     if (newCardAdded) {

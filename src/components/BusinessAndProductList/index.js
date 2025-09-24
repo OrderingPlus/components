@@ -219,13 +219,13 @@ export const BusinessAndProductList = (props) => {
       const content = await response.json()
 
       if (!content.error) {
-        setBusinessState({
-          ...businessState,
+        setBusinessState((prevState) => ({
+          ...prevState,
           business: {
             ...businessState.business,
             favorite: isAdd
           }
-        })
+        }))
         props.handleCustomUpdate && props.handleCustomUpdate(businessState?.business?.id, { favorite: isAdd })
         showToast(ToastType.Success, isAdd ? t('FAVORITE_ADDED', 'Favorite added') : t('FAVORITE_REMOVED', 'Favorite removed'))
       } else {
@@ -283,13 +283,13 @@ export const BusinessAndProductList = (props) => {
         products: updatedProducts
       }
     })
-    setBusinessState({
-      ...businessState,
+    setBusinessState((prevState) => ({
+      ...prevState,
       business: {
-        ...businessState?.business,
+        ...prevState?.business,
         categories: updatedCategories
       }
-    })
+    }))
   }
 
   const getProducts = async (business) => {
@@ -768,7 +768,7 @@ export const BusinessAndProductList = (props) => {
           const moment = dayjs.utc(orderState.options?.moment, 'YYYY-MM-DD HH:mm:ss').local().unix()
           parameters.timestamp = moment
         }
-        const { content: { result } } = await ordering
+        const { content: { result, error } } = await ordering
           .businesses(businessState.business.id || props.product?.businessId)
           .categories(categoryId || props.product?.categoryId)
           .products(productId || props.product?.id)
@@ -776,7 +776,7 @@ export const BusinessAndProductList = (props) => {
           .get({ cancelToken: source })
         const product = Array.isArray(result) ? null : result
 
-        setNotFound(!result)
+        setNotFound(!result || (Array.isArray(result) && error))
         setProductModal({
           ...productModal,
           product,
@@ -801,10 +801,10 @@ export const BusinessAndProductList = (props) => {
   const getBusiness = async () => {
     try {
       if (!slug && isSlugRequired) {
-        setBusinessState({ ...businessState, loading: false })
+        setBusinessState((prevState) => ({ ...prevState, loading: false }))
         return
       }
-      setBusinessState({ ...businessState, loading: true })
+      setBusinessState((prevState) => ({ ...prevState, loading: true }))
       const source = {}
       requestsState.business = source
       const parameters = {
@@ -839,7 +839,6 @@ export const BusinessAndProductList = (props) => {
       setErrorQuantityProducts(!result?.categories || result?.categories?.length === 0)
 
       const data = {
-        ...businessState,
         business: result,
         loading: false
       }
@@ -855,14 +854,14 @@ export const BusinessAndProductList = (props) => {
       }
 
       isApp && loadProducts({ newFetch: true, business: result })
-      setBusinessState(data)
+      setBusinessState((prevState) => ({ ...prevState, ...data }))
       setLoadedFirstTime(true)
     } catch (err) {
-      setBusinessState({
-        ...businessState,
+      setBusinessState((prevState) => ({
+        ...prevState,
         loading: false,
         error: [err.message]
-      })
+      }))
       setLoadedFirstTime(true)
     }
   }
@@ -887,7 +886,7 @@ export const BusinessAndProductList = (props) => {
       }
       return professional
     })
-    setBusinessState({ ...businessState, business: { ...businessState?.business, professionals } })
+    setBusinessState((prevState) => ({ ...prevState, business: { ...prevState?.business, professionals } }))
   }
 
   const updateCategories = (categories, result) => {
@@ -941,7 +940,7 @@ export const BusinessAndProductList = (props) => {
       if (!error) {
         const updatedCategories = updateCategories(businessState?.business.categories, result)
         const updatedBusiness = { ...businessState?.business, categories: updatedCategories }
-        setBusinessState({ ...businessState, business: updatedBusiness })
+        setBusinessState((prevState) => ({ ...prevState, business: updatedBusiness }))
         showToast(ToastType.Success, result?.enabled
           ? t('ENABLED_CATEGORY', 'Enabled category')
           : t('DISABLED_CATEGORY', 'Disabled category'))

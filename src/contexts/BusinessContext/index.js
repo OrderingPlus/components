@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useApi } from '../ApiContext'
+import { useLanguage } from '../LanguageContext'
 
 /**
  * Create BusinessContext
@@ -20,23 +21,54 @@ export const BusinessProvider = ({ children, businessId }) => {
   })
 
   const [ordering] = useApi()
+  const [, t] = useLanguage()
   const businessParams = ['header', 'logo', 'name', 'slug', 'address', 'location', 'distance', 'address_notes', 'zipcode', 'internal_number']
 
-  const getBusiness = async (id) => {
+  const getBusiness = async (id, retries = 0) => {
     try {
       setState({ ...state, loading: true })
       const { content: { result, error } } = await ordering.businesses(id)
         .select(businessParams)
         .get()
 
+      if (error) {
+        // If there's an error and we still have retries, try again
+        if (retries < 2) {
+          console.log(`Retry ${retries + 1} for business ${id}`)
+          setTimeout(() => getBusiness(id, retries + 1), 1000) // Wait 1 second before retrying
+          return
+        }
+        // If retries are exhausted, show error
+        const errorMessage = t('ERROR_GETTING_BUSINESS', `Could not get business with id: ${id}`)
+        setState({
+          ...state,
+          loading: false,
+          business: {},
+          error: errorMessage
+        })
+        return
+      }
+
       setState({
         ...state,
         loading: false,
-        business: error ? {} : result,
-        error: error ? result[0] : null
+        business: result,
+        error: null
       })
     } catch (err) {
-      setState({ ...state, loading: false, error: err.message })
+      // If there's an exception and we still have retries, try again
+      if (retries < 2) {
+        console.log(`Retry ${retries + 1} for business ${id}, error: ${err.message}`)
+        setTimeout(() => getBusiness(id, retries + 1), 1000) // Wait 1 second before retrying
+        return
+      }
+      // If retries are exhausted, show error
+      const errorMessage = t('ERROR_GETTING_BUSINESS', `Could not get business with id: ${id}`)
+      setState({
+        ...state,
+        loading: false,
+        error: errorMessage
+      })
     }
   }
 
@@ -44,7 +76,6 @@ export const BusinessProvider = ({ children, businessId }) => {
     setState({ ...state, business })
   }
 
-  const copyState = JSON.parse(JSON.stringify(state))
   const functions = {
     setBusiness
   }
@@ -56,7 +87,7 @@ export const BusinessProvider = ({ children, businessId }) => {
   }, [businessId])
 
   return (
-    <BusinessContext.Provider value={[copyState, functions]}>
+    <BusinessContext.Provider value={[state, functions]}>
       {children}
     </BusinessContext.Provider>
   )

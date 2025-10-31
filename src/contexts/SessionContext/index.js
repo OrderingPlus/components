@@ -33,7 +33,6 @@ export const SessionProvider = ({ children, strategy, checkInterval = 2000 }) =>
   }, [state])
   const setValuesFromLocalStorage = async () => {
     const { auth, token, user, device_code } = await getValuesFromLocalStorage()
-    console.log('auth', auth, device_code)
     setState(prevState => ({
       ...prevState,
       auth,
@@ -52,7 +51,6 @@ export const SessionProvider = ({ children, strategy, checkInterval = 2000 }) =>
       const device_code = await strategy.getItem('device_code')
       return { auth, token, user, device_code }
     } catch (err) {
-      console.log('err getValuesFromLocalStorage', err)
       setState(prevState => ({
         ...prevState,
         loading: false
@@ -128,7 +126,6 @@ export const SessionProvider = ({ children, strategy, checkInterval = 2000 }) =>
         logout()
       }
     } catch (err) {
-      console.log('err checkLocalStorage', err)
       setState(prevState => ({
         ...prevState,
         loading: false

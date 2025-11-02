@@ -34,7 +34,6 @@ export const BusinessProvider = ({ children, businessId }) => {
       if (error) {
         // If there's an error and we still have retries, try again
         if (retries < 2) {
-          console.log(`Retry ${retries + 1} for business ${id}`)
           setTimeout(() => getBusiness(id, retries + 1), 1000) // Wait 1 second before retrying
           return
         }
@@ -58,7 +57,6 @@ export const BusinessProvider = ({ children, businessId }) => {
     } catch (err) {
       // If there's an exception and we still have retries, try again
       if (retries < 2) {
-        console.log(`Retry ${retries + 1} for business ${id}, error: ${err.message}`)
         setTimeout(() => getBusiness(id, retries + 1), 1000) // Wait 1 second before retrying
         return
       }

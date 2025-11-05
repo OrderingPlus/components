@@ -818,8 +818,9 @@ export const ProductForm = (props) => {
               [`suboption:${preselectedSuboptions[i]?.id}`]: (states[i]?.position === 'whole' ? 1 : 0.5) * states[i].quantity
             }
           }
-          const suboptionValue = (states[i]?.position === 'whole' || (option?.max === 1) ? 1 : 0.5) * states[i].quantity
-
+          const suboptionValue = state?.id === states[i]?.id
+            ? (state?.position === 'whole' ? 1 : 0.5) * states[i].quantity
+            : (states[i]?.position === 'whole' || (option?.max === 1) ? 1 : 0.5) * states[i].quantity
           const value = suboptionValue + (newPizzaState[`option:${option?.id}`].value || 0)
           newPizzaState[`option:${option?.id}`].value = value
         }

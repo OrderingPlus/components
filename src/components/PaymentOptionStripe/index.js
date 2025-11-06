@@ -21,7 +21,8 @@ export const PaymentOptionStripe = (props) => {
     paymethodSelectedInfo,
     paymethodV2Featured,
     setOpenModal,
-    createBusinessUserPaymethod
+    createBusinessUserPaymethod,
+    handleChangeToCheckoutView
   } = props
 
   const [{ token, user }] = useSession()
@@ -438,54 +439,84 @@ export const PaymentOptionStripe = (props) => {
 
   useEffect(() => {
     if (!window.addEventListener) return
-    const handleMessage = (event) => {
+    const handleMessage = async (event) => {
       if (event?.origin?.includes('plugins.orderingplus.com')) {
-        const payment = JSON.parse(event.data || '{}')
-        if (payment?.data?.card_token) {
-          createBusinessUserPaymethod?.({
-            external_id: payment?.data?.card_token,
-            type_data: JSON.stringify(payment?.data?.card_data),
-            type: 'card'
-          }, (result) => {
-            setCardsList((prev) => ({
-              ...prev,
-              loading: false,
-              cards: [...prev.cards, {
-                ...result,
-                ...result.type_data,
-                id: result.id,
-                card_token: result.external_id
-              }]
-            }))
-            setCardList && setCardList((prev) => ({
-              ...prev,
-              loading: false,
-              cards: [...prev.cards, {
-                ...result,
-                ...result.type_data,
-                id: result.id,
-                card_token: result.external_id
-              }]
-            }))
-            onPaymentChange({
-              ...paymethodSelectedInfo,
-              data: {
-                ...result,
-                ...result.type_data,
-                id: result.id,
-                card_token: result.external_id,
-                card: {
-                  ...result.type_data
-                }
-              }
-            })
-            handleCardClick({
-              ...result.type_data,
-              id: result.id,
-              card_token: result.external_id
-            })
+        let payment
+        try {
+          payment = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+        } catch (error) {
+          console.error('Could not parse message from iframe:', error)
+          return
+        }
+        const cardToken = payment?.data?.card_token || payment?.data?.transient_token
+
+        if (cardToken) {
+          if (payment?.data?.transient_token) {
+            const cybersourceData = {
+              transient_token: cardToken,
+              transaction_type: payment?.data?.transaction_type || 'PAYMENT',
+              billing: payment?.data?.billing,
+              card_data: payment?.data?.card_data
+            }
+
+            try {
+              await changePaymethod(businessId, paymethodSelectedInfo.id, JSON.stringify({
+                ...cybersourceData,
+                success_url: window.location.href,
+                cancel_url: window.location.href
+              }))
+            } catch (error) {
+              console.error('Error al actualizar método de pago:', error)
+            }
+
             setOpenModal && setOpenModal(prev => ({ ...prev, iframe: false }))
-          })
+            handleChangeToCheckoutView && handleChangeToCheckoutView()
+          } else if (payment?.data?.card_token) {
+            createBusinessUserPaymethod?.({
+              external_id: cardToken,
+              type_data: JSON.stringify(payment?.data?.card_data),
+              type: 'card'
+            }, (result) => {
+              setCardsList((prev) => ({
+                ...prev,
+                loading: false,
+                cards: [...prev.cards, {
+                  ...result,
+                  ...result.type_data,
+                  id: result.id,
+                  card_token: result.external_id
+                }]
+              }))
+              setCardList && setCardList((prev) => ({
+                ...prev,
+                loading: false,
+                cards: [...prev.cards, {
+                  ...result,
+                  ...result.type_data,
+                  id: result.id,
+                  card_token: result.external_id
+                }]
+              }))
+              onPaymentChange({
+                ...paymethodSelectedInfo,
+                data: {
+                  ...result,
+                  ...result.type_data,
+                  id: result.id,
+                  card_token: result.external_id,
+                  card: {
+                    ...result.type_data
+                  }
+                }
+              })
+              handleCardClick({
+                ...result.type_data,
+                id: result.id,
+                card_token: result.external_id
+              })
+              setOpenModal && setOpenModal(prev => ({ ...prev, iframe: false }))
+            })
+          }
         }
       }
     }

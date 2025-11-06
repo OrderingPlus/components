@@ -11,7 +11,7 @@ const stripeLink = 'stripe_link'
 const paymethodsExisting = ['stripe', 'stripe_direct', 'stripe_connect', 'paypal', 'square']
 const paymethodsNotAllowed = ['paypal_express', 'authorize']
 const paymethodsCallcenterMode = ['cash', 'card_delivery', 'ivrpay', '100_coupon', stripeLink]
-const paymethodsWithAutoUpdate = ['izipay', 'globalpay']
+const paymethodsWithAutoUpdate = ['izipay', 'globalpay', 'cybersource']
 /**
  * Component to manage payment options behavior without UI component
  */

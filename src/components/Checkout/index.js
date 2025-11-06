@@ -107,7 +107,9 @@ export const Checkout = (props) => {
 
   const paymethodsWithoutSaveCard = ['credomatic']
 
-  const globalPayIFrameUrl = useMemo(() => `https://globalpay.plugins.orderingplus.com/${ordering.project}/views/card_form/user/${user?.id}/business/${businessDetails?.business?.id}`, [user, businessDetails])
+  const globalPayIFrameUrl = useMemo(() => `https://globalpay.plugins.orderingplus.com/${ordering.project}/views/card_form/user/${user?.id}/business/${businessDetails?.business?.id}`, [ordering.project, user, businessDetails])
+
+  const cybersourceIFrameUrl = useMemo(() => `https://cybersource.plugins.orderingplus.com/${ordering.project}/views/card_form/user/${user?.id}/business/${businessDetails?.business?.id}`, [ordering.project, user, businessDetails])
 
   const getBusiness = async () => {
     refreshConfigs()
@@ -639,6 +641,7 @@ export const Checkout = (props) => {
           handleConfirmCredomaticPage={handleConfirmCredomaticPage}
           checkoutFieldsState={checkoutFieldsState}
           globalPayIFrameUrl={globalPayIFrameUrl}
+          cybersourceIFrameUrl={cybersourceIFrameUrl}
           createBusinessUserPaymethod={createBusinessUserPaymethod}
         />
       )}

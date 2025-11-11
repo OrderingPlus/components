@@ -397,7 +397,7 @@ export const PaymentOptionStripe = (props) => {
   }
 
   useEffect(() => {
-    if (!token || orderState?.loading) return
+    if (!token || orderState?.loading || (handleChangeToCheckoutView && cardsList.cards.length > 0)) return
 
     const hasGetCardsFeature =
       paymethodSelectedInfo?.featured?.includes('get_cards') ||
@@ -465,6 +465,14 @@ export const PaymentOptionStripe = (props) => {
                 success_url: window.location.href,
                 cancel_url: window.location.href
               }))
+              onPaymentChange({
+                ...paymethodSelectedInfo,
+                data: {
+                  ...cybersourceData,
+                  success_url: window.location.href,
+                  cancel_url: window.location.href
+                }
+              })
             } catch (error) {
               console.error('Error al actualizar método de pago:', error)
             }

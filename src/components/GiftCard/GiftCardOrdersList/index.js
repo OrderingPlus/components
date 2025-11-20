@@ -8,7 +8,9 @@ export const GiftCardOrdersList = props => {
   const {
     UIComponent,
     paginationSettings,
-    defaultStatus
+    defaultStatus,
+    refreshOrders,
+    setRefreshOrders
   } = props
 
   const [ordering] = useApi()
@@ -128,6 +130,13 @@ export const GiftCardOrdersList = props => {
   useEffect(() => {
     goToPage(1)
   }, [])
+
+  useEffect(() => {
+    if (refreshOrders) {
+      goToPage(1)
+      setRefreshOrders && setRefreshOrders(false)
+    }
+  }, [refreshOrders])
 
   return (
     <>

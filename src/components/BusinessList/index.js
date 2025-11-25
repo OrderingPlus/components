@@ -41,7 +41,8 @@ export const BusinessList = (props) => {
     isKiosk,
     isCustomerMode,
     avoidRefreshUserInfo,
-    showSearchBar
+    showSearchBar,
+    isOrderStateReady
   } = props
 
   const [businessesList, setBusinessesList] = useState({ businesses: [], loading: true, error: null })
@@ -400,7 +401,7 @@ export const BusinessList = (props) => {
    */
   useEffect(() => {
     if (
-      (orderState.loading || (asDashboard && !auth) ||
+      ((!isOrderStateReady && orderState.loading) || (asDashboard && !auth) ||
         ((!orderState.options?.address?.location && !isAllowUnaddressOrderType) && !asDashboard && !customLocation)) ||
       (auth && !orderState?.options?.user_id)
     ) return
@@ -428,7 +429,7 @@ export const BusinessList = (props) => {
   ])
 
   useEffect(() => {
-    if ((orderState.loading || (!orderState.options?.address?.location && !isAllowUnaddressOrderType && !asDashboard && !customLocation))) {
+    if (((!isOrderStateReady && orderState.loading) || (!orderState.options?.address?.location && !isAllowUnaddressOrderType && !asDashboard && !customLocation))) {
       setBusinessesList({ ...businessesList, loading: false })
       return
     }

@@ -123,11 +123,16 @@ export const ConfigProvider = ({ children, strategy }) => {
       let error = configs?.error ?? null
       let result = configs?.result ?? null
       if (!configs) {
-        const { content } = await ordering.configs().asDictionary().get(options)
-        error = content.error
-        result = content.result
-        handleUpdateOptimizationState('configs', result)
+        try {
+          const { content } = await ordering.configs().asDictionary().get(options)
+          error = content.error
+          result = content.result
+          handleUpdateOptimizationState('configs', result)
+        } catch (apiError) {
+          error = true
+        }
       }
+
       let data = null
       try {
         const response = await fetch('https://ipapi.co/json/')
@@ -159,6 +164,7 @@ export const ConfigProvider = ({ children, strategy }) => {
         },
         ...conditionalConfigs
       }
+
       setState({
         ...state,
         loading: false,

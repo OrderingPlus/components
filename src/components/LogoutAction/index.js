@@ -120,6 +120,7 @@ export const LogoutAction = (props) => {
         if (useDefualtSessionManager) {
           await logout()
           await setStateInitialValues()
+          ordering.setAccessToken(null)
         }
         if (handleSuccessLogout) {
           handleSuccessLogout()

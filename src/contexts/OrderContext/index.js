@@ -113,7 +113,7 @@ export const OrderProvider = ({
       const res = await ordering.setAccessToken(session.token).orderOptions().get(options)
       const error = res?.content?.error
       const result = res?.content?.result
-
+      const status = res?.status
       if (!error) {
         const { carts, ...options } = result
 
@@ -154,8 +154,8 @@ export const OrderProvider = ({
         }
       }
       if (error) {
-        setAlert({ show: true, content: result })
-        if (res?.status === 401) {
+        setAlert({ show: true, content: result, status })
+        if (status === 401) {
           session.auth && logout()
         }
       }
@@ -441,7 +441,7 @@ export const OrderProvider = ({
         if (body?.country_code) {
           delete body?.country_code
         }
-        const { content: { error, result } } = await ordering
+        const { content: { error, result }, status } = await ordering
           .setAccessToken(session.token)
           .orderOptions()
           .save(body, options)
@@ -453,7 +453,7 @@ export const OrderProvider = ({
           })
           setState(prevState => ({ ...prevState, options: { ...prevState.options, ...options }, carts: newCarts }))
         } else {
-          setAlert({ show: true, content: result })
+          setAlert({ show: true, content: result, status })
         }
         setState(prevState => ({ ...prevState, loading: false }))
         state.loading = false
@@ -504,7 +504,7 @@ export const OrderProvider = ({
         }
       }
 
-      const { content: { error, result } } = await ordering.setAccessToken(session.token).carts().addProduct(body, { headers })
+      const { content: { error, result }, status } = await ordering.setAccessToken(session.token).carts().addProduct(body, { headers })
 
       if (!error) {
         const newCarts = {
@@ -526,7 +526,7 @@ export const OrderProvider = ({
           refreshOrderOptionsWithRetries(cart, product)
         }, 1000)
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status })
       }
       setState(prevState => ({ ...prevState, loading: false }))
       if (isPlatformProduct) {
@@ -599,7 +599,7 @@ export const OrderProvider = ({
           refreshOrderOptionsWithRetries(cart, product, result)
         }, 1000)
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status: response?.status })
       }
       setState(prevState => ({ ...prevState, loading: false }))
       return !error
@@ -627,7 +627,7 @@ export const OrderProvider = ({
         business_id: cart.business_id,
         user_id: userCustomerId || session.user.id
       }
-      const { content: { error, result } } = await ordering.setAccessToken(session.token).carts().removeProduct(body, {
+      const { content: { error, result }, status } = await ordering.setAccessToken(session.token).carts().removeProduct(body, {
         headers: {
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
@@ -645,7 +645,7 @@ export const OrderProvider = ({
           refreshOrderOptionsWithRetries(cart, product)
         }, 1000)
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status })
       }
       setState(prevState => ({ ...prevState, loading: false }))
       return !error
@@ -684,7 +684,7 @@ export const OrderProvider = ({
       if (!error) {
         state.carts[`businessId:${result.business_id}`] = result
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status: response?.status })
       }
       setState({ ...state, loading: false })
       return { error, result }
@@ -708,7 +708,7 @@ export const OrderProvider = ({
         business_id: cart.business_id,
         user_id: userCustomerId || session.user.id
       }
-      const { content: { error, result } } = await ordering.setAccessToken(session.token).carts().updateProduct(body, {
+      const { content: { error, result }, status } = await ordering.setAccessToken(session.token).carts().updateProduct(body, {
         headers: {
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
@@ -727,7 +727,7 @@ export const OrderProvider = ({
           refreshOrderOptionsWithRetries(cart, product)
         }, 1000)
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status })
       }
       setState(prevState => ({ ...prevState, loading: false }))
       return !error
@@ -756,7 +756,7 @@ export const OrderProvider = ({
         events.emit('cart_added', result)
         setState({ ...state, loading: false })
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status: response?.status })
       }
       return { error, result }
     } catch (err) {
@@ -789,7 +789,7 @@ export const OrderProvider = ({
         coupon: couponData.coupon,
         user_id: userCustomerId || session.user.id
       }
-      const { content } = await ordering
+      const { content, status } = await ordering
         .setAccessToken(session.token)
         .carts()
         .applyCoupon(body, {
@@ -803,7 +803,7 @@ export const OrderProvider = ({
         state.carts[`businessId:${result.result.business_id}`] = result.result
         events.emit('cart_updated', result.result)
       } else {
-        setAlert({ show: true, content: result.result })
+        setAlert({ show: true, content: result.result, status })
       }
       setState({ ...state, loading: false })
       return !result.error
@@ -846,7 +846,7 @@ export const OrderProvider = ({
         events.emit('cart_updated', result.result)
         events.emit('offer_applied', { ...result.result, ...offerData })
       } else {
-        setAlert({ show: true, content: result.result })
+        setAlert({ show: true, content: result.result, status: response?.status })
         events.emit('offer_denied', { ...offerData, reason: result.result })
       }
       setState({ ...state, loading: false })
@@ -890,7 +890,7 @@ export const OrderProvider = ({
         events.emit('cart_updated', result.result)
         events.emit('offer_removed', offerData)
       } else {
-        setAlert({ show: true, content: result.result })
+        setAlert({ show: true, content: result.result, status: response?.status })
       }
       setState({ ...state, loading: false })
       return !result.error
@@ -923,7 +923,7 @@ export const OrderProvider = ({
         [isFixedPrice ? 'driver_tip' : 'driver_tip_rate']: driverTipRate,
         user_id: userCustomerId || session.user.id
       }
-      const { content: { error, result } } = await ordering.setAccessToken(session.token).carts().changeDriverTip(body, {
+      const { content: { error, result }, status } = await ordering.setAccessToken(session.token).carts().changeDriverTip(body, {
         headers: {
           'X-Socket-Id-X': socket?.getId(),
           'X-Country-Code-X': countryCode
@@ -933,7 +933,7 @@ export const OrderProvider = ({
         state.carts[`businessId:${result.business_id}`] = result
         events.emit('cart_updated', result)
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status })
       }
       setState({ ...state, loading: false })
       return !error
@@ -1010,7 +1010,7 @@ export const OrderProvider = ({
       if (userAgent) {
         headers = { ...headers, 'User-Agent': userAgent }
       }
-      const { content: { error, result } } = await ordering.setAccessToken(session.token).carts(cardId).place(body, { headers })
+      const { content: { error, result }, status } = await ordering.setAccessToken(session.token).carts(cardId).place(body, { headers })
       if (!error) {
         if (result.status !== 1) {
           state.carts[`businessId:${result.business_id}`] = result
@@ -1029,7 +1029,7 @@ export const OrderProvider = ({
           events.emit('order_placed', orderObject)
         }
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status })
         setState({ ...state, loading: false })
         return
       }
@@ -1086,7 +1086,7 @@ export const OrderProvider = ({
           events.emit('order_placed', orderObject)
         })
       } else {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status: response?.status })
       }
       setState({ ...state, loading: false })
       return { error, result }
@@ -1222,12 +1222,12 @@ export const OrderProvider = ({
       if (query) {
         options.query = query
       }
-      const { content: { error, result } } = await ordering.setAccessToken(session.token).orders(orderId).reorder(options)
+      const { content: { error, result }, status } = await ordering.setAccessToken(session.token).orders(orderId).reorder(options)
       if (!error) {
         state.carts[`businessId:${result.business_id}`] = result
         events.emit('cart_added', result)
       } else if (!offAlert) {
-        setAlert({ show: true, content: result })
+        setAlert({ show: true, content: result, status })
       }
       setState({ ...state, loading: false })
       return { error, result }
@@ -1584,6 +1584,7 @@ export const OrderProvider = ({
             onAccept={() => setAlert({ show: false })}
             onClose={() => setAlert({ show: false })}
             content={alert.content}
+            status={alert.status}
           />
         )
       }

@@ -71,7 +71,7 @@ export const LoginForm = (props) => {
     }
     try {
       let _credentials
-      if (isDeviceLoginEnabled && values?.device_code) {
+      if ((isDeviceLoginEnabled && values?.device_code) || values?.forceDeviceLogin) {
         _credentials = {
           device_code: values?.device_code
         }

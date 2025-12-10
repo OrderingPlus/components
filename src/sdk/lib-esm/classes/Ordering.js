@@ -292,13 +292,13 @@ const Ordering = /** @class */ (function () {
         }
       }
       xhr.onload = function () {
-        if (this.status < 500) {
-          const data_1 = options.json ? JSON.parse(this.response) : this.response
+        if (xhr.status < 500) {
+          const data_1 = options.json ? JSON.parse(xhr.response) : xhr.response
           resolve({
-            request: this,
+            request: xhr,
             data: data_1,
-            status: this.status,
-            statusText: this.statusText
+            status: xhr.status,
+            statusText: xhr.statusText
           })
         } else {
           reject(new Error('Internal error'))

@@ -314,7 +314,7 @@ export const BusinessList = (props) => {
         ...businessesList,
         loading: false,
         error,
-        businesses: businesses.length ? businesses : prevBusinesses,
+        businesses: (newFetch || businesses.length) ? businesses : prevBusinesses,
         result,
         fetched: true
       })
@@ -410,6 +410,7 @@ export const BusinessList = (props) => {
       getBusinesses(true, currentPageParam)
     }
   }, [
+    isOrderStateReady,
     orderState.options?.type,
     orderState.options?.moment,
     orderState.options?.city_id,

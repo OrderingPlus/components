@@ -192,7 +192,21 @@ export const OrderDetails = (props) => {
     }
 
     try {
-      const bodyToSend = Object.keys(isAcceptOrReject || {}).length > 0 ? isAcceptOrReject : { status }
+      const statusesRequiringLocation = [3, 9, 11, 26]
+      const requiresLocation = statusesRequiringLocation.includes(status) && options?.location
+
+      let bodyToSend = Object.keys(isAcceptOrReject || {}).length > 0 ? isAcceptOrReject : { status }
+
+      if (requiresLocation) {
+        bodyToSend = {
+          ...bodyToSend,
+          location: {
+            lat: options.location.latitude,
+            lng: options.location.longitude
+          }
+        }
+      }
+
       setOrderState({ ...orderState, loading: true })
 
       const isFormData = bodyToSend && bodyToSend instanceof FormData

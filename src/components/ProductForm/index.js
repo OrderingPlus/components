@@ -1082,7 +1082,7 @@ export const ProductForm = (props) => {
               if (option?.external_id === `${product?.product?.external_id}:COUPONOPTION:${lastExternalId}`) {
                 couponOptions.push({
                   ...option,
-                  hasCustomizeSuboptions: extra?.options?.some((option) => option?.external_id.includes(`${product?.product?.external_id}:COUPONOPTION:${lastExternalId}:`))
+                  hasCustomizeSuboptions: extra?.options?.some((option) => option?.external_id?.includes?.(`${product?.product?.external_id}:COUPONOPTION:${lastExternalId}:`))
                 })
                 couponOptionsStateCurrent[`${option?.external_id}`] = false // valid when user select all suboptions or when user click add button
               }

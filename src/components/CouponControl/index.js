@@ -35,7 +35,7 @@ export const CouponControl = (props) => {
    */
   const handleButtonApplyClick = () => {
     setCouponInput('')
-    if (!configs?.advanced_offers_module?.value) {
+    if (!configs?.advanced_offers_module?.value && !props.forceAdvancedOffersModule) {
       if (user?.id) { // Callcenter
         if (businessIds) {
           businessIds.map(businessId => (

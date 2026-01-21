@@ -473,11 +473,11 @@ export const GoogleMaps = (props) => {
   }, [JSON.stringify(locations), userActivity])
 
   useEffect(() => {
-    if (boundMap && businessMap) {
+    if (boundMap && businessMap && !avoidFitBounds) {
       boundMap.extend(center)
       googleMap.fitBounds(boundMap)
     }
-  }, [boundMap])
+  }, [boundMap, avoidFitBounds])
 
   return (
     googleReady && (

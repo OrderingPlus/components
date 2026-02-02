@@ -31,8 +31,11 @@ export const SessionProvider = ({ children, strategy, checkInterval = 2000 }) =>
   useEffect(() => {
     stateRef.current = state
   }, [state])
+  const emptySession = { auth: null, token: null, user: null, device_code: null }
+
   const setValuesFromLocalStorage = async () => {
-    const { auth, token, user, device_code } = await getValuesFromLocalStorage()
+    const stored = await getValuesFromLocalStorage()
+    const { auth, token, user, device_code } = stored ?? emptySession
     setState(prevState => ({
       ...prevState,
       auth,
@@ -55,6 +58,7 @@ export const SessionProvider = ({ children, strategy, checkInterval = 2000 }) =>
         ...prevState,
         loading: false
       }))
+      return emptySession
     }
   }
 
@@ -104,7 +108,8 @@ export const SessionProvider = ({ children, strategy, checkInterval = 2000 }) =>
 
   const checkLocalStorage = async () => {
     try {
-      const { token, user, device_code } = await getValuesFromLocalStorage()
+      const stored = await getValuesFromLocalStorage()
+      const { token, user, device_code } = stored ?? emptySession
       const currentState = stateRef.current
       // Update device_code if changed
       if (device_code && device_code !== currentState.device_code) {

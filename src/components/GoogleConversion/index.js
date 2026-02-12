@@ -34,15 +34,17 @@ export const GoogleConversion = (props) => {
   useEffect(() => {
     if (!projectCode || typeof projectCode !== 'string' || projectCode.trim() === '') return
     const url = `${INTEGRATION_BASE_URL.replace(/\/$/, '')}/${projectCode.trim()}/api/frontend/settings`
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
+    const loadSecret = async () => {
+      try {
+        const res = await fetch(url)
+        const data = await res.json()
         const value = data?.result?.settings?.conversion_secret?.value
         if (typeof value === 'string' && value.trim() !== '') {
           setConversionSecret(value.trim())
         }
-      })
-      .catch(() => {})
+      } catch (e) {}
+    }
+    loadSecret()
   }, [projectCode])
 
   useEffect(() => {

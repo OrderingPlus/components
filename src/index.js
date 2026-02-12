@@ -38,6 +38,7 @@ import { GoogleMaps as GoogleMapsMap } from './components/GoogleMaps'
 import { GpsButton } from './components/GpsButton'
 import { GpsButton as GoogleGpsButton } from './components/GpsButton'
 import { GoogleIdentityButton } from './components/GoogleIdentity'
+import { GoogleConversion } from './components/GoogleConversion'
 import { LanguageSelector } from './components/LanguageSelector'
 import { LoginForm } from './components/LoginForm'
 import { LoginGuest } from './components/LoginGuest'
@@ -217,6 +218,7 @@ export {
   GpsButton,
   GoogleGpsButton,
   GoogleIdentityButton,
+  GoogleConversion,
   LanguageSelector,
   LoginForm,
   LoginGuest,

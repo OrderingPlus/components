@@ -323,26 +323,23 @@ export const PaymentOptionStripe = (props) => {
       })
       const content = await response.json()
       if (!content.error) {
+        const cards = content.result.map(card => ({
+          ...card,
+          ...card.type_data,
+          id: card.id,
+          card_token: card.external_id
+        }))
         setCardsList({
           ...cardsList,
           loading: false,
-          cards: content.result.map(card => ({
-            ...card,
-            ...card.type_data,
-            id: card.id,
-            card_token: card.external_id
-          }))
+          cards
         })
         setCardList && setCardList({
           ...cardsList,
           loading: false,
-          cards: content.result.map(card => ({
-            ...card,
-            ...card.type_data,
-            id: card.id,
-            card_token: card.external_id
-          }))
+          cards
         })
+        return cards
       }
     } catch (error) {
       setCardsList({
@@ -449,6 +446,24 @@ export const PaymentOptionStripe = (props) => {
           return
         }
         const cardToken = payment?.data?.card_token || payment?.data?.transient_token
+
+        if (payment?.action === 'card') {
+          setOpenModal && setOpenModal(prev => ({ ...prev, iframe: false }))
+          const cards = await getBusinessUserPaymethods()
+          if (cards?.length) {
+            const { last4, brand } = payment?.data?.card_data || {}
+            const addedCard = cards.find(c => c.last4 === last4 && c.brand === brand) || cards[cards.length - 1]
+            handleCardClick(addedCard)
+            onPaymentChange({
+              ...paymethodSelectedInfo,
+              data: {
+                ...addedCard,
+                card: { ...addedCard.type_data }
+              }
+            })
+          }
+          return
+        }
 
         if (cardToken) {
           if (payment?.data?.transient_token) {

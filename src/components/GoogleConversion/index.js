@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useEvent } from '../../contexts/EventContext'
-
+import { useSession } from '../../contexts/SessionContext'
 const RWG_TOKEN_STORAGE_KEY = 'google_rwg_token'
 const REDIRECT_BUSINESS_ID_KEY = 'google_rwg_redirect_business_id'
 const INTEGRATION_BASE_URL = 'https://google-redirect.plugins.orderingplus.com'
@@ -11,7 +11,7 @@ export const GoogleConversion = (props) => {
 
   const [events] = useEvent()
   const [conversionSecret, setConversionSecret] = useState(null)
-
+  const [{ token }] = useSession()
   // Persist rwg_token from URL to sessionStorage when user lands from Google redirect
   useEffect(() => {
     if (typeof window === 'undefined' || !window.location?.search) return
@@ -32,11 +32,15 @@ export const GoogleConversion = (props) => {
 
   // Fetch conversion_secret from integration frontend settings
   useEffect(() => {
-    if (!projectCode || typeof projectCode !== 'string' || projectCode.trim() === '') return
+    if (!projectCode || typeof projectCode !== 'string' || projectCode.trim() === '' || !token) return
     const url = `${INTEGRATION_BASE_URL.replace(/\/$/, '')}/${projectCode.trim()}/api/frontend/settings`
     const loadSecret = async () => {
       try {
-        const res = await fetch(url)
+        const res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
         const data = await res.json()
         const value = data?.result?.settings?.conversion_secret?.value
         if (typeof value === 'string' && value.trim() !== '') {
@@ -45,19 +49,19 @@ export const GoogleConversion = (props) => {
       } catch (e) {}
     }
     loadSecret()
-  }, [projectCode])
+  }, [projectCode, token])
 
   useEffect(() => {
-    if (!conversionSecret || !projectCode) return
+    if (!projectCode || !token) return
 
     const handleOrderPlaced = async (order) => {
-      let token
+      let rwgToken
       try {
-        token = sessionStorage.getItem(RWG_TOKEN_STORAGE_KEY)
+        rwgToken = sessionStorage.getItem(RWG_TOKEN_STORAGE_KEY)
       } catch (e) {
         return
       }
-      if (!token || token.trim() === '') return
+      if (!rwgToken || rwgToken.trim() === '') return
 
       let redirectBusinessId = null
       try {
@@ -72,7 +76,7 @@ export const GoogleConversion = (props) => {
       const baseUrl = INTEGRATION_BASE_URL.replace(/\/$/, '')
       const url = `${baseUrl}/${projectCode}/google/conversions/order-completed`
       const payload = {
-        rwg_token: token,
+        rwg_token: rwgToken,
         merchant_changed: merchantChanged,
         order_id: order?.id,
         business_id: order?.business_id
@@ -83,7 +87,8 @@ export const GoogleConversion = (props) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Conversion-Secret': conversionSecret
+            'X-Conversion-Secret': conversionSecret,
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify(payload)
         })
@@ -103,7 +108,7 @@ export const GoogleConversion = (props) => {
     return () => {
       events.off('order_placed', handleOrderPlaced)
     }
-  }, [events, projectCode, conversionSecret])
+  }, [events, projectCode, conversionSecret, token])
 
   return (
     <>

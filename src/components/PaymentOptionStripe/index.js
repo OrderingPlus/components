@@ -568,6 +568,7 @@ export const PaymentOptionStripe = (props) => {
           deleteBusinessUserPaymethod={deleteBusinessUserPaymethod}
           defaultCardSetActionStatus={defaultCardSetActionStatus}
           paymethodsWithoutSaveCards={paymethodsWithoutSaveCards}
+          getBusinessUserPaymethods={getBusinessUserPaymethods}
         />
       )}
     </>

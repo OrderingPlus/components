@@ -111,6 +111,8 @@ export const Checkout = (props) => {
 
   const cybersourceIFrameUrl = useMemo(() => `https://cybersource.plugins.orderingplus.com/${ordering.project}/views/card_form/user/${user?.id}/business/${businessDetails?.business?.id}`, [ordering.project, user, businessDetails])
 
+  const braintreeIFrameUrl = useMemo(() => `https://paypal-braintree.plugins.orderingplus.com/${ordering.project}/views/card_form/user/${user?.id}/business/${businessDetails?.business?.id}`, [ordering.project, user, businessDetails])
+
   const getBusiness = async () => {
     refreshConfigs()
     try {
@@ -642,6 +644,7 @@ export const Checkout = (props) => {
           checkoutFieldsState={checkoutFieldsState}
           globalPayIFrameUrl={globalPayIFrameUrl}
           cybersourceIFrameUrl={cybersourceIFrameUrl}
+          braintreeIFrameUrl={braintreeIFrameUrl}
           createBusinessUserPaymethod={createBusinessUserPaymethod}
         />
       )}

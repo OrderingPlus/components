@@ -136,8 +136,12 @@ export const ConfigProvider = ({ children, strategy }) => {
       let data = null
       try {
         const response = await fetch('https://ipapi.co/json/')
-        if (response.status === 200) {
-          data = await response.json()
+        if (response.ok) {
+          const text = await response.text()
+          const trimmed = (text || '').trim()
+          if (trimmed.startsWith('{')) {
+            data = JSON.parse(trimmed)
+          }
         }
       } catch (error) {
         data = null

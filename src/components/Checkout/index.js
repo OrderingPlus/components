@@ -226,27 +226,41 @@ export const Checkout = (props) => {
 
     const cartResult = result?.result
 
-    if (cartResult?.paymethod_data?.status === 2 && actionsBeforePlace) {
-      const sandbox = businessDetails?.business?.paymethods?.find(paymethod => paymethod?.paymethod?.gateway === _paymethodSelected?.gateway)?.sandbox
-      await actionsBeforePlace({ ..._paymethodSelected, sandbox }, result.result)
+    const getPaymethodData = (cart) => {
+      const data = cart?.paymethod_data
+      if (typeof data === 'string') {
+        try {
+          return JSON.parse(data)
+        } catch {
+          return null
+        }
+      }
+      return data
     }
-    if (confirmPayment && result?.result?.paymethod_data?.gateway === 'apple_pay') {
-      const { error: confirmApplePayError } = await confirmPayment(result?.result?.paymethod_data?.result?.client_secret)
+    const parsedPaymethodData = getPaymethodData(cartResult)
+
+    if (parsedPaymethodData?.status === 2 && actionsBeforePlace) {
+      const sandbox = businessDetails?.business?.paymethods?.find(paymethod => paymethod?.paymethod?.gateway === _paymethodSelected?.gateway)?.sandbox
+      const cartWithParsedPaymethod = parsedPaymethodData ? { ...cartResult, paymethod_data: parsedPaymethodData } : cartResult
+      await actionsBeforePlace({ ..._paymethodSelected, sandbox }, cartWithParsedPaymethod)
+    }
+    if (confirmPayment && parsedPaymethodData?.gateway === 'apple_pay') {
+      const { error: confirmApplePayError } = await confirmPayment(parsedPaymethodData?.result?.client_secret)
       if (confirmApplePayError && confirmApplePayError?.message !== 'You must provide the `applePay` parameter.') {
         setErrors(confirmApplePayError)
       }
     }
-    if (paymethodsWithoutSaveCard.includes(cartResult?.paymethod_data?.gateway) &&
-      cartResult?.paymethod_data?.result?.hash &&
-      cartResult?.paymethod_data?.status === 2 &&
+    if (paymethodsWithoutSaveCard.includes(parsedPaymethodData?.gateway) &&
+      parsedPaymethodData?.result?.hash &&
+      parsedPaymethodData?.status === 2 &&
       !payloadProps.isNative
     ) {
       handleConfirmCredomaticPage(cartResult, _paymethodSelected)
     }
 
-    if (['computop'].includes(cartResult?.paymethod_data?.gateway) &&
-      (cartResult?.paymethod_data?.result?.Len) &&
-      cartResult?.paymethod_data?.status === 2 &&
+    if (['computop'].includes(parsedPaymethodData?.gateway) &&
+      parsedPaymethodData?.result?.Len &&
+      parsedPaymethodData?.status === 2 &&
       !payloadProps.isNative
     ) {
       handleConfirmComputopPage(cartResult, _paymethodSelected)

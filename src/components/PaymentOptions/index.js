@@ -11,7 +11,7 @@ const stripeLink = 'stripe_link'
 const paymethodsExisting = ['stripe', 'stripe_direct', 'stripe_connect', 'paypal', 'square']
 const paymethodsNotAllowed = ['paypal_express', 'authorize']
 const paymethodsCallcenterMode = ['cash', 'card_delivery', 'ivrpay', '100_coupon', stripeLink]
-const paymethodsWithAutoUpdate = ['izipay', 'globalpay', 'cybersource', 'braintree']
+const paymethodsWithAutoUpdate = ['izipay', 'globalpay', 'cybersource', 'braintree', 'stripe_checkout']
 /**
  * Component to manage payment options behavior without UI component
  */
@@ -167,16 +167,17 @@ export const PaymentOptions = (props) => {
   }
 
   useEffect(() => {
-    if (paymethodSelected && (!props.disableAutoUpdate || paymethodsWithAutoUpdate.includes(paymethodSelected?.gateway))) {
-      const _paymethodData = paymethodData
-      _paymethodData.success_url = returnUrl
-      _paymethodData.cancel_url = returnUrl
+    const shouldUpdate = paymethodSelected && (!props.disableAutoUpdate || paymethodsWithAutoUpdate.includes(paymethodSelected?.gateway))
+    const needsReturnUrl = paymethodSelected?.gateway === 'stripe_checkout'
+    if (shouldUpdate && (!needsReturnUrl || returnUrl)) {
+      const baseUrl = returnUrl || ''
+      const _paymethodData = { ...paymethodData, success_url: baseUrl, cancel_url: baseUrl }
       if (urlscheme) {
         _paymethodData.urlscheme = urlscheme
       }
       changePaymethod(businessId, paymethodSelected.id, JSON.stringify(_paymethodData))
     }
-  }, [paymethodSelected, paymethodData])
+  }, [paymethodSelected, paymethodData, returnUrl])
 
   useEffect(() => {
     if (

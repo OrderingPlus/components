@@ -128,7 +128,8 @@ export const LoginForm = (props) => {
 
       if (isGuest && user?.guest_id) _credentials.guest_token = user?.guest_id
 
-      const { content: { error, result } } = await ordering.users().auth(_credentials, { headers })
+      // Don't send Bearer token on login - ordering instance may have stale token from previous session
+      const { content: { error, result } } = await ordering.setAccessToken(null).users().auth(_credentials, { headers })
 
       if (isReCaptchaEnable && window?.grecaptcha) {
         _credentials.recaptcha_type === 'v2' && window.grecaptcha.reset()

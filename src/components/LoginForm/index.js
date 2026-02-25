@@ -40,12 +40,13 @@ export const LoginForm = (props) => {
   const useLoginByCellphone = configs?.phone_password_login_enabled?.value === '1'
   const useLoginOtpEmail = configs?.opt_email_enabled?.value === '1'
   const useLoginOtpCellphone = configs?.otp_cellphone_enabled?.value === '1'
+  const useLoginOtpWhatsapp = configs?.whatsapp_otp_login_enabled?.value === '1'
   const useLoginByEmail =
     useLoginByCellphone || useLoginOtpEmail || useLoginOtpCellphone
       ? configs?.email_password_login_enabled?.value === '1'
       : true
   const useLoginSpoonity = configs?.spoonity_enabled?.value === '1'
-  const useLoginOtp = useLoginOtpEmail || useLoginOtpCellphone
+  const useLoginOtp = useLoginOtpEmail || useLoginOtpCellphone || useLoginOtpWhatsapp
   const isDeviceLoginEnabled = configs?.device_code_login_enabled?.value === '1'
 
   defaultLoginTab = useLoginByEmail ? 'email' : useLoginByCellphone ? 'cellphone' : 'otp'
@@ -329,10 +330,10 @@ export const LoginForm = (props) => {
     }
   }
 
-  const generateOtpCode = async (values) => {
+  const generateOtpCode = async (values, channel) => {
     const body = {
       type: 4,
-      channel: otpType === 'email' ? 1 : 2,
+      channel: otpType === 'email' ? 1 : (channel || 2),
       size: 6
     }
     const email = values?.email || credentials?.email
@@ -451,6 +452,7 @@ export const LoginForm = (props) => {
           useLoginByCellphone={useLoginByCellphone}
           useLoginOtpEmail={useLoginOtpEmail}
           useLoginOtpCellphone={useLoginOtpCellphone}
+          useLoginOtpWhatsapp={useLoginOtpWhatsapp}
           useLoginSpoonity={useLoginSpoonity}
           handleLoginSpoonity={handleLoginSpoonity}
           setCellphoneStartZero={setCellphoneStartZero}

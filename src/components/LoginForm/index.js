@@ -128,6 +128,20 @@ export const LoginForm = (props) => {
 
       if (isGuest && user?.guest_id) _credentials.guest_token = user?.guest_id
 
+      if (values?.device_info) {
+        _credentials.metadata = {
+          uniqueId: values.device_info.uniqueId || '',
+          androidId: values.device_info.androidId || '',
+          model: values.device_info.model || '',
+          brand: values.device_info.brand || '',
+          manufacturer: values.device_info.manufacturer || '',
+          deviceName: values.device_info.deviceName || '',
+          ipAddress: values.device_info.ipAddress || '',
+          systemVersion: values.device_info.systemVersion || '',
+          appVersion: values.device_info.appVersion || ''
+        }
+      }
+
       // Don't send Bearer token on login - ordering instance may have stale token from previous session
       const { content: { error, result } } = await ordering.setAccessToken(null).users().auth(_credentials, { headers })
 

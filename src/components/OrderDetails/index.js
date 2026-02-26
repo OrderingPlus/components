@@ -562,6 +562,9 @@ export const OrderDetails = (props) => {
         order: Object.assign(orderState.order, order)
       })
       events.emit('order_updated', Object.assign(orderState.order, order))
+      if (order?.driver?.location) {
+        setDriverLocation(order.driver.location)
+      }
     }
     const handleTrackingDriver = (props) => {
       const location = props.location

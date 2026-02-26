@@ -27,7 +27,9 @@ export const GoogleMaps = (props) => {
     manualZoom,
     avoidFitBounds,
     allowMarkerPopups,
-    initialBusinessesToCenter
+    initialBusinessesToCenter,
+    animateDriver,
+    onDriverMarkerReady
   } = props
 
   const [{ optimizeImage }] = useUtils()
@@ -430,8 +432,10 @@ export const GoogleMaps = (props) => {
       center.lat = location?.lat
       center.lng = location?.lng
       const newPos = new window.google.maps.LatLng(center?.lat, center?.lng)
-      googleMapMarker && googleMapMarker.setPosition(newPos)
-      !useMapWithBusinessZones && markers?.[0] && markers[0].setPosition(newPos)
+      if (!animateDriver) {
+        googleMapMarker && googleMapMarker.setPosition(newPos)
+        !useMapWithBusinessZones && markers?.[0] && markers[0].setPosition(newPos)
+      }
       googleMap && googleMap.panTo(new window.google.maps.LatLng(center?.lat, center?.lng))
     }
   }, [location, JSON.stringify(locations)])
@@ -446,7 +450,7 @@ export const GoogleMaps = (props) => {
             useMapWithBusinessZones ? boundMap.extend(newLocation) : markers?.[0] && markers[0].setPosition(newLocation)
             markers?.length > 0 && markers.forEach(marker => boundMap.extend(marker.position))
             if (!avoidFitBounds) {
-              googleMap.fitBounds(boundMap)
+              googleMap.fitBounds(boundMap, 150)
             }
           }
         }
@@ -462,6 +466,12 @@ export const GoogleMaps = (props) => {
       googleMap.fitBounds(boundMap)
     }
   }, [boundMap, avoidFitBounds])
+
+  useEffect(() => {
+    if (animateDriver && onDriverMarkerReady && googleMapMarker && markers?.[0]) {
+      onDriverMarkerReady({ centerMarker: googleMapMarker, driverMarker: markers[0] })
+    }
+  }, [animateDriver, onDriverMarkerReady, googleMapMarker, markers])
 
   return (
     googleReady && (

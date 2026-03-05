@@ -344,7 +344,7 @@ export const LoginForm = (props) => {
         body.country_phone_code = countryPhoneCode
         body.cellphone = cellphone
         setCredentials({
-          cellphone,
+          cellphone: credentials?.cellphone || cellphone,
           country_phone_code: countryPhoneCode
         })
       } else {
@@ -368,7 +368,7 @@ export const LoginForm = (props) => {
         setCheckPhoneCodeState({ ...checkPhoneCodeState, result: { result, error: null } })
         return
       }
-      setCheckPhoneCodeState({ ...checkPhoneCodeState, result: { error: result } })
+      setCheckPhoneCodeState({ ...checkPhoneCodeState, result: { error: true, result } })
     } catch (err) {
       setCheckPhoneCodeState({ ...checkPhoneCodeState, result: { error: err.message } })
     }

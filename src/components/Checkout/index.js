@@ -8,6 +8,8 @@ import { useToast, ToastType } from '../../contexts/ToastContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
+const forterGateways = ['braintree', 'paypal_braintree', 'google_pay_braintree', 'apple_pay_braintree']
+
 /**
  * Component to manage Checkout page behavior without UI component
  */
@@ -211,6 +213,23 @@ export const Checkout = (props) => {
     await onChangeSpot()
     if (paymethodsWithoutSaveCard.includes(_paymethodSelected?.paymethod?.gateway)) {
       delete payload.paymethod_data
+    }
+    if (forterGateways.includes(_paymethodSelected?.paymethod?.gateway)) {
+      const forterToken = typeof props.getForterToken === 'function' ? props.getForterToken() : null
+      if (forterToken) {
+        payload.forter_token = forterToken
+      }
+      const forterMobileUid = typeof props.getForterMobileUid === 'function' ? props.getForterMobileUid() : null
+      if (forterMobileUid) {
+        payload.forter_mobile_uid = forterMobileUid
+      }
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json')
+        const ipData = await ipRes.json()
+        if (ipData?.ip) {
+          payload.customer_ip = ipData.ip
+        }
+      } catch {}
     }
     const result = await placeCart(_cart.uuid, payload)
 

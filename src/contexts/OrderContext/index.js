@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react'
 import { useSession } from '../SessionContext'
 import { useApi } from '../ApiContext'
 import { useWebsocket } from '../WebsocketContext'
@@ -1572,7 +1572,7 @@ export const OrderProvider = ({
     clearTimeout
   }
 
-  const copyState = JSON.parse(JSON.stringify(state))
+  const copyState = useMemo(() => JSON.parse(JSON.stringify(state)), [state])
 
   return (
     <OrderContext.Provider value={[copyState, functions]}>

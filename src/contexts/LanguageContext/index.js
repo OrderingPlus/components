@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react'
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react'
 import { useApi } from '../ApiContext'
 
 /**
@@ -20,6 +20,8 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
     dictionary: {}
   })
 
+  const [ordering, apiHelper] = useApi()
+
   /**
    * Load language from localstorage and set state or load default language
    */
@@ -27,21 +29,19 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
     const language = await strategy.getItem('language', true)
     if (!language) {
       if (restOfProps?.use_project_domain) {
-        setState({ ...state, loading: false })
+        setState((prev) => ({ ...prev, loading: false }))
         return
       }
       loadDefaultLanguage()
     } else {
-      setState({ ...state, language })
+      setState((prev) => ({ ...prev, language }))
       apiHelper.setLanguage(language?.code)
     }
   }
 
-  const [ordering, apiHelper] = useApi()
-
   const updateLanguageContext = async () => {
     try {
-      !state.loading && setState({ ...state, loading: true })
+      setState((prev) => (prev.loading ? prev : { ...prev, loading: true }))
       const _language = await strategy.getItem('language', true)
       let dictionary = {}
       const { content: { error: errDict, result: resDict } } = await ordering.translations().asDictionary().get()
@@ -50,21 +50,21 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
       const { content: { error, result } } = await ordering.languages().where([{ attribute: _language ? _language?.code : 'default', value: true }]).get()
       const language = { id: result[0].id, code: result[0].code, rtl: result[0].rtl }
       apiHelper.setLanguage(result[0].code)
-      setState({
-        ...state,
+      setState((prev) => ({
+        ...prev,
         loading: false,
         error: error ? typeof result === 'string' ? result : result?.[0] : null,
         dictionary,
         language
-      })
+      }))
     } catch {
-      setState({ ...state, loading: false })
+      setState((prev) => ({ ...prev, loading: false }))
     }
   }
 
-  const refreshTranslations = async () => {
+  const refreshTranslations = useCallback(async () => {
     try {
-      !state.loading && setState({ ...state, loading: true })
+      setState((prev) => (prev.loading ? prev : { ...prev, loading: true }))
       let params = {}
       const conditons = []
       const appInternalName = restOfProps?.app_internal_name ?? null
@@ -79,46 +79,43 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
         }
       }
       const { content: { error, result } } = await ordering.translations().parameters(params).where(conditons).asDictionary().get()
-      setState({
-        ...state,
+      setState((prev) => ({
+        ...prev,
         loading: false,
         dictionary: error ? {} : result
-      })
+      }))
     } catch (err) {
-      setState({ ...state, loading: false })
+      setState((prev) => ({ ...prev, loading: false }))
     }
-  }
+  }, [ordering, restOfProps?.app_internal_name])
 
-  const loadDefaultLanguage = async () => {
+  const loadDefaultLanguage = useCallback(async () => {
     const _language = await strategy.getItem('language', true)
     try {
       const { content: { error, result } } = await ordering.languages().where([{ attribute: _language ? _language?.code : 'default', value: true }]).get()
       if (error) {
-        setState({
-          ...state,
+        setState((prev) => ({
+          ...prev,
           loading: false,
           error: typeof result === 'string' ? result : result?.[0]
-        })
+        }))
         return
       }
       const language = { id: result[0].id, code: result[0].code, rtl: result[0].rtl }
       apiHelper.setLanguage(result[0].code)
-      setState({
-        ...state,
-        language
-      })
+      setState((prev) => ({ ...prev, language }))
     } catch (err) {
-      setState({ ...state, loading: false })
+      setState((prev) => ({ ...prev, loading: false }))
     }
-  }
+  }, [ordering, strategy, apiHelper])
 
-  const setLanguage = async (language) => {
+  const setLanguage = useCallback(async (language) => {
     if (!language || language.id === state.language?.id) return
     const _language = { id: language.id, code: language.code, rtl: language.rtl }
-    setState({ ...state, loading: true, language: _language })
+    setState((prev) => ({ ...prev, loading: true, language: _language }))
     await strategy.setItem('language', _language, true)
     apiHelper.setLanguage(language?.code)
-  }
+  }, [state.language?.id, strategy, apiHelper])
 
   /**
    * Refresh translation when change language from ordering
@@ -150,9 +147,9 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
     apiHelper.setLanguage(state?.language?.code)
   }, [state.language])
 
-  const t = (key, fallback = null) => {
+  const t = useCallback((key, fallback = null) => {
     let originalKey = key
-    const appInternalName = restOfProps.app_internal_name ?? null
+    const appInternalName = restOfProps?.app_internal_name ?? null
     if (appInternalName !== null) {
       const prefix = `${appInternalName.toUpperCase()}_`
       if (!key?.startsWith || !key?.substring) return fallback ?? key
@@ -165,10 +162,15 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
     const textValue = state?.dictionary?.[key] ?? state?.dictionary?.[originalKey] ?? fallback ?? key
 
     return textValue
-  }
+  }, [state?.dictionary, restOfProps?.app_internal_name])
+
+  const value = useMemo(
+    () => [state, t, setLanguage, refreshTranslations, loadDefaultLanguage],
+    [state, t, setLanguage, refreshTranslations, loadDefaultLanguage]
+  )
 
   return (
-    <LanguageContext.Provider value={[state, t, setLanguage, refreshTranslations, loadDefaultLanguage]}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   )

@@ -40,10 +40,18 @@ export const OptimizationLoadProvider = ({ settings, children, strategy }) => {
     try {
       const response = await fetch(`${ordering.root}/frontends/first_load`, requestOptions)
       const { result, error } = await response.json()
+      const keysAllowed = ['configs', 'features', 'site', 'theme', 'validation_fields']
+      const slimResult = error
+        ? null
+        : (result
+            ? Object.fromEntries(
+              Object.entries(result).filter(([k]) => keysAllowed.includes(k))
+            )
+            : null)
       setState({
         ...state,
         loading: false,
-        result: error ? null : result,
+        result: slimResult,
         error: error ? result : null
       })
     } catch (err) {

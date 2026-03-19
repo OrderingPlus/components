@@ -78,8 +78,8 @@ export const WebsocketProvider = ({ settings, children, strategy }) => {
       }
     })
     return () => {
-      clearInterval(disconnectTimeout)
-      clearInterval(connectionErrorTimeout)
+      clearTimeout(disconnectTimeout)
+      clearTimeout(connectionErrorTimeout)
     }
   }, [socket?.socket, session])
 

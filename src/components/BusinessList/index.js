@@ -71,7 +71,7 @@ export const BusinessList = (props) => {
   const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
   const rex = /^[A-Za-z0-9\s]+$/g
   const advancedSearchEnabled = configs?.advanced_business_search_enabled?.value === '1' || showSearchBar
-  const showCities = (!orderingTheme?.business_listing_view?.components?.cities?.hidden && orderState?.options?.type === 2 && !props.disabledCities) ?? false
+  const showCities = (!orderingTheme?.theme?.business_listing_view?.components?.cities?.hidden && orderState?.options?.type === 2 && !props.disabledCities) ?? false
   const unaddressedTypes = configs?.unaddressed_order_types_allowed?.value.split('|').map(value => Number(value)) || []
   const isAllowUnaddressOrderType = unaddressedTypes.includes(orderState?.options?.type)
 

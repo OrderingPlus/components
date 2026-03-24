@@ -27,9 +27,45 @@ export const OrderingThemeProvider = ({ children, settings, isValidColor }) => {
     if (isValidColor) {
       return isValidColor?.(color)
     }
-    const s = new Option().style
-    s.color = color
-    return s.color !== ''
+    if (typeof color !== 'string' || !color.trim()) {
+      return false
+    }
+    const c = color.trim().toLowerCase()
+    const hexRegex = /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/
+    const rgbRegex = /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*(0|1|0?\.\d+))?\s*\)$/
+    const hslRegex = /^hsla?\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*(,\s*(0|1|0?\.\d+))?\s*\)$/
+    if (hexRegex.test(c)) return true
+    if (rgbRegex.test(c)) return true
+    if (hslRegex.test(c)) return true
+    if (c === 'transparent') return true
+    const namedColors = new Set([
+      'black', 'white', 'red', 'green', 'blue', 'yellow', 'orange', 'purple',
+      'pink', 'brown', 'gray', 'grey', 'cyan', 'magenta', 'lime', 'olive',
+      'navy', 'teal', 'aqua', 'maroon', 'silver', 'gold', 'indigo', 'violet',
+      'coral', 'salmon', 'tomato', 'crimson', 'turquoise', 'wheat', 'ivory',
+      'beige', 'khaki', 'lavender', 'plum', 'orchid', 'peru', 'sienna',
+      'tan', 'thistle', 'snow', 'linen', 'mintcream', 'azure', 'aliceblue',
+      'ghostwhite', 'honeydew', 'seashell', 'cornsilk', 'lemonchiffon',
+      'floralwhite', 'oldlace', 'papayawhip', 'blanchedalmond', 'bisque',
+      'moccasin', 'navajowhite', 'peachpuff', 'mistyrose', 'lightyellow',
+      'lightsalmon', 'lightcoral', 'lightpink', 'lightgreen', 'lightblue',
+      'lightcyan', 'lightgray', 'lightgrey', 'darkred', 'darkgreen', 'darkblue',
+      'darkcyan', 'darkmagenta', 'darkgray', 'darkgrey', 'darkorange',
+      'darkviolet', 'darksalmon', 'darkkhaki', 'darkolivegreen', 'darkseagreen',
+      'darkslategray', 'darkslategrey', 'darkturquoise', 'deeppink',
+      'deepskyblue', 'dodgerblue', 'firebrick', 'forestgreen', 'gainsboro',
+      'goldenrod', 'greenyellow', 'hotpink', 'indianred', 'lawngreen',
+      'limegreen', 'mediumblue', 'mediumorchid', 'mediumpurple',
+      'mediumseagreen', 'mediumslateblue', 'mediumspringgreen',
+      'mediumturquoise', 'mediumvioletred', 'midnightblue', 'rosybrown',
+      'royalblue', 'saddlebrown', 'sandybrown', 'seagreen', 'skyblue',
+      'slateblue', 'slategray', 'slategrey', 'springgreen', 'steelblue',
+      'yellowgreen', 'cadetblue', 'chartreuse', 'chocolate', 'cornflowerblue',
+      'blueviolet', 'burlywood', 'antiquewhite', 'aquamarine', 'whitesmoke',
+      'powderblue', 'palegreen', 'paleturquoise', 'palevioletred',
+      'palegoldenrod', 'rebeccapurple'
+    ])
+    return namedColors.has(c)
   }
 
   const validateFixColors = (obj) => {

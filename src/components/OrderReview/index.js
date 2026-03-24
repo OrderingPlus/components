@@ -183,6 +183,6 @@ OrderReview.propTypes = {
 }
 
 const defaultProps = {
-  defaultStar: 1,
+  defaultStar: 5,
   order: {}
 }

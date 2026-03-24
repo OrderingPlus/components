@@ -15,7 +15,7 @@ export const ReviewDriver = (props) => {
   const [session] = useSession()
   const [, t] = useLanguage()
   const [, { showToast }] = useToast()
-  const [reviews, setReviews] = useState({ qualification: 0, comment: '' })
+  const [reviews, setReviews] = useState({ qualification: 5, comment: '' })
   const [formState, setFormState] = useState({ loading: false, result: { error: false } })
 
   /**

@@ -46,6 +46,7 @@ export const PaymentOptionStripe = (props) => {
   const requestState = {}
 
   const paymethodsWithoutSaveCards = ['credomatic']
+  const paymethodsWithAutoSelectCard = ['braintree']
 
   /**
    * method to get cards from API
@@ -433,6 +434,20 @@ export const PaymentOptionStripe = (props) => {
       getCards()
     }
   }, [JSON.stringify(newCardAdded)])
+
+  useEffect(() => {
+    if (!cardsList.loading && cardsList.cards?.length === 1 && !cardSelected && paymethodsWithAutoSelectCard.includes(gateway)) {
+      const card = cardsList.cards[0]
+      handleCardClick(card)
+      onPaymentChange && onPaymentChange({
+        ...paymethodSelectedInfo,
+        data: {
+          ...card,
+          card: { ...card.type_data }
+        }
+      })
+    }
+  }, [cardsList.loading, cardsList.cards?.length])
 
   useEffect(() => {
     if (!window.addEventListener) return

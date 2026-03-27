@@ -303,10 +303,9 @@ export const BusinessList = (props) => {
 
       if (actualSlug) {
         const fromIndex = businesses.findIndex(business => business.slug === actualSlug)
-        const toIndex = 0
-        if (fromIndex !== toIndex) {
+        if (fromIndex > 0) {
           const element = businesses.splice(fromIndex, 1)[0]
-          businesses.splice(toIndex, 0, element)
+          businesses.splice(0, 0, element)
         }
       }
 

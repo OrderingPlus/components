@@ -977,14 +977,25 @@ export const OrderProvider = ({
         }
       })
       if (!error) {
-        state.carts[`businessId:${result.business_id}`] = result
         events.emit('cart_updated', result)
       }
-      setState({ ...state, loading: false })
+      setState(prevState => {
+        const newCarts = { ...prevState.carts }
+        if (!error) {
+          const currentCart = newCarts[`businessId:${result.business_id}`]
+          const currentTime = currentCart?.updated_at ? dayjs(currentCart.updated_at) : null
+          const resultTime = result?.updated_at ? dayjs(result.updated_at) : null
+          if (currentTime?.isValid() && resultTime?.isValid() && currentTime.isAfter(resultTime)) {
+            return { ...prevState, loading: false }
+          }
+          newCarts[`businessId:${result.business_id}`] = result
+        }
+        return { ...prevState, carts: newCarts, loading: false }
+      })
       return !error
     } catch (err) {
       refreshOrderOptions()
-      setState({ ...state, loading: false })
+      setState(prevState => ({ ...prevState, loading: false }))
       return false
     }
   }

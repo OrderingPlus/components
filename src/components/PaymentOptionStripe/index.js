@@ -436,7 +436,7 @@ export const PaymentOptionStripe = (props) => {
   }, [JSON.stringify(newCardAdded)])
 
   useEffect(() => {
-    if (!cardsList.loading && cardsList.cards?.length === 1 && !cardSelected && paymethodsWithAutoSelectCard.includes(gateway)) {
+    if (!cardsList.loading && cardsList.cards?.length > 0 && !cardSelected && paymethodsWithAutoSelectCard.includes(gateway)) {
       const card = cardsList.cards[0]
       handleCardClick(card)
       onPaymentChange && onPaymentChange({

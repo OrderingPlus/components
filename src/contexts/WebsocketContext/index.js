@@ -28,18 +28,13 @@ export const WebsocketProvider = ({ settings, children, strategy }) => {
         accessToken: session.token,
         url: 'https://sockets.orderingplus.com'
       })
+      _socket.connect()
       setSocket(_socket)
+      return () => {
+        _socket.close()
+      }
     }
-  }, [session.loading, session.token, JSON.stringify(configs)])
-
-  useEffect(() => {
-    if (socket) {
-      socket.connect()
-    }
-    return () => {
-      socket && socket.close()
-    }
-  }, [socket, session?.user?.id])
+  }, [session.loading, session.token, JSON.stringify(configs), session?.user?.id])
 
   useEffect(() => {
     if (session.auth) return

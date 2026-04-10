@@ -560,7 +560,11 @@ export const Checkout = (props) => {
 
   const createBusinessUserPaymethod = async (values = {}, callback = () => {}) => {
     try {
-      const response = await fetch(`${ordering.root}/business/${businessId}/paymethods/${paymethodSelected?.id || values?.paymethodId}/users/${user?.id}/paymethods`, {
+      const paymethodId = paymethodSelected?.id || values?.paymethodId
+      const url = paymethodSelected?.gateway === 'braintree'
+        ? `${ordering.root}/users/${user?.id}/paymethods/${paymethodId}/paymethods`
+        : `${ordering.root}/business/${businessId}/paymethods/${paymethodId}/users/${user?.id}/paymethods`
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

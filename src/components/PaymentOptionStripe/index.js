@@ -312,7 +312,10 @@ export const PaymentOptionStripe = (props) => {
         ...cardsList,
         loading: true
       })
-      const response = await fetch(`${ordering.root}/business/${businessId}/paymethods/${paymethodSelectedInfo?.id}/users/${user.id}/paymethods`, {
+      const url = gateway === 'braintree'
+        ? `${ordering.root}/users/${user.id}/paymethods/${paymethodSelectedInfo?.id}/paymethods`
+        : `${ordering.root}/business/${businessId}/paymethods/${paymethodSelectedInfo?.id}/users/${user.id}/paymethods`
+      const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -358,7 +361,10 @@ export const PaymentOptionStripe = (props) => {
 
   const deleteBusinessUserPaymethod = async (card) => {
     try {
-      const response = await fetch(`${ordering.root}/business/${businessId}/paymethods/${paymethodSelectedInfo?.id}/users/${user?.id}/paymethods/${card.id}`, {
+      const url = gateway === 'braintree'
+        ? `${ordering.root}/users/${user?.id}/paymethods/${paymethodSelectedInfo?.id}/paymethods/${card.id}`
+        : `${ordering.root}/business/${businessId}/paymethods/${paymethodSelectedInfo?.id}/users/${user?.id}/paymethods/${card.id}`
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

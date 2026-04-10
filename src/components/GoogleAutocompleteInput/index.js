@@ -100,6 +100,8 @@ export const AutocompleteInput = (props) => {
               library: 'google',
               place_id: place.place_id
             },
+            place_name: place.name || null,
+            place_types: place.types || [],
             ...addressObj
           }
           onChangeAddress(address)

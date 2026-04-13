@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { useOrder } from '../../contexts/OrderContext'
 import { useConfig } from '../../contexts/ConfigContext'
@@ -73,6 +73,8 @@ export const Checkout = (props) => {
    * This must be contains an object with info about paymente selected
    */
   const [paymethodSelected, setPaymethodSelected] = useState(null)
+  const [isWaitingPaymethodSync, setIsWaitingPaymethodSync] = useState(false)
+  const paymethodSyncTimeoutRef = useRef(null)
   /**
    * Loyalty plans state
    */
@@ -640,6 +642,27 @@ export const Checkout = (props) => {
   }, [socket, isCustomerMode, isListenOrderUpdate])
 
   useEffect(() => {
+    if (paymethodSelected?.gateway !== 'braintree') return
+    if (!paymethodSelected?.data?.id) return
+    setIsWaitingPaymethodSync(true)
+    clearTimeout(paymethodSyncTimeoutRef.current)
+    paymethodSyncTimeoutRef.current = setTimeout(() => setIsWaitingPaymethodSync(false), 3000)
+    return () => clearTimeout(paymethodSyncTimeoutRef.current)
+  }, [paymethodSelected?.gateway, paymethodSelected?.paymethodId, paymethodSelected?.data?.id])
+
+  useEffect(() => {
+    if (!isWaitingPaymethodSync) return
+    const onCartsUpdate = (incoming) => {
+      if (incoming?.uuid && incoming.uuid === cart?.uuid) {
+        clearTimeout(paymethodSyncTimeoutRef.current)
+        setIsWaitingPaymethodSync(false)
+      }
+    }
+    socket?.on('carts_update', onCartsUpdate)
+    return () => socket?.off('carts_update', onCartsUpdate)
+  }, [isWaitingPaymethodSync, cart?.uuid, socket])
+
+  useEffect(() => {
     if (!isKiosk) {
       Promise.all(
         [getDeliveryOptions(), getLoyaltyPlans()].map(promise => {
@@ -660,7 +683,7 @@ export const Checkout = (props) => {
           {...props}
           cart={cart}
           businessId={businessId}
-          placing={placing}
+          placing={placing || isWaitingPaymethodSync}
           errors={errors}
           loyaltyPlansState={loyaltyPlansState}
           orderOptions={orderState.options}

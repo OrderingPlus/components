@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
@@ -11,7 +11,6 @@ import { useOrder } from '../../contexts/OrderContext'
 export const OrderDetails = (props) => {
   const {
     orderId,
-    orderNumberId,
     orderAssingId,
     hashKey,
     UIComponent,
@@ -44,8 +43,6 @@ export const OrderDetails = (props) => {
   const [reorderState, setReorderState] = useState({ loading: false, result: [], error: null })
   const [cartState, setCartState] = useState({ loading: false, error: null })
   const [showReservationAlert, setShowReservationAlert] = useState(false)
-  const orderStateRef = useRef(orderState)
-  const receivedRealtimeUpdateRef = useRef(false)
   /**
    * Method to accept or reject a logistic order
    */
@@ -325,10 +322,8 @@ export const OrderDetails = (props) => {
   /**
    * Method to get order from API
    */
-  const getOrder = async ({ silent = false } = {}) => {
-    if (!silent || !orderStateRef.current.order) {
-      setOrderState((prevState) => ({ ...prevState, loading: true }))
-    }
+  const getOrder = async () => {
+    setOrderState({ ...orderState, loading: true })
     const source = {}
     requestsState.order = source
     requestsState.business = source
@@ -387,21 +382,19 @@ export const OrderDetails = (props) => {
         getDrivers(order?.id ?? orderId)
       }
 
-      setOrderState((prevState) => ({
-        ...prevState,
+      setOrderState({
+        ...orderState,
         loading: false,
         order,
         businessData,
         error: err
-      }))
-      return order
+      })
     } catch (e) {
-      setOrderState((prevState) => ({
-        ...prevState,
+      setOrderState({
+        ...orderState,
         loading: false,
         error: [e.message ?? 'ERROR']
-      }))
-      return null
+      })
     }
   }
 
@@ -520,10 +513,6 @@ export const OrderDetails = (props) => {
       : `drivers_${orderState.order?.driver_id}`
 
   useEffect(() => {
-    orderStateRef.current = orderState
-  }, [orderState])
-
-  useEffect(() => {
     !orderState.loading && loadMessages()
   }, [orderState?.order?.id, orderState?.order?.status, orderState.loading])
 
@@ -562,44 +551,17 @@ export const OrderDetails = (props) => {
   }, [orderId, isDriverNotification])
 
   useEffect(() => {
-    if (loading || !socket?.socket) return
-    const joinOrderRooms = () => {
-      if (!isDisabledOrdersRoom) socket.join(getRoom('orders'))
-      if (orderStateRef.current.order?.driver_id) {
-        socket.join({
-          room: `drivers_${orderStateRef.current.order.driver_id}`,
-          project: ordering.project
-        })
-      }
-    }
-
-    const handleSocketConnect = () => {
-      joinOrderRooms()
-    }
-
+    if (orderState.loading || loading || !socket?.socket) return
     const handleUpdateOrderDetails = (order) => {
-      const currentOrder = orderStateRef.current.order
-      const orderIdFromParams = typeof orderNumberId === 'number' ? orderNumberId : Number(orderNumberId) || null
-      const orderUuidFromParams = isNaN(Number(orderId)) ? orderId : null
-      const hasMatchingId = (currentOrder?.id || orderIdFromParams) && order?.id === (currentOrder?.id || orderIdFromParams)
-      const hasMatchingUuid = (currentOrder?.uuid || orderUuidFromParams) && order?.uuid === (currentOrder?.uuid || orderUuidFromParams)
-      if (!hasMatchingId && !hasMatchingUuid) return
-      receivedRealtimeUpdateRef.current = true
-      if (!currentOrder?.id) {
-        getOrder({ silent: true })
-        return
-      }
+      if (order?.id !== orderState.order?.id) return
       showToast(ToastType.Info, t('UPDATING_ORDER', 'Updating order...'), 1000)
       delete order.total
       delete order.subtotal
-      setOrderState((prevState) => {
-        const updatedOrder = Object.assign(prevState.order, order)
-        events.emit('order_updated', updatedOrder)
-        return {
-          ...prevState,
-          order: updatedOrder
-        }
+      setOrderState({
+        ...orderState,
+        order: Object.assign(orderState.order, order)
       })
+      events.emit('order_updated', Object.assign(orderState.order, order))
       if (order?.driver?.location) {
         setDriverLocation(order.driver.location)
       }
@@ -607,59 +569,41 @@ export const OrderDetails = (props) => {
     const handleTrackingDriver = (props) => {
       const location = props.location
       const driverId = props.driver_id
-      if (driverId !== orderStateRef.current?.order?.driver_id) return
+      if (driverId !== orderState?.order?.driver_id) return
       const newLocation = location ?? { lat: -37.9722342, lng: 144.7729561 }
       setDriverLocation(newLocation)
-      setOrderState((prevState) => ({
-        ...prevState,
+      setOrderState({
+        ...orderState,
         order: {
-          ...prevState.order,
+          ...orderState.order,
           driver: {
-            ...prevState.order?.driver,
+            ...orderState.order?.driver,
             location: newLocation
           }
         }
-      }))
+      })
     }
 
-    joinOrderRooms()
-    socket.socket.on('connect', handleSocketConnect)
+    if (!isDisabledOrdersRoom) socket.join(getRoom('orders'))
+    if (orderState.order?.driver_id) {
+      socket.join(getRoom('drivers'))
+    }
+    socket.socket.on('connect', () => {
+      if (!isDisabledOrdersRoom) socket.join(getRoom('orders'))
+      if (orderState.order?.driver_id) {
+        socket.join(getRoom('drivers'))
+      }
+    })
     socket.on('tracking_driver', handleTrackingDriver)
-    socket.on('update_order', handleUpdateOrderDetails)
+    if (!socket?.socket?._callbacks?.$update_order || socket?.socket?._callbacks?.$update_order?.find(func => func?.name !== 'handleUpdateOrderDetails')) {
+      socket.on('update_order', handleUpdateOrderDetails)
+    }
     return () => {
       if (!isDisabledOrdersRoom && !props.disabledLeaveOrderSocket) socket.leave(getRoom('orders'))
-      if (orderStateRef.current.order?.driver_id) {
-        socket.leave({
-          room: `drivers_${orderStateRef.current.order.driver_id}`,
-          project: ordering.project
-        })
-      }
-      socket.socket.off('connect', handleSocketConnect)
       socket.off('update_order', handleUpdateOrderDetails)
       socket.off('tracking_driver', handleTrackingDriver)
     }
-  }, [socket?.socket, loading, userCustomerId, orderState.order?.driver_id, orderState.order?.id, orderState.order?.uuid, orderId, orderNumberId, hashKey])
-
-  useEffect(() => {
-    if (!props.isFromCheckout || loading || !socket?.socket) return
-    receivedRealtimeUpdateRef.current = false
-
-    const syncOrderAfterCheckout = async () => {
-      if (receivedRealtimeUpdateRef.current) return
-      const orderInState = orderStateRef.current.order
-      if (!orderInState?.id && !orderId) return
-      await getOrder({ silent: true })
-    }
-
-    syncOrderAfterCheckout()
-    const intervalId = setInterval(syncOrderAfterCheckout, 3000)
-    const timeoutId = setTimeout(() => clearInterval(intervalId), 60000)
-
-    return () => {
-      clearInterval(intervalId)
-      clearTimeout(timeoutId)
-    }
-  }, [props.isFromCheckout, socket?.socket, loading, orderId])
+  }, [orderState?.loading, socket?.socket, loading, userCustomerId, orderState.order?.driver_id, orderState.order?.id, hashKey])
 
   useEffect(() => {
     if (messages.loading) return

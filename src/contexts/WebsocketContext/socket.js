@@ -32,7 +32,7 @@ export class Socket {
         } else if (item.action === 'leave') {
           this.leave(item.room)
         } else if (item.action === 'off') {
-          this.off(item.event, item.func)
+          this.off(item.room)
         }
       }
     })
@@ -73,7 +73,7 @@ export class Socket {
   }
 
   on (event, func = () => {}) {
-    if (this.socket) {
+    if (this.socket?.connected) {
       this.socket.on(event, func)
     } else {
       this.queue.push({ action: 'on', event, func })
@@ -82,7 +82,7 @@ export class Socket {
   }
 
   off (event, func = () => {}) {
-    if (this.socket) {
+    if (this.socket?.connected) {
       this.socket.off(event, func)
     } else {
       this.queue.push({ action: 'off', event, func })

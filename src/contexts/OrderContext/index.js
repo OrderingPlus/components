@@ -1040,7 +1040,19 @@ export const OrderProvider = ({
           events.emit('order_placed', orderObject)
         }
       } else {
-        setAlert({ show: true, content: result, status })
+        const toI18nKey = (msg) => msg.trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+        const friendlyFallbacks = {
+          ERROR_CART_PLACE_TOTAL_DIFFERENT: 'Price adjustments are still being applied. Please try again in a moment.'
+        }
+        const friendlyContent = Array.isArray(result)
+          ? result.map(item => {
+            const msg = typeof item === 'string' ? item : item?.message
+            if (typeof msg !== 'string') return item
+            const key = toI18nKey(msg)
+            return t(key, friendlyFallbacks[key] ?? msg)
+          })
+          : result
+        setAlert({ show: true, content: friendlyContent, status })
         setState({ ...state, loading: false })
         return
       }

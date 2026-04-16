@@ -9,6 +9,7 @@ import { useToast, ToastType } from '../../contexts/ToastContext'
 import { useCustomer } from '../../contexts/CustomerContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
+import { sortProductsBySubcategoryRank } from '../../utils/subcategoryProductSort'
 
 dayjs.extend(utc)
 
@@ -159,17 +160,29 @@ export const BusinessAndProductList = (props) => {
   }
 
   const sortProductsArray = (option, array) => {
+    if (!array?.length) {
+      setCategoryState({ ...categoryState, products: array || [] })
+      return
+    }
+    const selectedCategory =
+      categorySelected?.id && categorySelected?.id !== 'featured'
+        ? businessState?.business?.categories?.find(c => c.id === categorySelected.id)
+        : null
+    const hasSubs = selectedCategory?.subcategories?.length > 0
     let _array
-    if (option === 'rank' || option === null) {
-      _array = array.sort((a, b) => a.rank - b.rank)
-    }
-    if (option === 'rank_desc') {
-      _array = array.sort((a, b) => b.rank - a.rank)
-    }
-    if (option === 'a-z') {
-      _array = array.sort((a, b) =>
-        (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)
-      )
+    if (hasSubs) {
+      _array = sortProductsBySubcategoryRank(array, selectedCategory, option)
+    } else {
+      _array = [...array]
+      if (option === 'rank' || option === null) {
+        _array.sort((a, b) => (a.rank || 0) - (b.rank || 0))
+      } else if (option === 'rank_desc') {
+        _array.sort((a, b) => (b.rank || 0) - (a.rank || 0))
+      } else if (option === 'a-z') {
+        _array.sort((a, b) =>
+          (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)
+        )
+      }
     }
     setCategoryState({ ...categoryState, products: _array })
   }

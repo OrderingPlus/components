@@ -1,3 +1,9 @@
+export {
+  buildSubcategoryRankMap,
+  sortProductsBySubcategoryRank,
+  sortSubcategoriesByRank
+} from './subcategoryProductSort'
+
 export const randomString = (length = 10, alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789') => {
   let result = ''
   const charactersLength = alphabet.length

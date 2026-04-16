@@ -111,7 +111,11 @@ import { OrderingContext, OrderingProvider } from './src/contexts/OrderingContex
 import { ToastType, ToastContext, ToastProvider, useToast } from '../src/contexts/ToastContext'
 import { OrderingThemeContext, OrderingThemeProvider, useOrderingTheme } from '../src/contexts/OrderingThemeContext'
 import { createMergedTheme } from '../src/utils/themeUtils'
-
+import {
+  buildSubcategoryRankMap,
+  sortProductsBySubcategoryRank,
+  sortSubcategoriesByRank
+} from '../src/utils/subcategoryProductSort'
 import { CODES } from '../src/constants/code-numbers'
 import { TIMEZONES, createDayjsWithTimezone } from '../src/constants/timezones'
 
@@ -259,6 +263,9 @@ export {
   OrderingThemeProvider,
   useOrderingTheme,
   createMergedTheme,
+  buildSubcategoryRankMap,
+  sortProductsBySubcategoryRank,
+  sortSubcategoriesByRank,
   // Constants
   CODES,
   TIMEZONES,

@@ -140,6 +140,11 @@ import { QueryLoginSpoonity } from './components/QueryLoginSpoonity'
 import { WebsocketStatus } from './components/WebsocketStatus'
 import { ProjectForm } from './components/ProjectForm'
 import { createMergedTheme } from './utils/themeUtils'
+import {
+  buildSubcategoryRankMap,
+  sortProductsBySubcategoryRank,
+  sortSubcategoriesByRank
+} from './utils/subcategoryProductSort'
 
 import {
   Appointments,
@@ -379,6 +384,9 @@ export {
   useOptimizationLoad,
   WebStrategy,
   createMergedTheme,
+  buildSubcategoryRankMap,
+  sortProductsBySubcategoryRank,
+  sortSubcategoriesByRank,
   // Constants
   CODES,
   TIMEZONES,

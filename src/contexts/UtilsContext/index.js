@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { optimizeImageUrl } from '../../utils/optimizeImageUrl'
 import { useConfig } from '../ConfigContext'
 import { useLanguage } from '../LanguageContext'
 import { useApi } from '../ApiContext'
@@ -264,7 +265,8 @@ export const UtilsProviders = ({ children, strategy }) => {
 
   const optimizeImage = (url, params, fallback) => {
     if (!url && fallback) return fallback
-    return url
+    if (!url) return url
+    return optimizeImageUrl(url, params)
   }
 
   const getOrderState = (num) => {

@@ -487,7 +487,7 @@ export const ProductForm = (props) => {
       }, 0)
     }
     const hasPreselectedFlow = suboptionsArray.filter(state => state?.suboption?.preselected)
-    if (newBalance <= option.max || (newPizzaState?.[`option:${option?.id}`]?.value <= option.max && option?.with_half_option)) {
+    if (option?.max == null || newBalance <= option.max || (newPizzaState?.[`option:${option?.id}`]?.value <= option.max && option?.with_half_option)) {
       newProductCart.options[`id:${option.id}`].balance = newBalance
       newProductCart.unitTotal = getUnitTotal(newProductCart)
       newProductCart.total = newProductCart.unitTotal * newProductCart.quantity
@@ -535,7 +535,7 @@ export const ProductForm = (props) => {
         }, 0)
       }
 
-      if (newBalance <= option.max || (newPizzaState?.[`option:${option.id}`]?.value <= option.max && option?.with_half_option)) {
+      if (option?.max == null || newBalance <= option.max || (newPizzaState?.[`option:${option.id}`]?.value <= option.max && option?.with_half_option)) {
         newProductCart.options[`id:${option.id}`].balance = newBalance
         newProductCart.unitTotal = getUnitTotal(newProductCart)
         newProductCart.total = newProductCart.unitTotal * newProductCart.quantity
@@ -590,9 +590,9 @@ export const ProductForm = (props) => {
         }
         const evaluate = option.respect_to ? evaluateRespectTo : true
         if (option?.suboptions?.length > 0 && evaluate) {
-          if (option.min > quantity) {
+          if (option.min != null && option.min > quantity) {
             errors[`id:${option.id}`] = true
-          } else if (option.max < quantity) {
+          } else if (option.max != null && option.max < quantity) {
             errors[`id:${option.id}`] = true
           }
         }

@@ -197,3 +197,90 @@ export const optimizeImageUrl = (url, params) => {
     return normalized
   }
 }
+
+/**
+ * True when optimizeImageUrl can apply Cloudinary-style transforms.
+ * @param {string} url
+ * @returns {boolean}
+ */
+export const isResponsiveCloudinaryImageUrl = (url) => {
+  const normalized = normalizeUrlString(url)
+  if (!normalized || normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+    return false
+  }
+  try {
+    const base = typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://ordering.local'
+    const urlObj = new URL(normalized, base)
+    if (urlObj.protocol === 'file:') {
+      return false
+    }
+    return isCloudinaryHost(urlObj.hostname) && urlObj.pathname.includes(CLOUDINARY_PATH_MARKER)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Build src / srcSet (w descriptors) / sizes for responsive <img>.
+ * Non-Cloudinary URLs return src only (no srcSet).
+ *
+ * @param {string} url
+ * @param {object} [options]
+ * @param {number[]} [options.widths] Display widths for `Nw` descriptors
+ * @param {string} [options.extraParams] Extra transform tokens (e.g. `h_86,c_limit`)
+ * @param {string} [options.sizes] Value for the HTML sizes attribute
+ * @param {number} [options.srcWidth] Width token for fallback `src` (defaults to largest in widths)
+ * @returns {{ src: string, srcSet?: string, sizes: string }}
+ */
+export const getResponsiveImageProps = (url, options = {}) => {
+  const {
+    widths = [320, 480, 640, 768, 960],
+    extraParams = 'c_limit',
+    sizes = '100vw',
+    srcWidth: preferredSrcWidth
+  } = options
+
+  if (!url || typeof url !== 'string') {
+    return { src: url || '', sizes }
+  }
+
+  const normalized = normalizeUrlString(url)
+  if (!normalized) {
+    return { src: normalized, sizes }
+  }
+
+  if (!isResponsiveCloudinaryImageUrl(normalized)) {
+    return { src: normalized, sizes }
+  }
+
+  const widthList = [...new Set(
+    widths.filter((w) => typeof w === 'number' && Number.isFinite(w) && w > 0)
+  )].sort((a, b) => a - b)
+
+  if (widthList.length === 0) {
+    const src = optimizeImageUrl(normalized, extraParams)
+    return { src, sizes }
+  }
+
+  const paramsForWidth = (w) => {
+    const extra = typeof extraParams === 'string' ? extraParams.trim() : ''
+    if (!extra) {
+      return `w_${w},c_limit`
+    }
+    return `w_${w},${extra}`
+  }
+
+  const srcSet = widthList
+    .map((w) => `${optimizeImageUrl(normalized, paramsForWidth(w))} ${w}w`)
+    .join(', ')
+
+  const maxW = widthList[widthList.length - 1]
+  const fallbackW = (typeof preferredSrcWidth === 'number' && widthList.includes(preferredSrcWidth))
+    ? preferredSrcWidth
+    : maxW
+  const src = optimizeImageUrl(normalized, paramsForWidth(fallbackW))
+
+  return { src, srcSet, sizes }
+}

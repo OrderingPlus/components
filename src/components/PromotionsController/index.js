@@ -9,7 +9,8 @@ export const PromotionsController = (props) => {
   const {
     UIComponent,
     paramsToFetch,
-    franchiseId
+    franchiseId,
+    businessSlug
   } = props
 
   const [session] = useSession()
@@ -78,12 +79,20 @@ export const PromotionsController = (props) => {
     loadOffers()
   }, [JSON.stringify(location), options?.type])
 
+  const filteredOffers = businessSlug
+    ? (offersState.offers || []).filter(offer => {
+        const list = offer?.businesses
+        if (!list || list.length === 0) return true
+        return list.some(b => String(b?.id) === String(businessSlug) || b?.slug === businessSlug)
+      })
+    : offersState.offers
+
   return (
     <>
       {UIComponent && (
         <UIComponent
           {...props}
-          offersState={offersState}
+          offersState={{ ...offersState, offers: filteredOffers }}
           searchValue={searchValue}
           offerSelected={offerSelected}
           loadOffers={loadOffers}

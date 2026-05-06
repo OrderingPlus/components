@@ -249,7 +249,7 @@ export const OrderList = props => {
         .reduce((previousValue, currentValue) => previousValue.concat(currentValue?.products?.[0]?.calendar_event?.professional), [])
         .filter((professional, i, hash) => professional && hash?.map(_professional => _professional?.id)?.indexOf(professional?.id) === i)
       )
-      const businessIds = [...response.content.result, ...orderList.orders].map(order => order.business_id)
+      const businessIds = [...new Set([...response.content.result, ...orderList.orders].map(order => order.business_id).filter(id => id != null))]
       setBusinessOrderIds && setBusinessOrderIds(businessIds)
       setProducts(
         [...response.content.result, ...orderList.orders]

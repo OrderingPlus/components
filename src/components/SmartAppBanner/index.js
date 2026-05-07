@@ -17,20 +17,25 @@ export const SmartAppBanner = (props) => {
   const [, t] = useLanguage()
   useEffect(() => {
     if (!storeAndroidId || !storeAppleId) return
-    const descriptionUpdated = description || document.querySelector('meta[name="description"]').getAttribute('content')
+
+    const descriptionUpdated =
+      description ||
+      document.querySelector('meta[name="description"]')?.getAttribute('content') ||
+      ''
 
     const metas = [
       { name: 'apple-itunes-app', content: `app-id=${storeAppleId}` },
       { name: 'google-play-app', content: `app-id=${storeAndroidId}` }
     ]
-    // add metas to head
+    const appendedMetaNodes = []
     metas.forEach(meta => {
       const metaTag = document.createElement('meta')
       metaTag.name = meta.name
       metaTag.content = meta.content
       document.head.appendChild(metaTag)
+      appendedMetaNodes.push(metaTag)
     })
-    if (window.smartbanner) {
+    if (typeof window !== 'undefined' && typeof window.smartbanner?.publish === 'function') {
       window.smartbanner.publish()
     }
     const smartBanner = new SmartBanner({
@@ -52,13 +57,10 @@ export const SmartAppBanner = (props) => {
       icon: logo
     })
     return () => {
-      metas.forEach(meta => {
-        const metaTag = document.querySelector(`meta[name="${meta.name}"]`)
-        metaTag && metaTag.remove()
-      })
+      appendedMetaNodes.forEach((metaNode) => metaNode.remove())
       smartBanner.hide()
     }
-  }, [storeAndroidId, storeAppleId, appName, description])
+  }, [storeAndroidId, storeAppleId, appName, description, t, logo])
 
   return (
     <>

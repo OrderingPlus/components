@@ -29,7 +29,7 @@ export const OrderingContext = createContext()
  * Use restOfProps on contexts that requiere extra settings that aren't in the sdk
  * This prop doesn't need permission from sdk.
  */
-export const OrderingProvider = ({ Alert, settings, children, enableCouponsRetries = false }) => {
+export const OrderingProvider = ({ Alert, settings, children, enableCouponsRetries = false, initialOptimizationLoad }) => {
   const webStrategy = new WebStrategy()
   const restOfSettings = {
     project: settings.project,
@@ -43,7 +43,7 @@ export const OrderingProvider = ({ Alert, settings, children, enableCouponsRetri
     <OrderingContext.Provider value={{}}>
       <EventProvider>
         <ApiProvider settings={Object.assign(settings.api, restOfSettings)}>
-          <OptimizationLoadProvider settings={Object.assign(settings.api, restOfSettings)} strategy={webStrategy}>
+          <OptimizationLoadProvider settings={Object.assign(settings.api, restOfSettings)} strategy={webStrategy} initialData={initialOptimizationLoad}>
             <LanguageProvider settings={Object.assign(settings.api, restOfSettings)} restOfProps={settings} strategy={webStrategy}>
               <ConfigProvider strategy={webStrategy}>
                 <OrderingThemeProvider settings={Object.assign(settings.api, restOfSettings)}>

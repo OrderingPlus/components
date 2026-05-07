@@ -1,13 +1,16 @@
 /**
  * Builds Cloudinary-compatible transformation URLs for supported CDNs.
- * Applies balanced delivery defaults: q_auto:good, f_auto (WebP/AVIF when supported).
+ * Applies balanced delivery defaults: q_auto:good on Cloudinary, q_auto on OrderingPlus assets
+ * (Bunny rejects q_auto:* variants like q_auto:good with 403), plus f_auto where missing.
  */
 
 const CLOUDINARY_PATH_MARKER = '/image/upload/'
 
+const ORDERINGPLUS_CLOUD_ASSETS_HOST = 'cloud-assets.orderingplus.com'
+
 const CLOUDINARY_HOST_SUFFIXES = [
   'res.cloudinary.com',
-  'cloud-assets.orderingplus.com'
+  ORDERINGPLUS_CLOUD_ASSETS_HOST
 ]
 
 const TRANSFORM_PREFIX_WHITELIST = new Set([
@@ -15,8 +18,47 @@ const TRANSFORM_PREFIX_WHITELIST = new Set([
   'g', 'h', 'if', 'l', 'o', 'q', 'r', 'so', 't', 'u', 'vc', 'vs', 'w', 'x', 'y', 'z'
 ])
 
-const DEFAULT_QUALITY = 'q_auto:good'
+const DEFAULT_QUALITY_CLOUDINARY = 'q_auto:good'
+const DEFAULT_QUALITY_ORDERINGPLUS_ASSETS = 'q_auto'
 const DEFAULT_FORMAT = 'f_auto'
+
+const isOrderingPlusCloudAssetsHost = (hostname) => {
+  if (!hostname) {
+    return false
+  }
+  const h = hostname.toLowerCase()
+  return h === ORDERINGPLUS_CLOUD_ASSETS_HOST || h.endsWith(`.${ORDERINGPLUS_CLOUD_ASSETS_HOST}`)
+}
+
+const getDefaultQualityToken = (hostname) => {
+  if (isOrderingPlusCloudAssetsHost(hostname)) {
+    return DEFAULT_QUALITY_ORDERINGPLUS_ASSETS
+  }
+  return DEFAULT_QUALITY_CLOUDINARY
+}
+
+/**
+ * BunnyCDN rejects some Cloudinary-style quality tokens (e.g. q_auto:good) on this host.
+ * Normalize q_auto:* → q_auto before merging transforms.
+ */
+const sanitizeTokensForOrderingPlusAssets = (hostname, tokens) => {
+  if (!isOrderingPlusCloudAssetsHost(hostname)) {
+    return tokens
+  }
+  return tokens.map((token) => {
+    if (typeof token !== 'string') {
+      return token
+    }
+    const trimmed = token.trim()
+    if (!trimmed) {
+      return token
+    }
+    if (/^q_auto:/i.test(trimmed)) {
+      return DEFAULT_QUALITY_ORDERINGPLUS_ASSETS
+    }
+    return trimmed
+  })
+}
 
 const normalizeUrlString = (url) => {
   if (!url || typeof url !== 'string') {
@@ -144,7 +186,8 @@ const applyCloudinaryTransforms = (urlObj, extraParamTokens) => {
     return urlObj.toString()
   }
 
-  const mandatoryDefaults = [DEFAULT_QUALITY, DEFAULT_FORMAT]
+  const hostname = urlObj.hostname
+  const mandatoryDefaults = [getDefaultQualityToken(hostname), DEFAULT_FORMAT]
   let existingTokens = []
   let contentSegments = segments
 
@@ -153,9 +196,12 @@ const applyCloudinaryTransforms = (urlObj, extraParamTokens) => {
     contentSegments = segments.slice(1)
   }
 
+  const sanitizedExisting = sanitizeTokensForOrderingPlusAssets(hostname, existingTokens)
+  const sanitizedExtra = sanitizeTokensForOrderingPlusAssets(hostname, extraParamTokens)
+
   const merged = mergeTransformationTokens(
-    existingTokens,
-    extraParamTokens,
+    sanitizedExisting,
+    sanitizedExtra,
     mandatoryDefaults
   )
 

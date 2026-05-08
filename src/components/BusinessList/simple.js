@@ -53,13 +53,15 @@ export const BusinessSimpleList = (props) => {
 
       let where = null
       const conditions = []
+      const locationParam = (isAllowUnaddressOrderType && !orderState.options?.address?.location)
+        ? location
+        : (orderState.options?.address?.location
+          ? { lat: orderState.options.address.location.lat, lng: orderState.options.address.location.lng }
+          : null)
       const parameters = {
         page: 1,
         page_size: paginationProps.pageSize,
-        location: (isAllowUnaddressOrderType && !orderState.options?.address?.location)
-          ? location
-          : `${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`,
-        type: orderType ?? orderState?.options?.type
+        order_type_id: orderType ?? orderState?.options?.type
       }
 
       if (orderState.options?.moment && isValidMoment(orderState.options?.moment, 'YYYY-MM-DD HH:mm:ss')) {
@@ -78,15 +80,19 @@ export const BusinessSimpleList = (props) => {
         }
       }
 
-      const source = {}
-      requestsState.businesses = source
+      const controller = new AbortController()
+      requestsState.businesses = controller
       setRequestsState({ ...requestsState })
 
-      const fetchEndpoint = where
-        ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where)
-        : ordering.businesses().select(propsToFetch).parameters(parameters)
+      const qs = new URLSearchParams()
+      Object.entries(parameters).forEach(([k, v]) => { if (v !== undefined && v !== null) qs.set(k, v) })
+      if (locationParam) qs.set('location', JSON.stringify(locationParam))
+      if (Array.isArray(propsToFetch) && propsToFetch.length) qs.set('params', propsToFetch.join(','))
+      else if (typeof propsToFetch === 'string' && propsToFetch) qs.set('params', propsToFetch)
+      if (where) qs.set('where', JSON.stringify(where))
 
-      const { content: { error, result, pagination } } = await fetchEndpoint.get({ cancelToken: source })
+      const response = await fetch(`${ordering.root}/businesses?${qs.toString()}`, { signal: controller.signal })
+      const { error, result, pagination } = await response.json()
 
       if (!error) {
         let nextPageItems = 0
@@ -119,7 +125,7 @@ export const BusinessSimpleList = (props) => {
         businesses: error ? [] : result
       })
     } catch (err) {
-      if (err.constructor.name !== 'Cancel') {
+      if (err?.name !== 'AbortError' && err?.constructor?.name !== 'Cancel') {
         setBusinessesList({
           ...businessesList,
           loading: false,
@@ -193,6 +199,12 @@ const defaultProps = {
     'groceries',
     'slug',
     'address',
-    'configs'
+    'configs',
+    'timezone',
+    'today',
+    'enabled',
+    'disabled_reason',
+    'available_drivers_count',
+    'activated_orders'
   ]
 }

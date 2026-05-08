@@ -302,9 +302,26 @@ export const AddressForm = (props) => {
           conector: 'AND'
         }
       }
-      const source = {}
-      requestsState.businesses = source
-      const { content: { error, result } } = await ordering.businesses().select(propsToFetch).parameters(parameters).where(where).get({ cancelToken: source })
+      const controller = new AbortController()
+      requestsState.businesses = controller
+
+      const qs = new URLSearchParams()
+      const { location: locationParam, type: typeParam, ...restParams } = parameters
+      if (typeParam !== undefined && typeParam !== null) qs.set('order_type_id', typeParam)
+      if (locationParam) {
+        const locationJson = typeof locationParam === 'string'
+          ? (() => { const [lat, lng] = locationParam.split(','); return { lat: Number(lat), lng: Number(lng) } })()
+          : { lat: locationParam.lat, lng: locationParam.lng }
+        qs.set('location', JSON.stringify(locationJson))
+      }
+      Object.entries(restParams).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) qs.set(k, v)
+      })
+      qs.set('params', propsToFetch.join(','))
+      if (where) qs.set('where', JSON.stringify(where))
+
+      const response = await fetch(`${ordering.root}/businesses?${qs.toString()}`, { signal: controller.signal })
+      const { error, result } = await response.json()
       if (!error) {
         const firstNearestOpenBusiness = result?.find(business => business?.open)
         setBusinessNearestState({
@@ -469,7 +486,9 @@ export const AddressForm = (props) => {
   useEffect(() => {
     const request = requestsState.businesses
     return () => {
-      request && request.cancel()
+      if (!request) return
+      if (typeof request.cancel === 'function') request.cancel()
+      else if (typeof request.abort === 'function') request.abort()
     }
   }, [requestsState.businesses])
 

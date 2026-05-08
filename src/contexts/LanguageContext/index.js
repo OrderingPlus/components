@@ -7,6 +7,13 @@ import { useApi } from '../ApiContext'
  */
 export const LanguageContext = createContext()
 
+const normalizeHtmlLang = (code) => {
+  if (!code || typeof code !== 'string') return 'en'
+  const trimmed = code.trim()
+  if (!trimmed) return 'en'
+  return trimmed.replace(/_/g, '-')
+}
+
 /**
  * Custom provider to languages manager
  * This provider has a reducer for manage languages state
@@ -149,6 +156,11 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
     if (ordering.language !== state?.language?.code) return
     apiHelper.setLanguage(state?.language?.code)
   }, [state.language])
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || !document?.documentElement) return
+    document.documentElement.lang = normalizeHtmlLang(state?.language?.code)
+  }, [state?.language?.code])
 
   const t = (key, fallback = null) => {
     let originalKey = key

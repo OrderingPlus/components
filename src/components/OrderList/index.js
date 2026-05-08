@@ -367,12 +367,24 @@ export const OrderList = props => {
         }
       }
 
-      const source = {}
-      requestsState.businesses = source
+      const controller = new AbortController()
+      requestsState.businesses = controller
 
-      const fetchEndpoint = ordering.businesses().select(propsToFetchBusiness).parameters(parameters).where(where)
+      const qs = new URLSearchParams()
+      qs.set('order_type_id', orderState.options?.type ?? 1)
+      if (orderState.options?.address?.location?.lat != null) {
+        qs.set('location', JSON.stringify({
+          lat: orderState.options.address.location.lat,
+          lng: orderState.options.address.location.lng
+        }))
+      }
+      if (parameters.timestamp) qs.set('timestamp', parameters.timestamp)
+      if (Array.isArray(propsToFetchBusiness) && propsToFetchBusiness.length) qs.set('params', propsToFetchBusiness.join(','))
+      else if (typeof propsToFetchBusiness === 'string' && propsToFetchBusiness) qs.set('params', propsToFetchBusiness)
+      if (where) qs.set('where', JSON.stringify(where))
 
-      const { content: { error, result } } = await fetchEndpoint.get({ cancelToken: source })
+      const response = await fetch(`${ordering.root}/businesses?${qs.toString()}`, { signal: controller.signal })
+      const { error, result } = await response.json()
       if (!error) {
         setBusinesses({
           result,
@@ -381,7 +393,7 @@ export const OrderList = props => {
         })
       }
     } catch (err) {
-      if (err.constructor.name !== 'Cancel') {
+      if (err?.name !== 'AbortError' && err?.constructor?.name !== 'Cancel') {
         setBusinesses({
           ...businesses,
           err: err.message,
@@ -834,5 +846,5 @@ const defaultProps = {
   orderDirection: 'desc',
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },
   isAsCustomer: false,
-  propsToFetchBusiness: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'featured', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id']
+  propsToFetchBusiness: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'featured', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id', 'timezone', 'today', 'enabled', 'disabled_reason', 'available_drivers_count', 'activated_orders']
 }

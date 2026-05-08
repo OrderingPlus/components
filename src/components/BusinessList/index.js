@@ -261,19 +261,57 @@ export const BusinessList = (props) => {
         parameters = { ...parameters, ...paginationParams }
       }
 
+      const isAdvancedSearch = advancedSearchEnabled && searchValue?.length >= 3
+      const useNewBusinessesEndpoint = !asDashboard && !isAdvancedSearch
+
       const source = {}
       requestsState.businesses = source
       setRequestsState({ ...requestsState })
 
-      const fetchEndpoint = (advancedSearchEnabled && searchValue?.length >= 3) || (!where && !asDashboard)
-        ? where ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where) : ordering.businesses().select(propsToFetch).parameters(parameters)
-        : where && asDashboard
-          ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where).asDashboard()
-          : where && !asDashboard
-            ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where)
-            : ordering.businesses().select(propsToFetch).parameters(parameters).asDashboard()
+      let error, result, pagination
+      if (useNewBusinessesEndpoint) {
+        const controller = new AbortController()
+        requestsState.businesses = controller
+        setRequestsState({ ...requestsState })
 
-      const { content: { error, result, pagination } } = await fetchEndpoint.get({ cancelToken: source, advancedSearch: advancedSearchEnabled && searchValue?.length >= 3 })
+        const qs = new URLSearchParams()
+        const { location: locationParam, type: typeParam, ...restParams } = parameters
+        if (typeParam !== undefined && typeParam !== null) qs.set('order_type_id', typeParam)
+        if (locationParam) {
+          const locationJson = typeof locationParam === 'string'
+            ? (() => {
+                const [lat, lng] = locationParam.split(',')
+                return { lat: Number(lat), lng: Number(lng) }
+              })()
+            : locationParam
+          qs.set('location', JSON.stringify(locationJson))
+        }
+        Object.entries(restParams).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && k !== 'version') qs.set(k, v)
+        })
+        if (Array.isArray(propsToFetch) && propsToFetch.length) qs.set('params', propsToFetch.join(','))
+        else if (typeof propsToFetch === 'string' && propsToFetch) qs.set('params', propsToFetch)
+        if (where) qs.set('where', JSON.stringify(where))
+
+        const response = await fetch(`${ordering.root}/businesses?${qs.toString()}`, { signal: controller.signal })
+        const json = await response.json()
+        error = json.error
+        result = json.result
+        pagination = json.pagination
+      } else {
+        const fetchEndpoint = isAdvancedSearch || (!where && !asDashboard)
+          ? where ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where) : ordering.businesses().select(propsToFetch).parameters(parameters)
+          : where && asDashboard
+            ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where).asDashboard()
+            : where && !asDashboard
+              ? ordering.businesses().select(propsToFetch).parameters(parameters).where(where)
+              : ordering.businesses().select(propsToFetch).parameters(parameters).asDashboard()
+
+        const { content } = await fetchEndpoint.get({ cancelToken: source, advancedSearch: isAdvancedSearch })
+        error = content.error
+        result = content.result
+        pagination = content.pagination
+      }
 
       if (!error) {
         if (isSortByReview) {
@@ -319,7 +357,7 @@ export const BusinessList = (props) => {
       })
       setFirstLoad(true)
     } catch (err) {
-      if (err.constructor.name !== 'Cancel') {
+      if (err?.name !== 'AbortError' && err?.constructor?.name !== 'Cancel') {
         setBusinessesList({
           ...businessesList,
           loading: false,
@@ -391,7 +429,9 @@ export const BusinessList = (props) => {
   useEffect(() => {
     const request = requestsState.businesses
     return () => {
-      request && request?.cancel()
+      if (!request) return
+      if (typeof request.cancel === 'function') request.cancel()
+      else if (typeof request.abort === 'function') request.abort()
     }
   }, [requestsState.businesses])
 
@@ -673,10 +713,19 @@ export const BusinessList = (props) => {
           conditions,
           conector: 'AND'
         }
-        let fetchEndpoint = `${ordering.root}/business?where=${JSON.stringify(where)}`
-        if (propsToFetch) fetchEndpoint = `${fetchEndpoint}&params=${propsToFetch}`
-        fetchEndpoint = `${fetchEndpoint}&location=${`${orderState.options?.address?.location?.lat},${orderState.options?.address?.location?.lng}`}`
-        fetchEndpoint = `${fetchEndpoint}&type=${orderState?.options?.type}`
+        const favQs = new URLSearchParams()
+        favQs.set('where', JSON.stringify(where))
+        if (propsToFetch) {
+          favQs.set('params', Array.isArray(propsToFetch) ? propsToFetch.join(',') : propsToFetch)
+        }
+        if (orderState.options?.address?.location?.lat != null) {
+          favQs.set('location', JSON.stringify({
+            lat: orderState.options.address.location.lat,
+            lng: orderState.options.address.location.lng
+          }))
+        }
+        if (orderState?.options?.type) favQs.set('order_type_id', orderState.options.type)
+        const fetchEndpoint = `${ordering.root}/businesses?${favQs.toString()}`
         const _response = await fetch(fetchEndpoint)
         const { error, result } = await _response.json()
         setBusinessesList({
@@ -765,6 +814,6 @@ BusinessList.propTypes = {
 }
 
 const defaultProps = {
-  propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id'],
+  propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id', 'featured', 'timezone', 'today', 'enabled', 'disabled_reason', 'available_drivers_count', 'activated_orders'],
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

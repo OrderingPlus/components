@@ -168,10 +168,25 @@ export const FavoriteList = (props) => {
       }
     }
 
-    let fetchEndpoint = `${ordering.root}/${originalURL}?where=${JSON.stringify(where)}`
-    if (location) fetchEndpoint = `${fetchEndpoint}&location=${location}`
-    if (propsToFetch) fetchEndpoint = `${fetchEndpoint}&params=${propsToFetch}`
-    fetchEndpoint = `${fetchEndpoint}&type=${orderStatus?.options?.type}`
+    const isBusinessList = originalURL === 'business'
+    const targetURL = isBusinessList ? 'businesses' : originalURL
+    const qs = new URLSearchParams()
+    qs.set('where', JSON.stringify(where))
+    if (location) {
+      if (isBusinessList) {
+        const [lat, lng] = String(location).split(',')
+        qs.set('location', JSON.stringify({ lat: Number(lat), lng: Number(lng) }))
+      } else {
+        qs.set('location', location)
+      }
+    }
+    if (propsToFetch) {
+      qs.set('params', Array.isArray(propsToFetch) ? propsToFetch.join(',') : propsToFetch)
+    }
+    if (orderStatus?.options?.type) {
+      qs.set(isBusinessList ? 'order_type_id' : 'type', orderStatus.options.type)
+    }
+    const fetchEndpoint = `${ordering.root}/${targetURL}?${qs.toString()}`
 
     const response = await fetch(fetchEndpoint, requestOptions)
     return await response.json()

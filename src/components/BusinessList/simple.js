@@ -55,8 +55,8 @@ export const BusinessSimpleList = (props) => {
       const locationParam = (isAllowUnaddressOrderType && !orderState.options?.address?.location)
         ? location
         : (orderState.options?.address?.location
-          ? { lat: orderState.options.address.location.lat, lng: orderState.options.address.location.lng }
-          : null)
+            ? { lat: orderState.options.address.location.lat, lng: orderState.options.address.location.lng }
+            : null)
       const parameters = {
         page: 1,
         page_size: paginationProps.pageSize,

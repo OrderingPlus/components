@@ -5,8 +5,9 @@ import { useEvent } from '../../contexts/EventContext'
 import { useUtils } from '../../contexts/UtilsContext'
 import { useGoogleMaps } from '../../hooks/useGoogleMaps'
 
-const ZONES_MAP_FIT_PADDING = { top: 48, right: 48, bottom: 48, left: 48 }
-const MAX_ZOOM_AFTER_ZONE_FIT = 15
+const ZONES_MAP_FIT_PADDING = { top: 20, right: 20, bottom: 20, left: 20 }
+const MAX_ZOOM_AFTER_ZONE_FIT = 17
+const ZONE_FIT_ZOOM_BOOST = 1
 
 const flattenBusinessZones = (zones) => {
   if (!Array.isArray(zones)) return []
@@ -78,8 +79,9 @@ const fitMapToZoneBounds = ({ map, bounds, centerPoint, mergeLocations, avoidFit
 
   window.google.maps.event.addListenerOnce(map, 'idle', () => {
     const currentZoom = map.getZoom()
-    if (currentZoom > MAX_ZOOM_AFTER_ZONE_FIT) {
-      map.setZoom(MAX_ZOOM_AFTER_ZONE_FIT)
+    const zoomAfterFit = Math.min(currentZoom + ZONE_FIT_ZOOM_BOOST, MAX_ZOOM_AFTER_ZONE_FIT)
+    if (zoomAfterFit !== currentZoom) {
+      map.setZoom(zoomAfterFit)
     }
   })
 }
@@ -331,9 +333,12 @@ export const GoogleMaps = (props) => {
   }
 
   const createDeliveryZone = (deliveryZone, map, bounds) => {
+    const zoneFillColor = fillStyle?.strokeColor ?? fillStyle?.fillColor
+
     if (deliveryZone.type === 1 && deliveryZone?.data?.center && deliveryZone?.data?.radio) {
       const newCircleZone = new window.google.maps.Circle({
         ...fillStyle,
+        fillColor: zoneFillColor,
         editable: false,
         center: deliveryZone?.data.center,
         radius: deliveryZone?.data.radio * 1000
@@ -349,7 +354,8 @@ export const GoogleMaps = (props) => {
       }
       const distanceRingStyle = {
         ...fillStyle,
-        fillOpacity: 0,
+        fillColor: zoneFillColor,
+        fillOpacity: Math.min(Number(fillStyle?.fillOpacity) || 0.08, 0.05),
         strokeWeight: Math.max(fillStyle?.strokeWeight ?? 2, 3),
         strokeOpacity: fillStyle?.strokeOpacity ?? 1
       }
@@ -365,6 +371,7 @@ export const GoogleMaps = (props) => {
     if (deliveryZone?.type === 2 && Array.isArray(deliveryZone?.data)) {
       const newPolygonZone = new window.google.maps.Polygon({
         ...fillStyle,
+        fillColor: zoneFillColor,
         editable: false,
         paths: deliveryZone?.data
       })

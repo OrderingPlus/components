@@ -307,7 +307,7 @@ export const BusinessAndProductList = (props) => {
 
   const getProducts = async (business) => {
     const businessObj = business ?? businessState?.business
-    for (let i = 0; i < businessObj?.categories?.length ?? 0; i++) {
+    for (let i = 0; i < (businessObj?.categories?.length ?? 0); i++) {
       const category = businessObj?.categories[i]
       const isFeatured = category?.products?.some((product) => product.featured)
       if (isFeatured) {

@@ -40,6 +40,7 @@ export const CODES = [
   { countryCode: 'CO', phoneCode: '57', countryName: 'Colombia' },
   { countryCode: 'KM', phoneCode: '269', countryName: 'Comoros' },
   { countryCode: 'CG', phoneCode: '242', countryName: 'Congo' },
+  { countryCode: 'CD', phoneCode: '243', countryName: 'Congo (DRC)' },
   { countryCode: 'CK', phoneCode: '682', countryName: 'Cook Islands' },
   { countryCode: 'CR', phoneCode: '506', countryName: 'Costa Rica' },
   { countryCode: 'HR', phoneCode: '385', countryName: 'Croatia' },

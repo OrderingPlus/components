@@ -12,6 +12,51 @@ const paymethodsExisting = ['stripe', 'stripe_direct', 'stripe_connect', 'paypal
 const paymethodsNotAllowed = ['paypal_express', 'authorize']
 const paymethodsCallcenterMode = ['cash', 'card_delivery', 'ivrpay', '100_coupon', stripeLink]
 const paymethodsWithAutoUpdate = ['izipay', 'globalpay', 'cybersource', 'braintree', 'stripe_checkout']
+
+const normalizePaymethodImageUrl = (raw) => {
+  if (raw == null) return null
+  if (typeof raw !== 'string') return null
+  const url = raw.trim()
+  return url || null
+}
+
+const getDataTemplateImageFromArray = (dataTemplate) => {
+  if (!Array.isArray(dataTemplate)) return null
+  const imageField = dataTemplate.find(
+    (field) => field?.key === 'image' && (!field?.type || field?.type === 'image')
+  )
+  if (!imageField) return null
+  return normalizePaymethodImageUrl(
+    imageField.default_value ?? imageField.value ?? imageField.defaultValue
+  )
+}
+
+/**
+ * Priority: paymethod.image ?? paymethod.data_template.image (object or compatible array).
+ */
+const getPaymethodImage = (paymethod) => {
+  if (!paymethod) return null
+  const fromPaymethod = normalizePaymethodImageUrl(paymethod.image)
+  if (fromPaymethod) return fromPaymethod
+  const dt = paymethod.data_template
+  if (dt && typeof dt === 'object' && !Array.isArray(dt)) {
+    const fromTemplateObject = normalizePaymethodImageUrl(dt.image)
+    if (fromTemplateObject) return fromTemplateObject
+  }
+  return getDataTemplateImageFromArray(Array.isArray(dt) ? dt : null)
+}
+
+const enrichPaymethodsWithImage = (list) => {
+  if (!list || !Array.isArray(list)) return list
+  return list.map((p) => {
+    const resolved = getPaymethodImage(p)
+    return {
+      ...p,
+      image: resolved ?? undefined
+    }
+  })
+}
+
 /**
  * Component to manage payment options behavior without UI component
  */
@@ -76,10 +121,15 @@ export const PaymentOptions = (props) => {
           paymethodsCallcenterMode.includes(credentials?.paymethod?.gateway)
           : ![...paymethodsNotAllowed, stripeLink].includes(credentials?.paymethod?.gateway))
         .map(credentials => {
-          return {
+          const paymethod = {
             ...credentials?.paymethod,
             sandbox: credentials?.sandbox,
             credentials: credentials?.data
+          }
+          const resolvedImage = getPaymethodImage(paymethod)
+          return {
+            ...paymethod,
+            image: resolvedImage ?? undefined
           }
         })
     return _paymethods
@@ -219,7 +269,7 @@ export const PaymentOptions = (props) => {
             setPaymethodsList({
               ...paymethodsList,
               loading: false,
-              paymethods: paymethod
+              paymethods: enrichPaymethodsWithImage(paymethod)
             })
           }
           getPaymethods()

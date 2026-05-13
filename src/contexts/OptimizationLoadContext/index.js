@@ -11,10 +11,10 @@ export const OptimizationLoadContext = createContext()
  * Api provider to manage api request
  * @param {props} props
  */
-export const OptimizationLoadProvider = ({ settings, children, strategy }) => {
+export const OptimizationLoadProvider = ({ settings, children, strategy, initialData }) => {
   const [state, setState] = useState({
-    loading: settings?.useOptimizeLoad,
-    result: null,
+    loading: settings?.useOptimizeLoad && !initialData,
+    result: initialData || null,
     error: null
   })
 
@@ -22,6 +22,7 @@ export const OptimizationLoadProvider = ({ settings, children, strategy }) => {
 
   const getData = async () => {
     if (!settings?.useOptimizeLoad) return
+    if (initialData) return
     const requestOptions = {
       method: 'GET',
       headers: { 'X-App-X': settings.appId }

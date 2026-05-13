@@ -157,7 +157,7 @@ export const createMergedTheme = (theme, orderingTheme, settings) => {
   return {
     ...theme,
     ...orderingTheme?.theme,
-    colors: getMergedColors(theme, orderingTheme),
+    colors: settings?.isApp ? theme.colors : getMergedColors(theme, orderingTheme),
     images: getMergedImages(theme, orderingTheme, settings)
   }
 }

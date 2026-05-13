@@ -29,7 +29,7 @@ export const ProductOptionSuboption = (props) => {
   }
   const position = props.state.position || 'whole'
   const price = option.with_half_option && suboption.half_price && position !== 'whole' ? suboption.half_price : suboption.price
-  const usePizzaValidation = (pizzaState?.[`option:${option?.id}`]?.value >= option?.max) && !(option?.max === 1 && option?.min === 1)
+  const usePizzaValidation = option?.max != null && (pizzaState?.[`option:${option?.id}`]?.value >= option?.max) && !(option?.max === 1 && option?.min === 1)
 
   /**
    * Set current state

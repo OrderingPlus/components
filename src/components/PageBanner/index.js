@@ -13,7 +13,8 @@ export const PageBanner = (props) => {
     UIComponent,
     position,
     businessId,
-    isProjectChange
+    isProjectChange,
+    deferFetch = false
   } = props
 
   const [ordering] = useApi()
@@ -86,9 +87,34 @@ export const PageBanner = (props) => {
   }
 
   useEffect(() => {
-    if (!position) return
-    handleGetPageBanner()
-  }, [position, businessId, JSON.stringify(orderState.options?.address?.location), orderState?.options?.type, orderState.options?.moment, ordering?.project])
+    if (!position) return undefined
+
+    const runFetch = () => {
+      handleGetPageBanner()
+    }
+
+    if (!deferFetch) {
+      runFetch()
+      return undefined
+    }
+
+    let idleId
+    let timeoutId
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(runFetch, { timeout: 2500 })
+    } else {
+      timeoutId = window.setTimeout(runFetch, 1)
+    }
+
+    return () => {
+      if (idleId != null && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId)
+      }
+      if (timeoutId != null) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [position, businessId, JSON.stringify(orderState.options?.address?.location), orderState?.options?.type, orderState.options?.moment, ordering?.project, deferFetch])
 
   useEffect(() => {
     if (!position) return
@@ -117,5 +143,9 @@ PageBanner.propTypes = {
   /**
    * Callback function called when project changes and loading starts
    */
-  isProjectChange: PropTypes.bool
+  isProjectChange: PropTypes.bool,
+  /**
+   * When true, delays banner fetch until idle time (below-the-fold home banners).
+   */
+  deferFetch: PropTypes.bool
 }

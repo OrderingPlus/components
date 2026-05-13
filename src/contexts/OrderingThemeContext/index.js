@@ -131,10 +131,11 @@ export const OrderingThemeProvider = ({ children, settings, isValidColor, noVali
 
   useEffect(() => {
     if (optimizationLoad.loading || !ordering?.project) return
-    const _themes = optimizationLoad.result && !!optimizationLoad.result?.theme
+    const rawTheme = optimizationLoad.result?.theme
+    const _themes = optimizationLoad.result && rawTheme != null
       ? {
           error: optimizationLoad.error,
-          result: { values: optimizationLoad.result?.theme }
+          result: rawTheme.values !== undefined ? rawTheme : { values: rawTheme }
         }
       : null
     getThemes(_themes)

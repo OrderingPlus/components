@@ -51,10 +51,27 @@ export const LanguageProvider = ({ settings, children, strategy, restOfProps }) 
       !state.loading && setState({ ...state, loading: true })
       const _language = await strategy.getItem('language', true)
       let dictionary = {}
-      const { content: { error: errDict, result: resDict } } = await ordering.translations().asDictionary().get()
+
+      const [{ content: dictContent }, { content: langContent }] = await Promise.all([
+        ordering.translations().asDictionary().get(),
+        ordering.languages().where([{ attribute: _language ? _language?.code : 'default', value: true }]).get()
+      ])
+
+      const errDict = dictContent.error
+      const resDict = dictContent.result
       dictionary = errDict ? {} : resDict
 
-      const { content: { error, result } } = await ordering.languages().where([{ attribute: _language ? _language?.code : 'default', value: true }]).get()
+      const { error, result } = langContent
+      if (error || !result?.[0]) {
+        setState({
+          ...state,
+          loading: false,
+          error: error ? (typeof result === 'string' ? result : result?.[0]) : null,
+          dictionary
+        })
+        return
+      }
+
       const language = { id: result[0].id, code: result[0].code, rtl: result[0].rtl }
       apiHelper.setLanguage(result[0].code)
       setState({

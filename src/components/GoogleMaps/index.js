@@ -5,6 +5,87 @@ import { useEvent } from '../../contexts/EventContext'
 import { useUtils } from '../../contexts/UtilsContext'
 import { useGoogleMaps } from '../../hooks/useGoogleMaps'
 
+const ZONES_MAP_FIT_PADDING = { top: 20, right: 20, bottom: 20, left: 20 }
+const MAX_ZOOM_AFTER_ZONE_FIT = 17
+const ZONE_FIT_ZOOM_BOOST = 1
+
+const flattenBusinessZones = (zones) => {
+  if (!Array.isArray(zones)) return []
+  const result = []
+  for (const item of zones) {
+    if (item == null) continue
+    if (Array.isArray(item)) {
+      result.push(...flattenBusinessZones(item))
+    } else {
+      result.push(item)
+    }
+  }
+  return result
+}
+
+const getBusinessZoneDedupeKey = (zone) => {
+  if (!zone || typeof zone !== 'object' || Array.isArray(zone)) return null
+  const { type, id, data } = zone
+  if (type === 2 && Array.isArray(data) && data.length > 0) {
+    return `2:${data.map((p) => `${p?.lat ?? ''},${p?.lng ?? ''}`).join('|')}`
+  }
+  if (type === 1 && data?.center && data?.radio != null) {
+    const c = data.center
+    return `1:${c?.lat ?? ''},${c?.lng ?? ''}:${data.radio}`
+  }
+  if (type === 5 && data?.distance != null) {
+    const unit = data?.unit || 'km'
+    return `5:${data.distance}:${unit}`
+  }
+  return `${type ?? 'x'}:${id ?? ''}:${JSON.stringify(data)}`
+}
+
+const dedupeBusinessZones = (zones) => {
+  const seen = new Set()
+  const out = []
+  for (const z of zones) {
+    const key = getBusinessZoneDedupeKey(z)
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    out.push(z)
+  }
+  return out
+}
+
+const shouldRenderDeliveryZone = (zone) => {
+  if (!zone || typeof zone !== 'object' || Array.isArray(zone)) return false
+  if (zone.id != null && zone.id !== '') return true
+  if (zone.type === 1 && zone.data?.center && zone.data?.radio != null) return true
+  if (zone.type === 5 && zone.data?.distance != null) return true
+  if (zone.type === 2 && Array.isArray(zone.data) && zone.data.length > 0) return true
+  return false
+}
+
+const fitMapToZoneBounds = ({ map, bounds, centerPoint, mergeLocations, avoidFit }) => {
+  if (avoidFit || !map || !bounds || bounds.isEmpty()) return
+
+  if (centerPoint?.lat != null && centerPoint?.lng != null) {
+    bounds.extend(centerPoint)
+  }
+  if (Array.isArray(mergeLocations)) {
+    mergeLocations.forEach((loc) => {
+      if (loc?.lat != null && loc?.lng != null) {
+        bounds.extend({ lat: loc.lat, lng: loc.lng })
+      }
+    })
+  }
+
+  map.fitBounds(bounds, ZONES_MAP_FIT_PADDING)
+
+  window.google.maps.event.addListenerOnce(map, 'idle', () => {
+    const currentZoom = map.getZoom()
+    const zoomAfterFit = Math.min(currentZoom + ZONE_FIT_ZOOM_BOOST, MAX_ZOOM_AFTER_ZONE_FIT)
+    if (zoomAfterFit !== currentZoom) {
+      map.setZoom(zoomAfterFit)
+    }
+  })
+}
+
 export const GoogleMaps = (props) => {
   const {
     apiKey,
@@ -240,9 +321,12 @@ export const GoogleMaps = (props) => {
   }
 
   const createDeliveryZone = (deliveryZone, map, bounds) => {
+    const zoneFillColor = fillStyle?.strokeColor ?? fillStyle?.fillColor
+
     if (deliveryZone.type === 1 && deliveryZone?.data?.center && deliveryZone?.data?.radio) {
       const newCircleZone = new window.google.maps.Circle({
         ...fillStyle,
+        fillColor: zoneFillColor,
         editable: false,
         center: deliveryZone?.data.center,
         radius: deliveryZone?.data.radio * 1000
@@ -251,11 +335,23 @@ export const GoogleMaps = (props) => {
       bounds.union(newCircleZone.getBounds())
     }
     if (deliveryZone.type === 5 && deliveryZone?.data?.distance) {
-      const newCircleZone = new window.google.maps.Circle({
+      const distanceKmOrMi = Number(deliveryZone.data.distance)
+      const unitMeters = units[deliveryZone?.data?.unit] ?? units.km
+      if (!Number.isFinite(distanceKmOrMi) || distanceKmOrMi <= 0 || !Number.isFinite(unitMeters)) {
+        return
+      }
+      const distanceRingStyle = {
         ...fillStyle,
+        fillColor: zoneFillColor,
+        fillOpacity: Math.min(Number(fillStyle?.fillOpacity) || 0.08, 0.05),
+        strokeWeight: Math.max(fillStyle?.strokeWeight ?? 2, 3),
+        strokeOpacity: fillStyle?.strokeOpacity ?? 1
+      }
+      const newCircleZone = new window.google.maps.Circle({
+        ...distanceRingStyle,
         editable: false,
         center,
-        radius: deliveryZone?.data.distance * units[deliveryZone?.data?.unit]
+        radius: distanceKmOrMi * unitMeters
       })
       newCircleZone.setMap(map)
       bounds.union(newCircleZone.getBounds())
@@ -263,6 +359,7 @@ export const GoogleMaps = (props) => {
     if (deliveryZone?.type === 2 && Array.isArray(deliveryZone?.data)) {
       const newPolygonZone = new window.google.maps.Polygon({
         ...fillStyle,
+        fillColor: zoneFillColor,
         editable: false,
         paths: deliveryZone?.data
       })
@@ -334,16 +431,19 @@ export const GoogleMaps = (props) => {
       }
 
       if (businessZones?.length > 0) {
-        const bounds = new window.google.maps.LatLngBounds()
-        for (const deliveryZone of businessZones) {
-          if (deliveryZone?.id) {
-            createDeliveryZone(deliveryZone, map, bounds)
-          } else if (deliveryZone?.length > 0) {
-            for (const deliveryZoneBusiness of deliveryZone) {
-              createDeliveryZone(deliveryZoneBusiness, map, bounds)
-            }
-          }
+        const normalizedZones = dedupeBusinessZones(flattenBusinessZones(businessZones))
+        const zoneBounds = new window.google.maps.LatLngBounds()
+        for (const deliveryZone of normalizedZones) {
+          if (!shouldRenderDeliveryZone(deliveryZone)) continue
+          createDeliveryZone(deliveryZone, map, zoneBounds)
         }
+        fitMapToZoneBounds({
+          map,
+          bounds: zoneBounds,
+          centerPoint: center,
+          mergeLocations: locations,
+          avoidFit: avoidFitBounds
+        })
       }
     }
   }, [googleReady, JSON.stringify(businessZones)])

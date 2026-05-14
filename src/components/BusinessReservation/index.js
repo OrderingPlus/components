@@ -5,7 +5,9 @@ import { useApi } from '../../contexts/ApiContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useToast, ToastType } from '../../contexts/ToastContext'
 import dayjs from 'dayjs'
-import moment from 'moment'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+
+dayjs.extend(isSameOrAfter)
 
 /**
  * Component to manage Checkout page behavior without UI component
@@ -34,8 +36,8 @@ export const BusinessReservation = (props) => {
     }
   })
   const [reserveDate, setReserveDate] = useState({
-    time: cart?.reservation?.reserve_date ? moment(cart?.reservation?.reserve_date).format('HH:mm') : null,
-    date: cart?.reservation?.reserve_date ? moment(cart?.reservation?.reserve_date).format('YYYY-MM-DD') : null
+    time: cart?.reservation?.reserve_date ? dayjs(cart?.reservation?.reserve_date).format('HH:mm') : null,
+    date: cart?.reservation?.reserve_date ? dayjs(cart?.reservation?.reserve_date).format('YYYY-MM-DD') : null
   })
   const [hoursList, setHourList] = useState([])
   const [datesList, setDatesList] = useState([])
@@ -120,8 +122,8 @@ export const BusinessReservation = (props) => {
 
   /**
    * Method to calculate diferrence between 2 dates
-   * @param {moment} start
-   * @param {moment} end
+   * @param {string|Date|import('dayjs').Dayjs} start
+   * @param {string|Date|import('dayjs').Dayjs} end
    */
   const calculateDiffDay = (start, end) => {
     const endVal = end ?? dayjs()
@@ -211,7 +213,7 @@ export const BusinessReservation = (props) => {
   }, [reservationSetting?.min_time_reserve_minutes, reservationSetting?.max_time_reserve_days])
 
   const validateSelectedDate = (curdate, schedule) => {
-    const day = moment(curdate).format('d')
+    const day = dayjs(curdate).format('d')
     setIsEnabled(schedule[day].enabled)
   }
 

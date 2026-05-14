@@ -58,7 +58,6 @@
     "decimal.js": "^10.4.3",
     "firebase": "9.15.0",
     "libphonenumber-js": "^1.9.17",
-    "moment": "^2.29.4",
     "prop-types": "^15.7.2",
     "react-google-recaptcha": "latest",
     "react-google-recaptcha-v3": "^1.10.0",

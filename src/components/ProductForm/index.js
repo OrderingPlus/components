@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import moment from 'moment'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useOrder } from '../../contexts/OrderContext'
@@ -662,7 +661,7 @@ export const ProductForm = (props) => {
             const duration = product?.product?.duration
             updatedProfessional.busy_times.push({
               start: values?.serviceTime,
-              end: moment(values?.serviceTime).add(duration, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
+              end: dayjs(values?.serviceTime).add(duration, 'minute').format('YYYY-MM-DD HH:mm:ss'),
               duration
             })
             handleUpdateProfessionals && handleUpdateProfessionals(updatedProfessional)

@@ -17,7 +17,7 @@ export const SmartAppBanner = (props) => {
   const [, t] = useLanguage()
   useEffect(() => {
     if (!storeAndroidId || !storeAppleId) return
-    const descriptionUpdated = description || document.querySelector('meta[name="description"]').getAttribute('content')
+    const descriptionUpdated = description || document.querySelector('meta[name="description"]')?.getAttribute('content') || ''
 
     const metas = [
       { name: 'apple-itunes-app', content: `app-id=${storeAppleId}` },

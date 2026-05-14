@@ -501,16 +501,17 @@ export const OrderDetails = (props) => {
    * @param {String} roomType drivers, orders
    * @returns socket room
    */
-  const getRoom = (roomType) => !token
-    ? {
+  const getRoom = (roomType) => {
+    if (!token) {
+      return {
         room: roomType,
         project: ordering.project,
         role: 'public',
         user_id: hashKey
       }
-    : roomType === 'orders'
-      ? user?.level === 0 ? 'orders' : `orders_${userCustomerId || user?.id}`
-      : `drivers_${orderState.order?.driver_id}`
+    }
+    return user?.level === 0 ? 'orders' : `orders_${userCustomerId || user?.id}`
+  }
 
   useEffect(() => {
     !orderState.loading && loadMessages()
@@ -566,12 +567,16 @@ export const OrderDetails = (props) => {
         setDriverLocation(order.driver.location)
       }
     }
-    const handleTrackingDriver = (props) => {
-      const location = props.location
-      const driverId = props.driver_id
-      if (driverId !== orderState?.order?.driver_id) return
-      const newLocation = location ?? { lat: -37.9722342, lng: 144.7729561 }
+    const handleTrackingDriver = (data) => {
+      const isExternal = data?.source === 'external'
+      const incomingId = isExternal ? data?.external_driver_id : data?.driver_id
+      const expectedId = isExternal
+        ? orderState?.order?.external_driver_id
+        : orderState?.order?.driver_id
+      if (!incomingId || incomingId !== expectedId) return
+      const newLocation = data?.location ?? { lat: -37.9722342, lng: 144.7729561 }
       setDriverLocation(newLocation)
+      if (isExternal) return
       setOrderState({
         ...orderState,
         order: {
@@ -584,14 +589,30 @@ export const OrderDetails = (props) => {
       })
     }
 
+    const hasAnyDriver = !!(orderState.order?.driver_id || orderState.order?.external_driver_id)
+    const publicDriversRoom = (!token && hasAnyDriver) ? getRoom('drivers') : null
+    const customerOrdersRoom = (token && hasAnyDriver)
+      ? {
+          room: 'orders',
+          project: ordering.project,
+          role: 'customer',
+          user_id: userCustomerId || user?.id
+        }
+      : null
     if (!isDisabledOrdersRoom) socket.join(getRoom('orders'))
-    if (orderState.order?.driver_id) {
-      socket.join(getRoom('drivers'))
+    if (publicDriversRoom) {
+      socket.join(publicDriversRoom)
+    }
+    if (customerOrdersRoom) {
+      socket.join(customerOrdersRoom)
     }
     socket.socket.on('connect', () => {
       if (!isDisabledOrdersRoom) socket.join(getRoom('orders'))
-      if (orderState.order?.driver_id) {
-        socket.join(getRoom('drivers'))
+      if (publicDriversRoom) {
+        socket.join(publicDriversRoom)
+      }
+      if (customerOrdersRoom) {
+        socket.join(customerOrdersRoom)
       }
     })
     socket.on('tracking_driver', handleTrackingDriver)
@@ -603,7 +624,7 @@ export const OrderDetails = (props) => {
       socket.off('update_order', handleUpdateOrderDetails)
       socket.off('tracking_driver', handleTrackingDriver)
     }
-  }, [orderState?.loading, socket?.socket, loading, userCustomerId, orderState.order?.driver_id, orderState.order?.id, hashKey])
+  }, [orderState?.loading, socket?.socket, loading, userCustomerId, orderState.order?.driver_id, orderState.order?.external_driver_id, orderState.order?.id, hashKey])
 
   useEffect(() => {
     if (messages.loading) return

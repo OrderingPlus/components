@@ -123,11 +123,16 @@ export const ConfigProvider = ({ children, strategy }) => {
       let error = configs?.error ?? null
       let result = configs?.result ?? null
       if (!configs) {
-        const { content } = await ordering.configs().asDictionary().get(options)
-        error = content.error
-        result = content.result
-        handleUpdateOptimizationState('configs', result)
+        try {
+          const { content } = await ordering.configs().asDictionary().get(options)
+          error = content.error
+          result = content.result
+          handleUpdateOptimizationState('configs', result)
+        } catch (apiError) {
+          error = true
+        }
       }
+
       let data = null
       try {
         const response = await fetch('https://ipapi.co/json/')
@@ -159,6 +164,7 @@ export const ConfigProvider = ({ children, strategy }) => {
         },
         ...conditionalConfigs
       }
+
       setState({
         ...state,
         loading: false,
@@ -183,7 +189,10 @@ export const ConfigProvider = ({ children, strategy }) => {
       })
       return
     }
-    const _configs = optimizationLoad.result
+
+    const hasOptimizedConfigs = !!optimizationLoad.result?.configs
+
+    const _configs = hasOptimizedConfigs
       ? {
           error: optimizationLoad.error,
           result: {
@@ -192,8 +201,9 @@ export const ConfigProvider = ({ children, strategy }) => {
           }
         }
       : null
+
     refreshConfigs(null, _configs)
-  }, [languageState, optimizationLoad])
+  }, [languageState.loading, optimizationLoad.loading, optimizationLoad.result, optimizationLoad.error, ordering?.project])
 
   useEffect(() => {
     const handleUpdateConfigs = (countryCode) => {
@@ -204,12 +214,6 @@ export const ConfigProvider = ({ children, strategy }) => {
       events.off('country_code_changed', handleUpdateConfigs)
     }
   }, [])
-
-  useEffect(() => {
-    if (!state.loading && ordering?.project) {
-      refreshConfigs()
-    }
-  }, [ordering?.project])
 
   return (
     <ConfigContext.Provider value={[state, functions]}>

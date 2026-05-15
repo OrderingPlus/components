@@ -1431,10 +1431,18 @@ export const OrderProvider = ({
     } catch (err) { }
   }
 
+  const orderOptionsKeyRef = useRef(null)
   useEffect(() => {
     if (session.loading || languageState.loading || !ordering?.project) return
     if (session.auth) {
+      // Evita re-fetchs redundantes (toggles de loading, auth string->bool),
+      // pero permite refetch cuando cambia el idioma o el project.
+      const fetchKey = `${languageState?.language?.code ?? ''}|${ordering?.project ?? ''}`
+      if (orderOptionsKeyRef.current === fetchKey) return
+      orderOptionsKeyRef.current = fetchKey
       refreshOrderOptions()
+    } else {
+      orderOptionsKeyRef.current = null
     }
   }, [session.auth, session.loading, languageState.loading, ordering?.project])
 
@@ -1443,7 +1451,7 @@ export const OrderProvider = ({
     if (!session.auth) {
       setOptionFromLocalStorage()
     }
-  }, [session.auth, session.loading, configState])
+  }, [session.auth, session.loading, configState.loading])
 
   useEffect(() => {
     if (configTypes?.length > 0 && state.options.type && !configTypes.includes(state.options.type)) {

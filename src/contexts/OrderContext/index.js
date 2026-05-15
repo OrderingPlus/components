@@ -154,10 +154,23 @@ export const OrderProvider = ({
         }
       }
       if (error) {
-        setAlert({ show: true, content: result, status })
-        if (status === 401) {
-          session.auth && logout()
+        if (status === 401 && session.auth) {
+          // Sesion invalida (p.ej. usuario deshabilitado desde el dashboard):
+          // se cierra sesion y se recarga la pagina para volver como invitado.
+          // Se hace return para no seguir disparando peticiones con un token
+          // ya invalido, y la recarga evita el bucle de re-renders que congela
+          // la pestaña. Tras recargar no hay token => no se llama orderOptions
+          // autenticado => no hay 401 => no se repite (sin loop de recargas).
+          await logout()
+          const isWeb = typeof window !== 'undefined' &&
+            typeof window.document !== 'undefined' &&
+            typeof window.location?.reload === 'function'
+          if (isWeb) {
+            window.location.reload()
+          }
+          return
         }
+        setAlert({ show: true, content: result, status })
       }
       const localOptions = await strategy.getItem('options', true)
       if (localOptions) {

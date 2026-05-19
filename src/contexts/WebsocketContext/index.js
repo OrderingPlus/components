@@ -33,11 +33,10 @@ export const WebsocketProvider = ({ settings, children, strategy }) => {
   }, [session.loading, session.token, JSON.stringify(configs)])
 
   useEffect(() => {
-    if (socket) {
-      socket.connect()
-    }
+    if (!socket) return undefined
+    void socket.connect()
     return () => {
-      socket && socket.close()
+      socket.close()
     }
   }, [socket, session?.user?.id])
 

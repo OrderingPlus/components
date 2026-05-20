@@ -209,6 +209,41 @@ const applyCloudinaryTransforms = (urlObj, extraParamTokens) => {
   return urlObj.toString()
 }
 
+const applyImgixTransforms = (urlObj, extraParamTokens) => {
+  for (const token of extraParamTokens) {
+    if (token.startsWith('w_')) {
+      const w = token.slice(2)
+      if (w) urlObj.searchParams.set('w', w)
+    } else if (token.startsWith('h_')) {
+      const h = token.slice(2)
+      if (h) urlObj.searchParams.set('h', h)
+    } else if (token.startsWith('c_')) {
+      const crop = token.slice(2)
+      if (crop === 'fill' || crop === 'crop') {
+        urlObj.searchParams.set('fit', 'crop')
+      } else {
+        urlObj.searchParams.set('fit', 'max')
+      }
+    } else if (token.startsWith('ar_')) {
+      const ar = token.slice(3)
+      if (ar) {
+        urlObj.searchParams.set('ar', ar)
+        if (!urlObj.searchParams.has('fit')) {
+          urlObj.searchParams.set('fit', 'crop')
+        }
+      }
+    } else if (token.startsWith('q_')) {
+      urlObj.searchParams.set('q', '75')
+    }
+  }
+
+  if (!urlObj.searchParams.has('auto') && !urlObj.searchParams.has('fm')) {
+    urlObj.searchParams.set('auto', 'format,compress')
+  }
+
+  return urlObj.toString()
+}
+
 export const optimizeImageUrl = (url, params) => {
   const normalized = normalizeUrlString(url)
   if (!normalized) {
@@ -227,6 +262,11 @@ export const optimizeImageUrl = (url, params) => {
 
     if (urlObj.protocol === 'file:') {
       return normalized
+    }
+
+    if (urlObj.hostname.endsWith('.imgix.net')) {
+      const tokens = parseParamsToTokens(params)
+      return applyImgixTransforms(urlObj, tokens)
     }
 
     if (!isCloudinaryHost(urlObj.hostname)) {
@@ -261,6 +301,9 @@ export const isResponsiveCloudinaryImageUrl = (url) => {
     const urlObj = new URL(normalized, base)
     if (urlObj.protocol === 'file:') {
       return false
+    }
+    if (urlObj.hostname.endsWith('.imgix.net')) {
+      return true
     }
     return isCloudinaryHost(urlObj.hostname) && urlObj.pathname.includes(CLOUDINARY_PATH_MARKER)
   } catch {

@@ -38,26 +38,34 @@ const getDefaultQualityToken = (hostname) => {
 }
 
 /**
- * BunnyCDN rejects some Cloudinary-style quality tokens (e.g. q_auto:good) on this host.
- * Normalize q_auto:* → q_auto before merging transforms.
+ * BunnyCDN rejects some Cloudinary-style tokens on this host:
+ * - q_auto:* (e.g. q_auto:good) → q_auto
+ * - ar_* (aspect ratio) → removed (403 when present)
  */
 const sanitizeTokensForOrderingPlusAssets = (hostname, tokens) => {
   if (!isOrderingPlusCloudAssetsHost(hostname)) {
     return tokens
   }
-  return tokens.map((token) => {
-    if (typeof token !== 'string') {
-      return token
-    }
-    const trimmed = token.trim()
-    if (!trimmed) {
-      return token
-    }
-    if (/^q_auto:/i.test(trimmed)) {
-      return DEFAULT_QUALITY_ORDERINGPLUS_ASSETS
-    }
-    return trimmed
-  })
+  return tokens
+    .map((token) => {
+      if (typeof token !== 'string') {
+        return token
+      }
+      const trimmed = token.trim()
+      if (!trimmed) {
+        return token
+      }
+      if (/^q_auto:/i.test(trimmed)) {
+        return DEFAULT_QUALITY_ORDERINGPLUS_ASSETS
+      }
+      return trimmed
+    })
+    .filter((token) => {
+      if (typeof token !== 'string') {
+        return true
+      }
+      return !/^ar_/i.test(token.trim())
+    })
 }
 
 const normalizeUrlString = (url) => {

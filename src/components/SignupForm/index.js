@@ -7,7 +7,7 @@ import { useConfig } from '../../contexts/ConfigContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvent } from '../../contexts/EventContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
-import parsePhoneNumber from 'libphonenumber-js'
+import { parsePhoneNumber } from '~/utils/phoneUtils'
 
 /**
  * Component to manage signup behavior without UI component

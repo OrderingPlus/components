@@ -195,7 +195,10 @@ export const ConfigProvider = ({ children, strategy }) => {
       })
       return
     }
-    const _configs = optimizationLoad.result
+
+    const hasOptimizedConfigs = !!optimizationLoad.result?.configs
+
+    const _configs = hasOptimizedConfigs
       ? {
           error: optimizationLoad.error,
           result: {
@@ -204,6 +207,7 @@ export const ConfigProvider = ({ children, strategy }) => {
           }
         }
       : null
+
     refreshConfigs(null, _configs)
   }, [
     languageState.loading,

@@ -154,10 +154,29 @@ export const OrderProvider = ({
         }
       }
       if (error) {
-        setAlert({ show: true, content: result, status })
-        if (status === 401) {
-          session.auth && logout()
+        if (status === 401 && session.auth) {
+          // Sesion invalida (p.ej. usuario deshabilitado desde el dashboard).
+          // En WEB: se limpia el storage directamente -SIN llamar logout(),
+          // que hace setState y alimenta la tormenta de re-renders que puede
+          // congelar la pestaña ANTES de alcanzar el reload- y se recarga.
+          // Tras recargar no hay token/user => sesion de invitado => no se
+          // llama orderOptions autenticado => no hay 401 (sin loop de recargas).
+          // El submodulo es compartido con apps React Native: el reload se
+          // hace SOLO en web; en el resto se cierra sesion normal con logout().
+          const isWeb = typeof window !== 'undefined' &&
+            typeof window.document !== 'undefined' &&
+            typeof window.location?.reload === 'function'
+          if (isWeb) {
+            await strategy.removeItem('token')
+            await strategy.removeItem('user')
+            await strategy.removeItem('device_code')
+            window.location.reload()
+            return
+          }
+          await logout()
+          return
         }
+        setAlert({ show: true, content: result, status })
       }
       const localOptions = await strategy.getItem('options', true)
       if (localOptions) {

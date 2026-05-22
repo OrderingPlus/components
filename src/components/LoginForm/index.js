@@ -114,7 +114,7 @@ export const LoginForm = (props) => {
       setFormState({ ...formState, loading: true })
 
       if (_credentials?.cellphone?.includes('+')) {
-        const parsedNumber = parsePhoneNumber(_credentials.cellphone)
+        const parsedNumber = await parsePhoneNumber(_credentials.cellphone)
         const cellphone = parsedNumber?.nationalNumber
         _credentials.cellphone = cellphone
         if (cellphoneStartZero) {

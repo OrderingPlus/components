@@ -98,7 +98,7 @@ export const SignupForm = (props) => {
     const newData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== ''))
 
     if (!newData?.country_code && newData?.country_phone_code && newData?.cellphone) {
-      const parsedNumber = parsePhoneNumber(`+${newData?.country_phone_code}${newData?.cellphone}`)
+      const parsedNumber = await parsePhoneNumber(`+${newData?.country_phone_code}${newData?.cellphone}`)
       newData.country_code = parsedNumber.country
     }
 

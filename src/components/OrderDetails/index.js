@@ -181,6 +181,60 @@ export const OrderDetails = (props) => {
   }
 
   /**
+   * Sends a courtesy chat message to the customer with the estimated delivery/preparation
+   * time, replicating the old v4 behavior where the customer received a dedicated push with
+   * the time. Fired after any successful save whose body sets delivered_in or prepared_in
+   * (with or without a status change). The text uses the app's own language. can_see is '3'
+   * (customer only) so it triggers the customer push without spamming business/driver, who
+   * already see the time via the status-change message.
+   */
+  const notifyEstimatedTimeMessage = async (sentBody, isFormData, order) => {
+    try {
+      if (isFormData || !sentBody || typeof sentBody !== 'object') return
+      // Fire whenever the time field is present in the saved body, regardless of any
+      // status change: prepared_in / delivered_in can be set or edited without the
+      // order status changing (e.g. editing the time on an already-accepted order).
+      let key
+      let minutes
+      if (sentBody.delivered_in != null) {
+        key = 'ESTIMATED_DELIVERY_TIME'
+        minutes = sentBody.delivered_in
+      } else if (sentBody.prepared_in != null) {
+        key = 'ESTIMATED_PREPARATION_TIME'
+        minutes = sentBody.prepared_in
+      } else {
+        return
+      }
+
+      // Always use the app's own language (driver/business). We intentionally do NOT
+      // resolve the customer's language to keep this simple; mismatches are rare.
+      const template = t(key)
+      if (!template || template === key) return
+
+      // The dictionary text normally contains the `_min_` placeholder
+      // (e.g. "The estimated delivery time is _min_ minutes"). Replace it with the
+      // minutes; if the project's translation has no `_min_`, the text is sent as-is.
+      const comment = String(template)
+        .replace('_min_', String(minutes))
+        .replace('_order_', String(order?.id ?? ''))
+
+      await fetch(`${ordering.root}/orders/${order?.id ?? orderId}/messages`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-App-X': ordering?.appId,
+          'X-INTERNAL-PRODUCT-X': ordering?.appInternalName,
+          'X-Socket-Id-X': socket?.getId()
+        },
+        body: JSON.stringify({ comment, type: 2, can_see: '3', order_id: order?.id ?? orderId })
+      })
+    } catch (e) {
+      // Courtesy message only — never block or fail the status update because of it.
+    }
+  }
+
+  /**
    * Method to update differents orders status
   */
   const handleChangeOrderStatus = async (status, isAcceptOrReject = {}, options) => {
@@ -244,7 +298,9 @@ export const OrderDetails = (props) => {
         if (result?.status === 7 && result?.reservation && isBusinessApp) {
           setShowReservationAlert(true)
         }
-        return Object.assign(orderState.order, result)
+        const updatedOrder = Object.assign(orderState.order, result)
+        notifyEstimatedTimeMessage(bodyToSend, isFormData, updatedOrder)
+        return updatedOrder
       }
       if (error) {
         const selected = result.includes(deliveryMessages.delivery.text)

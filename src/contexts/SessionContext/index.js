@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useApi } from '../ApiContext'
 import { useToast, ToastType } from '../ToastContext'
 import { useLanguage } from '../LanguageContext'
@@ -22,9 +22,16 @@ export const SessionProvider = ({ children, strategy }) => {
     loading: true,
     device_code: null
   })
+  const stateRef = useRef(state)
   const [ordering] = useApi()
   const [, { showToast }] = useToast()
   const [, t] = useLanguage()
+
+  // Keep stateRef in sync with state
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
   const setValuesFromLocalStorage = async () => {
     const { auth, token, user, device_code } = await getValuesFromLocalStorage()
     setState({
@@ -58,14 +65,17 @@ export const SessionProvider = ({ children, strategy }) => {
     if (values?.device_code) {
       await strategy.setItem('device_code', values?.device_code)
     }
-    setState({
-      ...state,
+    const nextState = {
+      ...stateRef.current,
       auth: true,
       user: values?.user,
       token: values?.token,
       loading: false,
       device_code: values?.device_code || null
-    })
+    }
+    stateRef.current = nextState
+    setState(nextState)
+    return values?.user
   }
 
   const logout = async () => {

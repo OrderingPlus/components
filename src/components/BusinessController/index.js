@@ -29,7 +29,8 @@ export const BusinessController = (props) => {
     UIComponent,
     handleUpdateBusinessList,
     favoriteIds,
-    setFavoriteIds
+    setFavoriteIds,
+    isFavorite
   } = props
 
   const [ordering] = useApi()
@@ -143,11 +144,13 @@ export const BusinessController = (props) => {
       if (!content.error) {
         setActionState({ ...actionState, loading: false })
         handleUpdateBusinessList && handleUpdateBusinessList(businessState?.business?.id, { favorite: isAdd })
-        if (favoriteIds) {
-          const updateIds = isAdd
-            ? [...favoriteIds, businessState?.business?.id]
-            : favoriteIds.filter(item => item !== businessState?.business?.id)
-          setFavoriteIds(updateIds)
+        if (setFavoriteIds) {
+          setFavoriteIds((prevIds) => {
+            const ids = prevIds ?? favoriteIds ?? []
+            return isAdd
+              ? [...ids, businessState?.business?.id]
+              : ids.filter(item => item !== businessState?.business?.id)
+          })
         }
         setBusinessState({
           ...businessState,
@@ -287,20 +290,28 @@ export const BusinessController = (props) => {
   }
 
   useEffect(() => {
+    if (isFavorite !== undefined) {
+      setBusinessState((prev) => ({
+        ...prev,
+        business: { ...prev?.business, favorite: isFavorite }
+      }))
+      return
+    }
+
     if (!favoriteIds) return
 
     if (favoriteIds?.includes(businessState?.business?.id)) {
-      setBusinessState({
-        ...businessState,
-        business: { ...businessState?.business, favorite: true }
-      })
+      setBusinessState((prev) => ({
+        ...prev,
+        business: { ...prev?.business, favorite: true }
+      }))
     } else {
-      setBusinessState({
-        ...businessState,
-        business: { ...businessState?.business, favorite: false }
-      })
+      setBusinessState((prev) => ({
+        ...prev,
+        business: { ...prev?.business, favorite: false }
+      }))
     }
-  }, [favoriteIds])
+  }, [isFavorite, favoriteIds, businessState?.business?.id])
 
   return (
     <>

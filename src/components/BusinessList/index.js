@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState, startTransition } from 'react'
 import PropTypes, { string } from 'prop-types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -347,13 +347,15 @@ export const BusinessList = (props) => {
         }
       }
 
-      setBusinessesList({
-        ...businessesList,
-        loading: false,
-        error,
-        businesses: (newFetch || businesses.length) ? businesses : prevBusinesses,
-        result,
-        fetched: true
+      startTransition(() => {
+        setBusinessesList({
+          ...businessesList,
+          loading: false,
+          error,
+          businesses: (newFetch || businesses.length) ? businesses : prevBusinesses,
+          result,
+          fetched: true
+        })
       })
       setFirstLoad(true)
     } catch (err) {

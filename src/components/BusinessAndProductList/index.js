@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, startTransition } from 'react'
 import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -161,7 +161,9 @@ export const BusinessAndProductList = (props) => {
 
   const sortProductsArray = (option, array) => {
     if (!array?.length) {
-      setCategoryState({ ...categoryState, products: array || [] })
+      startTransition(() => {
+        setCategoryState({ ...categoryState, products: array || [] })
+      })
       return
     }
     const selectedCategory =
@@ -184,7 +186,9 @@ export const BusinessAndProductList = (props) => {
         )
       }
     }
-    setCategoryState({ ...categoryState, products: _array })
+    startTransition(() => {
+      setCategoryState({ ...categoryState, products: _array })
+    })
   }
 
   const subCategoriesList = []
@@ -596,7 +600,9 @@ export const BusinessAndProductList = (props) => {
         setErrorQuantityProducts(!newcategoryState.products?.length)
         categoriesState[categoryKey] = newcategoryState
         categoryState = newcategoryState
-        setCategoryState({ ...newcategoryState })
+        startTransition(() => {
+          setCategoryState({ ...newcategoryState })
+        })
         setCategoriesState({ ...categoriesState })
 
         const isFeatured = categoriesState.all.products.some(product => product.featured) ||
@@ -639,7 +645,9 @@ export const BusinessAndProductList = (props) => {
         }
 
         categoriesState[categoryKey] = newcategoryState
-        setCategoryState({ ...newcategoryState })
+        startTransition(() => {
+          setCategoryState({ ...newcategoryState })
+        })
         setCategoriesState({ ...categoriesState })
 
         const isFeatured = categoriesState.all.products.some(product => product.featured) ||
@@ -713,7 +721,9 @@ export const BusinessAndProductList = (props) => {
 
         categoriesState[categoryKey] = newcategoryState
         categoryState = { ...categoryState, ...newcategoryState }
-        setCategoryState({ ...categoryState, ...newcategoryState })
+        startTransition(() => {
+          setCategoryState({ ...categoryState, ...newcategoryState })
+        })
         setCategoriesState({ ...categoriesState })
 
         const isFeatured = categoriesState?.all?.products?.some(product => product.featured) ||
@@ -748,7 +758,9 @@ export const BusinessAndProductList = (props) => {
 
         categoriesState[categoryKey] = newcategoryState
         categoryState = newcategoryState
-        setCategoryState({ ...newcategoryState })
+        startTransition(() => {
+          setCategoryState({ ...newcategoryState })
+        })
         setCategoriesState({ ...categoriesState })
 
         const isFeatured = categoriesState?.all?.products?.some(product => product.featured) ||

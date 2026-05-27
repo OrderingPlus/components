@@ -65,6 +65,7 @@ export const BusinessController = (props) => {
    * Method to get business from SDK
    */
   const getBusiness = async () => {
+    if (!businessId) return
     setBusinessState({ ...businessState, loading: true })
     try {
       const { content: { result, error } } = await ordering.businesses(businessId).select(businessAttributes).get()

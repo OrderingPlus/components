@@ -169,6 +169,10 @@ export const OrderList = props => {
               condition: '!=',
               value: null
             }
+          },
+          {
+            attribute: 'delivery_type',
+            value: 9
           }
         ]
       })

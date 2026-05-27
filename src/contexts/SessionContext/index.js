@@ -68,14 +68,16 @@ export const SessionProvider = ({ children, strategy, checkInterval = 2000 }) =>
     if (values?.device_code) {
       await strategy.setItem('device_code', values?.device_code)
     }
-    setState(prevState => ({
-      ...prevState,
+    const nextState = {
+      ...stateRef.current,
       auth: true,
       user: values?.user,
       token: values?.token,
       loading: false,
       device_code: values?.device_code || null
-    }))
+    }
+    stateRef.current = nextState
+    setState(nextState)
     return values?.user
   }
 

@@ -160,6 +160,7 @@ export const BusinessSearchList = (props) => {
       }
       setBusinessesSearchList((prevProps) => ({
         ...prevProps,
+        businesses: newFetch ? [] : prevProps.businesses,
         loading: true,
         lengthError: false
       }))

@@ -1,7 +1,10 @@
+import { isAppContext } from './isAppContext'
+
 /**
  * Builds Cloudinary-compatible transformation URLs for supported CDNs.
  * Applies balanced delivery defaults: q_auto:good on Cloudinary, q_auto on OrderingPlus assets
  * (Bunny rejects q_auto:* variants like q_auto:good with 403), plus f_auto where missing.
+ * In native apps, returns the original URL without transforms.
  */
 
 const CLOUDINARY_PATH_MARKER = '/image/upload/'
@@ -262,6 +265,10 @@ export const optimizeImageUrl = (url, params) => {
     return normalized
   }
 
+  if (isAppContext()) {
+    return normalized
+  }
+
   try {
     const base = typeof window !== 'undefined' && window.location?.origin
       ? window.location.origin
@@ -345,6 +352,10 @@ export const getResponsiveImageProps = (url, options = {}) => {
 
   const normalized = normalizeUrlString(url)
   if (!normalized) {
+    return { src: normalized, sizes }
+  }
+
+  if (isAppContext()) {
     return { src: normalized, sizes }
   }
 

@@ -35,13 +35,6 @@ export const parsePhoneNumberSync = (value, options) => {
 
 export const getPhoneMetadata = async () => (await ensurePhoneCore()).metadata
 
-export const loadPhoneInput = () => import('react-phone-number-input/min')
-
-export const loadFormatPhoneNumber = async () => {
-  const mod = await import('react-phone-number-input/min')
-  return mod.formatPhoneNumber
-}
-
 export const loadParsePhoneNumber = async () => {
   const { parse, metadata } = await ensurePhoneCore()
   return (value, options) => parse(value, options, metadata)

@@ -6,6 +6,10 @@ export {
 
 export { optimizeImageUrl } from './optimizeImageUrl'
 
+export { isAppContext } from './isAppContext'
+
+export { publicAssetUrl } from './publicAssetUrl'
+
 export { parsePhoneNumber, parsePhoneNumberSync, preloadPhoneCore } from './phoneUtils'
 
 export const randomString = (length = 10, alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789') => {

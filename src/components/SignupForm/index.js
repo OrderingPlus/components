@@ -7,7 +7,7 @@ import { useConfig } from '../../contexts/ConfigContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvent } from '../../contexts/EventContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
-import { parsePhoneNumber } from '~/utils/phoneUtils'
+import { parsePhoneNumber } from '../../utils/phoneUtils'
 
 /**
  * Component to manage signup behavior without UI component
@@ -99,7 +99,7 @@ export const SignupForm = (props) => {
 
     if (!newData?.country_code && newData?.country_phone_code && newData?.cellphone) {
       const parsedNumber = await parsePhoneNumber(`+${newData?.country_phone_code}${newData?.cellphone}`)
-      newData.country_code = parsedNumber.country
+      newData.country_code = parsedNumber?.country
     }
 
     if (CONDITIONAL_CODES.includes(newData?.country_phone_code)) {

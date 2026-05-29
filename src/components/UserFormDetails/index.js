@@ -5,7 +5,7 @@ import { useApi } from '../../contexts/ApiContext'
 import { useCustomer } from '../../contexts/CustomerContext'
 import { useValidationFields as useValidationsFieldsController } from '../../contexts/ValidationsFieldsContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
-import { parsePhoneNumber } from '~/utils/phoneUtils'
+import { parsePhoneNumber } from '../../utils/phoneUtils'
 import { ToastType, useToast } from '../../contexts/ToastContext'
 const CONDITIONAL_CODES = ['1787']
 

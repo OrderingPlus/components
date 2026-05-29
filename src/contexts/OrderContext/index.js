@@ -1455,7 +1455,7 @@ export const OrderProvider = ({
     if (session.auth) {
       refreshOrderOptions()
     }
-  }, [session.auth, session.loading, languageState.loading, ordering?.project])
+  }, [session.auth, session.loading, languageState.loading, ordering?.project, session?.user?.id])
 
   useEffect(() => {
     if (session.loading || configState.loading) return

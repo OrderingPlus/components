@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
+import dayjs from 'dayjs'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
@@ -106,6 +107,7 @@ export const OrderListGroups = (props) => {
   const [orderLogisticUpdated, setOrderLogisticUpdated] = useState(null)
   const [recentlyReceivedMessage, setRecentlyReceivedMessage] = useState(null)
   const [loadingChangeOrder, setLoadingChangeOrder] = useState(false)
+  const resolvedAssignRequestsRef = useRef(new Map())
 
   const [ordersFiltered, setOrdersFiltered] = useState({
     orders: [],
@@ -833,8 +835,13 @@ export const OrderListGroups = (props) => {
         const order = logisticOrders?.orders?.find(order => order?.id === orderId)
         const newOrders = sortOrders(logisticOrders?.orders?.filter(_order => _order?.id !== orderId))
         setlogisticOrders({ ...logisticOrders, orders: newOrders })
+        resolvedAssignRequestsRef.current.set(orderId, order?.updated_at ?? order?.status_at ?? null)
         if (status === 1) {
           const acceptedOrder = order?.order ?? order
+          const acceptedOrders = acceptedOrder?.order_group?.orders?.length
+            ? acceptedOrder.order_group.orders
+            : [acceptedOrder].filter(Boolean)
+          acceptedOrders.forEach((o) => actionOrderToTab(o, getStatusById(o?.status), 'add'))
           if (PROJECTS_WITH_LOGISTIC_DEFAULT_ETA.includes(ordering?.project)) {
             const defaultEta = parseInt(t('LOGISTIC_DEFAULT_ETA_TIME', '10'), 10) || 10
             const targetOrderIds = acceptedOrder?.order_group?.orders?.length
@@ -1122,8 +1129,15 @@ export const OrderListGroups = (props) => {
     }
   }, [JSON.stringify(ordersGroup), socket?.socket, session])
 
+  const isStaleResolvedAssignRequest = (order) => {
+    if (!resolvedAssignRequestsRef.current.has(order?.id)) return false
+    const resolvedAt = resolvedAssignRequestsRef.current.get(order?.id)
+    return !resolvedAt || !order?.updated_at || !dayjs(order.updated_at).isAfter(dayjs(resolvedAt))
+  }
+
   const handleAddAssignRequest = useCallback(
     (order) => {
+      if (isStaleResolvedAssignRequest(order)) return
       setOrderLogisticAdded(order)
       const isSameEvent = orderLogisticAdded?.id === order?.id && orderLogisticAdded.status === order?.status
       if (!order?.locked && !isSameEvent) {
@@ -1131,7 +1145,7 @@ export const OrderListGroups = (props) => {
       }
       setlogisticOrders((prevState) => ({
         ...prevState,
-        orders: sortOrders(mergeAssignRequestOrders(prevState?.orders, order)) // upsert by id (dedups duplicates)
+        orders: sortOrders(mergeAssignRequestOrders(prevState?.orders, order))
       }))
       showToast(
         ToastType.Info,
@@ -1156,6 +1170,7 @@ export const OrderListGroups = (props) => {
 
   const handleUpdateAssignRequest = useCallback(
     (order) => {
+      if (isStaleResolvedAssignRequest(order)) return
       setOrderLogisticUpdated(order)
       const isSameEvent = orderLogisticUpdated?.id === order?.id && orderLogisticUpdated.status === order?.status
       if (!order?.locked && !isSameEvent) {

@@ -6,6 +6,7 @@ import { ToastType, useToast } from '../../contexts/ToastContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvent } from '../../contexts/EventContext'
 import { useConfig } from '../../contexts/ConfigContext'
+import { PROJECTS_WITH_LOGISTIC_DEFAULT_ETA } from '../../constants/logistic'
 
 export const OrderListGroups = (props) => {
   props = { ...defaultProps, ...props }
@@ -832,7 +833,25 @@ export const OrderListGroups = (props) => {
         const newOrders = sortOrders(logisticOrders?.orders?.filter(_order => _order?.id !== orderId))
         setlogisticOrders({ ...logisticOrders, orders: newOrders })
         if (status === 1) {
-          handleClickOrder(order?.order ?? order)
+          const acceptedOrder = order?.order ?? order
+          if (PROJECTS_WITH_LOGISTIC_DEFAULT_ETA.includes(ordering?.project)) {
+            const defaultEta = parseInt(t('LOGISTIC_DEFAULT_ETA_TIME', '10'), 10) || 10
+            const targetOrderIds = acceptedOrder?.order_group?.orders?.length
+              ? acceptedOrder.order_group.orders.map(o => o?.id)
+              : [acceptedOrder?.id]
+            try {
+              await Promise.all(
+                targetOrderIds
+                  .filter(Boolean)
+                  .map(id =>
+                    ordering.setAccessToken(session?.token).orders(id).save({ delivered_in: defaultEta })
+                  )
+              )
+            } catch (e) {
+            }
+          }
+
+          handleClickOrder(acceptedOrder)
           showToast(
             ToastType.Success,
             t('SPECIFIC_ORDER_ACCEPTED', 'Your accepted the order number _NUMBER_').replace('_NUMBER_', order?.order?.id ?? order?.id)

@@ -7,6 +7,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvent } from '../../contexts/EventContext'
 import { useConfig } from '../../contexts/ConfigContext'
 import { PROJECTS_WITH_LOGISTIC_DEFAULT_ETA } from '../../constants/logistic'
+import { mergeAssignRequestOrders } from './utils'
 
 export const OrderListGroups = (props) => {
   props = { ...defaultProps, ...props }
@@ -1130,12 +1131,7 @@ export const OrderListGroups = (props) => {
       }
       setlogisticOrders((prevState) => ({
         ...prevState,
-        orders: sortOrders([...prevState?.orders, order].filter((order, index, hash) => { // remove possibles duplicates
-          const val = JSON.stringify(order)
-          return index === hash.findIndex(_order => {
-            return JSON.stringify(_order) === val
-          })
-        }))
+        orders: sortOrders(mergeAssignRequestOrders(prevState?.orders, order)) // upsert by id (dedups duplicates)
       }))
       showToast(
         ToastType.Info,
@@ -1165,15 +1161,16 @@ export const OrderListGroups = (props) => {
       if (!order?.locked && !isSameEvent) {
         handleActionEvent('request_update', order)
       }
+      const isNewOrder = !logisticOrders?.orders?.some(_order => _order?.id === order?.id)
       setlogisticOrders(prevState => ({
         ...prevState,
-        orders: prevState?.orders?.some(_order => _order?.id === order?.id)
-          ? sortOrders([...prevState?.orders?.filter(_order => _order?.id !== order?.id), { ...prevState?.orders?.find(_order => _order?.id === order?.id), ...order }])
-          : sortOrders(prevState?.orders)
+        orders: sortOrders(mergeAssignRequestOrders(prevState?.orders, order))
       }))
       showToast(
         ToastType.Info,
-        t('SPECIFIC_LOGISTIC_ORDER_UPDATED', 'Your logisitc order number _NUMBER_ has updated').replace('_NUMBER_', order?.order?.id ?? order.id),
+        isNewOrder
+          ? t('SPECIFIC_LOGISTIC_ORDER_ORDERED', 'Logisitc order _NUMBER_ has been ordered').replace('_NUMBER_', order?.order?.id ?? order.id)
+          : t('SPECIFIC_LOGISTIC_ORDER_UPDATED', 'Your logisitc order number _NUMBER_ has updated').replace('_NUMBER_', order?.order?.id ?? order.id),
         1000
       )
     },

@@ -7,6 +7,7 @@ import { useToast, ToastType } from '../../contexts/ToastContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvent } from '../../contexts/EventContext'
 import { useOrder } from '../../contexts/OrderContext'
+import { PROJECTS_WITH_LOGISTIC_DEFAULT_ETA } from '../../constants/logistic'
 
 export const OrderDetails = (props) => {
   const {
@@ -60,6 +61,22 @@ export const OrderDetails = (props) => {
       const { result, error } = await response.json()
       if (!error) {
         if (status === 1) {
+          if (PROJECTS_WITH_LOGISTIC_DEFAULT_ETA.includes(ordering?.project)) {
+            const defaultEta = parseInt(t('LOGISTIC_DEFAULT_ETA_TIME', '10'), 10) || 10
+            const groupOrders = orders?.order_group?.orders ?? orders?.order?.order_group?.orders
+            const targetOrderIds = (groupOrders?.length
+              ? groupOrders.map(o => o?.id)
+              : [orders?.order?.id ?? orders?.id]
+            ).filter(Boolean)
+            try {
+              await Promise.all(
+                targetOrderIds.map(id =>
+                  ordering.setAccessToken(accessToken).orders(id).save({ delivered_in: defaultEta })
+                )
+              )
+            } catch (e) {
+            }
+          }
           showToast(
             ToastType.Success,
             t('SPECIFIC_ORDER_ACCEPTED', 'Your accepted the order number _NUMBER_').replace('_NUMBER_', orders?.id)

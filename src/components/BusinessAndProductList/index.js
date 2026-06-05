@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, startTransition } from 'react'
 import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -9,7 +9,16 @@ import { useToast, ToastType } from '../../contexts/ToastContext'
 import { useCustomer } from '../../contexts/CustomerContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
-import { sortProductsBySubcategoryRank } from '../../utils/subcategoryProductSort'
+import {
+  toLiteCategories,
+  toLiteProduct,
+  toLiteParentCategory,
+  countProductsInCategories,
+  buildProductMapFromBusiness,
+  reconcileProductsByIds,
+  mergeAndDedupeProducts
+} from '../../utils/listingProductsPipeline'
+import { runListingTask, runListingTaskDebounced } from '../../utils/listingTaskRunner'
 
 dayjs.extend(utc)
 
@@ -69,6 +78,7 @@ export const BusinessAndProductList = (props) => {
   let [categoryState, setCategoryState] = useState(categoryStateDefault)
   const [errors, setErrors] = useState(null)
   const [errorQuantityProducts, setErrorQuantityProducts] = useState(false)
+  const getProductsRequestRef = useRef(0)
 
   const categoryKey = searchValue
     ? 'search'
@@ -125,77 +135,50 @@ export const BusinessAndProductList = (props) => {
     })
   }
 
-  const isMatchSearch = (name, description, price) => {
-    if (!searchValue && !priceFilterValues?.min && !priceFilterValues?.max) return true
-    return (
-      ((searchValue
-        ? (name && (name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(searchValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')) && isSearchByName))
-        : true) &&
-        (priceFilterValues?.min ? parseFloat(price) >= parseFloat(priceFilterValues?.min) : true) &&
-        (priceFilterValues?.max ? parseFloat(price) <= parseFloat(priceFilterValues?.max) : true))
-    ) ||
-      (
-        ((searchValue
-          ? (description && (description.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(searchValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')) && isSearchByDescription))
-          : true) &&
-          (priceFilterValues?.min ? parseFloat(price) >= parseFloat(priceFilterValues?.min) : true) &&
-          (priceFilterValues?.max ? parseFloat(price) <= parseFloat(priceFilterValues?.max) : true)))
+  const mergeProductListsWithDedupe = async (productGroups) => {
+    const itemCount = productGroups.reduce((total, group) => total + (group?.length || 0), 0)
+    if (itemCount === 0) return []
+    const { products } = await runListingTask({
+      workerType: 'products',
+      task: 'MERGE_DEDUPE',
+      itemCount,
+      payload: { productGroups }
+    })
+    return products || mergeAndDedupeProducts(productGroups)
   }
 
   const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
 
-  const isFeaturedSearch = (product) => {
-    if (product.featured) {
-      if (!searchValue) return true
-      return (
-        product.name && (product.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .includes(searchValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')) && isSearchByName)
-      ) ||
-        (
-          product.description && (product.description.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .includes(searchValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')) && isSearchByDescription)
-        )
-    }
-    return false
-  }
-
-  const sortProductsArray = (option, array) => {
+  const sortProductsArray = async (option, array) => {
     if (!array?.length) {
-      setCategoryState({ ...categoryState, products: array || [] })
+      startTransition(() => {
+        setCategoryState({ ...categoryState, products: array || [] })
+      })
       return
     }
     const selectedCategory =
       categorySelected?.id && categorySelected?.id !== 'featured'
         ? businessState?.business?.categories?.find(c => c.id === categorySelected.id)
         : null
-    const hasSubs = selectedCategory?.subcategories?.length > 0
-    let _array
-    if (hasSubs) {
-      _array = sortProductsBySubcategoryRank(array, selectedCategory, option)
-    } else {
-      _array = [...array]
-      if (option === 'rank' || option === null) {
-        _array.sort((a, b) => (a.rank || 0) - (b.rank || 0))
-      } else if (option === 'rank_desc') {
-        _array.sort((a, b) => (b.rank || 0) - (a.rank || 0))
-      } else if (option === 'a-z') {
-        _array.sort((a, b) =>
-          (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)
-        )
+    const liteProducts = array.map((product) => toLiteProduct(product))
+    const { ids } = await runListingTask({
+      workerType: 'products',
+      task: 'SORT_PRODUCTS',
+      itemCount: array.length,
+      payload: {
+        products: liteProducts,
+        sortByValue: option,
+        parentCategory: toLiteParentCategory(selectedCategory)
       }
-    }
-    setCategoryState({ ...categoryState, products: _array })
-  }
-
-  const subCategoriesList = []
-
-  const iterateCategories = (categories) => {
-    return (
-      categories?.length > 0 && categories?.forEach(category => {
-        subCategoriesList.push(category)
-        iterateCategories(category.subcategories)
-      })
-    )
+    })
+    const productMap = buildProductMapFromBusiness(businessState?.business)
+    array.forEach((product) => {
+      if (product?.id) productMap.set(product.id, product)
+    })
+    const sortedProducts = reconcileProductsByIds(productMap, ids)
+    startTransition(() => {
+      setCategoryState({ ...categoryState, products: sortedProducts })
+    })
   }
 
   /**
@@ -307,6 +290,8 @@ export const BusinessAndProductList = (props) => {
 
   const getProducts = async (business) => {
     const businessObj = business ?? businessState?.business
+    const requestId = ++getProductsRequestRef.current
+
     for (let i = 0; i < (businessObj?.categories?.length ?? 0); i++) {
       const category = businessObj?.categories[i]
       const isFeatured = category?.products?.some((product) => product.featured)
@@ -315,64 +300,47 @@ export const BusinessAndProductList = (props) => {
         break
       }
     }
-    const categoryState = {
+
+    const liteCategories = toLiteCategories(businessObj?.categories)
+    const itemCount = countProductsInCategories(liteCategories)
+    const filterPayload = {
+      categories: liteCategories,
+      categorySelectedId: categorySelected.id,
+      searchValue,
+      priceFilterValues,
+      isSearchByName,
+      isSearchByDescription,
+      isUseParentCategory,
+      avoidProductDuplicate
+    }
+
+    const runFilter = () => (searchValue
+      ? runListingTaskDebounced({
+        workerType: 'products',
+        task: 'FILTER_PRODUCTS',
+        payload: filterPayload,
+        itemCount,
+        debounceKey: 'product-search'
+      })
+      : runListingTask({
+        workerType: 'products',
+        task: 'FILTER_PRODUCTS',
+        payload: filterPayload,
+        itemCount
+      }))
+
+    const { ids } = await runFilter()
+    if (requestId !== getProductsRequestRef.current) return
+
+    const productMap = buildProductMapFromBusiness(businessObj)
+    const productsFiltered = reconcileProductsByIds(productMap, ids)
+    const nextCategoryState = {
       ...categoryStateDefault,
-      loading: false
+      loading: false,
+      products: productsFiltered
     }
-    if (categorySelected.id !== 'featured' && categorySelected.id !== null) {
-      iterateCategories(businessObj?.categories)
-      const categoriesList = [].concat(...businessObj?.categories.map(category => category.children))
-      const categories = isUseParentCategory ? categoriesList : businessObj?.categories
-      const parentCategory = categories?.find(category => category?.category_id === categorySelected?.id) ?? {}
-      const categoryFinded = subCategoriesList.find(subCat => subCat.id === parentCategory.category_id) ?? {}
-
-      const productsFiltered = businessObj?.categories
-        ?.find(category => category.id === (isUseParentCategory ? parentCategory?.parent_category_id : categorySelected.id))
-        ?.products
-        .filter(product => isUseParentCategory
-          ? (categoryFinded?.children?.some(cat => cat.category_id === product?.category_id) && isMatchSearch(product.name, product.description, product?.price))
-          : isMatchSearch(product.name, product.description, product?.price))
-
-      categoryState.products = productsFiltered || []
-    } else if (categorySelected.id === 'featured') {
-      const productsFiltered = businessObj?.categories?.reduce(
-        (products, category) => [
-          ...products,
-          ...category.products.map(product => ({
-            ...product,
-            ...(category.slug ? { category: { ...product?.category, slug: category.slug } } : {})
-          }))
-        ], []
-      ).filter(
-        product => isFeaturedSearch(product)
-      )
-      categoryState.products = productsFiltered || []
-    } else {
-      let _categoriesCustom = null
-      if (avoidProductDuplicate) {
-        const customCategories = ['favorites']
-        _categoriesCustom = businessObj?.categories?.filter(({ id }) => (!customCategories.includes(id)))
-      }
-
-      const productsToFilter = avoidProductDuplicate ? _categoriesCustom : businessObj?.categories
-      const productsFiltered = (productsToFilter || [])?.reduce(
-        (products, category) => {
-          if (!category?.products) return products
-          return [
-            ...products,
-            ...category.products.map(product => ({
-              ...product,
-              ...(category.slug ? { category: { ...product?.category, slug: category.slug } } : {})
-            }))
-          ]
-        }, []
-      ).filter(
-        product => product && isMatchSearch(product.name, product.description, product?.price)
-      )
-      categoryState.products = productsFiltered || []
-    }
-    setErrorQuantityProducts(!categoryState.products?.length)
-    setCategoryState({ ...categoryState })
+    setErrorQuantityProducts(!productsFiltered?.length)
+    setCategoryState(nextCategoryState)
   }
 
   const getLazyProducts = async ({ page, pageSize = categoryStateDefault.pagination.pageSize }) => {
@@ -534,7 +502,7 @@ export const BusinessAndProductList = (props) => {
     const isLazy = !!business?.lazy_load_products_recommended || !!businessState?.business?.lazy_load_products_recommended
 
     if (!isLazy) {
-      getProducts(business)
+      await getProducts(business)
       return
     }
 
@@ -596,7 +564,9 @@ export const BusinessAndProductList = (props) => {
         setErrorQuantityProducts(!newcategoryState.products?.length)
         categoriesState[categoryKey] = newcategoryState
         categoryState = newcategoryState
-        setCategoryState({ ...newcategoryState })
+        startTransition(() => {
+          setCategoryState({ ...newcategoryState })
+        })
         setCategoriesState({ ...categoriesState })
 
         const isFeatured = categoriesState.all.products.some(product => product.featured) ||
@@ -614,6 +584,11 @@ export const BusinessAndProductList = (props) => {
               }))
             )).filter(item => item)
         const productsListFeatured = featuredRes?.content?.result ?? []
+        const mergedProducts = categorySelected.id === 'featured'
+          ? productsListFeatured
+          : searchValue
+            ? await mergeProductListsWithDedupe([productsListFeatured, ...productsList])
+            : await mergeProductListsWithDedupe([productsListFeatured, ...(curCategoryState.products || []), ...productsList])
         const paginationData = categorySelected.id === 'featured'
           ? categoriesState?.featured?.pagination ?? {}
           : curCategoryState?.pagination ?? {}
@@ -631,15 +606,13 @@ export const BusinessAndProductList = (props) => {
               : pagination?.total_pages
           },
           loading: false,
-          products: categorySelected.id === 'featured'
-            ? productsListFeatured
-            : searchValue
-              ? [...productsListFeatured, ...productsList].filter((product, i, _hash) => _hash.findIndex(_product => _product?.id === product?.id) === i)
-              : [...productsListFeatured, ...curCategoryState.products.concat(productsList)].filter((product, i, _hash) => _hash.findIndex(_product => _product?.id === product?.id) === i)
+          products: mergedProducts
         }
 
         categoriesState[categoryKey] = newcategoryState
-        setCategoryState({ ...newcategoryState })
+        startTransition(() => {
+          setCategoryState({ ...newcategoryState })
+        })
         setCategoriesState({ ...categoriesState })
 
         const isFeatured = categoriesState.all.products.some(product => product.featured) ||
@@ -713,7 +686,9 @@ export const BusinessAndProductList = (props) => {
 
         categoriesState[categoryKey] = newcategoryState
         categoryState = { ...categoryState, ...newcategoryState }
-        setCategoryState({ ...categoryState, ...newcategoryState })
+        startTransition(() => {
+          setCategoryState({ ...categoryState, ...newcategoryState })
+        })
         setCategoriesState({ ...categoriesState })
 
         const isFeatured = categoriesState?.all?.products?.some(product => product.featured) ||
@@ -724,6 +699,13 @@ export const BusinessAndProductList = (props) => {
       if (!(categorySelected.id && categorySelected.id !== 'featured')) {
         const productsList = [].concat(...result.map(category => category?.products)).filter(item => item)
         const productsListFeatured = featuredRes?.content?.result ?? []
+        const mergedProducts = categorySelected.id === 'featured'
+          ? productsListFeatured
+          : await mergeProductListsWithDedupe([
+            productsListFeatured,
+            ...(curCategoryState?.products || []),
+            ...productsList
+          ])
         const paginationData = categorySelected.id === 'featured'
           ? categoriesState?.featured?.pagination ?? {}
           : curCategoryState?.pagination ?? {}
@@ -741,14 +723,14 @@ export const BusinessAndProductList = (props) => {
               : pagination?.total_pages
           },
           loading: false,
-          products: categorySelected.id === 'featured'
-            ? productsListFeatured
-            : [...productsListFeatured, ...(curCategoryState?.products?.concat(productsList) ?? [])]
+          products: mergedProducts
         }
 
         categoriesState[categoryKey] = newcategoryState
         categoryState = newcategoryState
-        setCategoryState({ ...newcategoryState })
+        startTransition(() => {
+          setCategoryState({ ...newcategoryState })
+        })
         setCategoriesState({ ...categoriesState })
 
         const isFeatured = categoriesState?.all?.products?.some(product => product.featured) ||

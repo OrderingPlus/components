@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState, startTransition } from 'react'
 import PropTypes, { string } from 'prop-types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -8,6 +8,8 @@ import { useConfig } from '../../contexts/ConfigContext'
 import { useSession } from '../../contexts/SessionContext'
 import { useOrderingTheme } from '../../contexts/OrderingThemeContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
+import { toLiteBusinesses, reconcileBusinessesByIds } from '../../utils/listingBusinessesPipeline'
+import { runListingTask } from '../../utils/listingTaskRunner'
 dayjs.extend(utc)
 
 export const BusinessList = (props) => {
@@ -75,12 +77,6 @@ export const BusinessList = (props) => {
   const unaddressedTypes = configs?.unaddressed_order_types_allowed?.value.split('|').map(value => Number(value)) || []
   const isAllowUnaddressOrderType = unaddressedTypes.includes(orderState?.options?.type)
 
-  const sortBusinesses = (array, option) => {
-    if (option === 'review') {
-      return array.sort((a, b) => b.reviews.total - a.reviews.total)
-    }
-    return array
-  }
   /**
    * Get businesses by params, order options and filters
    * @param {boolean} newFetch Make a new request or next page
@@ -314,15 +310,37 @@ export const BusinessList = (props) => {
       }
 
       if (!error) {
-        if (isSortByReview) {
-          const _result = sortBusinesses(result, 'review')
-          businessesList.businesses = _result
-        } else if (isOfferBusinesses) {
-          const offerBuesinesses = result.filter(_business => _business?.offers.length > 0)
-          businessesList.businesses = offerBuesinesses
-        } else {
-          businessesList.businesses = newFetch ? result : (prev ? [...result, ...businessesList.businesses] : [...businessesList.businesses, ...result])
-        }
+        const mode = isSortByReview ? 'review' : isOfferBusinesses ? 'offers' : 'merge'
+        const liteBusinesses = toLiteBusinesses(result || [])
+        const prevIds = businessesList.businesses.map((business) => business.id)
+        const itemCount = mode === 'merge'
+          ? (newFetch ? liteBusinesses.length : prevIds.length + liteBusinesses.length)
+          : liteBusinesses.length
+
+        const { ids } = await runListingTask({
+          workerType: 'businesses',
+          task: 'POST_PROCESS',
+          itemCount,
+          payload: {
+            businesses: liteBusinesses,
+            slugSourceBusinesses: toLiteBusinesses([
+              ...(newFetch ? [] : businessesList.businesses),
+              ...(result || [])
+            ]),
+            mode,
+            newFetch,
+            prevIds: newFetch ? [] : prevIds,
+            actualSlug,
+            prepend: !!prev
+          }
+        })
+
+        businessesList.businesses = reconcileBusinessesByIds(
+          result,
+          ids,
+          { prevBusinesses: newFetch ? [] : businessesList.businesses }
+        )
+
         let nextPageItems = 0
         if (pagination?.current_page !== pagination?.total_pages) {
           const remainingItems = pagination.total - businessesList.businesses.length
@@ -339,21 +357,15 @@ export const BusinessList = (props) => {
 
       const businesses = businessesList.businesses
 
-      if (actualSlug) {
-        const fromIndex = businesses.findIndex(business => business.slug === actualSlug)
-        if (fromIndex > 0) {
-          const element = businesses.splice(fromIndex, 1)[0]
-          businesses.splice(0, 0, element)
-        }
-      }
-
-      setBusinessesList({
-        ...businessesList,
-        loading: false,
-        error,
-        businesses: (newFetch || businesses.length) ? businesses : prevBusinesses,
-        result,
-        fetched: true
+      startTransition(() => {
+        setBusinessesList({
+          ...businessesList,
+          loading: false,
+          error,
+          businesses: (newFetch || businesses.length) ? businesses : prevBusinesses,
+          result,
+          fetched: true
+        })
       })
       setFirstLoad(true)
     } catch (err) {

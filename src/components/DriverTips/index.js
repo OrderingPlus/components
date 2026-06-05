@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
-import Decimal from 'decimal.js'
 import { useOrder } from '../../contexts/OrderContext'
 import { useConfig } from '../../contexts/ConfigContext'
+
+const getTipCents = (value) => Math.round(Number(value || 0) * 100)
+
+const centsToAmount = (cents) => Number((cents / 100).toFixed(2))
+
+const splitFixedTipByBusiness = (driverTip, businessCount) => {
+  const totalCents = getTipCents(driverTip)
+  const baseCents = Math.trunc(totalCents / businessCount)
+  const correctionCents = totalCents - baseCents * businessCount
+
+  return { baseCents, correctionCents }
+}
 
 /**
  * Component to manage driver tips behavior without UI component
@@ -45,18 +56,16 @@ export const DriverTips = (props) => {
     driverTip = typeof driverTip === 'string' ? parseFloat(driverTip) : driverTip
     if (useOrderContext) {
       if (businessIds) {
-        const tip = new Decimal(driverTip)
-
-        const tipPerCart = !isFixedPrice
-          ? driverTip
-          : parseFloat((Math.trunc(tip.dividedBy(businessIds?.length) * 100) / 100).toFixed(2))
-
-        const correctionValue = !isFixedPrice
-          ? 0
-          : parseFloat(tip.minus(new Decimal(tipPerCart).times(businessIds?.length)).toFixed(2))
+        const { baseCents, correctionCents } = !isFixedPrice
+          ? { baseCents: 0, correctionCents: 0 }
+          : splitFixedTipByBusiness(driverTip, businessIds.length)
 
         const tipsPerCart = businessIds.map((bid, idx) => {
-          return { bid, value: parseFloat(new Decimal(tipPerCart).plus(idx === 0 ? correctionValue : 0).toFixed(2)) }
+          const value = !isFixedPrice
+            ? driverTip
+            : centsToAmount(baseCents + (idx === 0 ? correctionCents : 0))
+
+          return { bid, value }
         })
 
         Promise.all(tipsPerCart.map(tip => changeDriverTip(tip.bid, tip.value, isFixedPrice)))

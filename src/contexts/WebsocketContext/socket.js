@@ -1,4 +1,11 @@
-import io from 'socket.io-client'
+let ioRef
+
+const getIo = async () => {
+  if (!ioRef) {
+    ioRef = (await import('socket.io-client')).default
+  }
+  return ioRef
+}
 
 export class Socket {
   constructor ({ url, project, accessToken }) {
@@ -8,7 +15,8 @@ export class Socket {
     this.queue = []
   }
 
-  connect () {
+  async connect () {
+    const io = await getIo()
     const options = {
       query: `project=${this.project}`,
       transports: ['websocket']

@@ -1,0 +1,394 @@
+import { isAppContext } from './isAppContext'
+
+/**
+ * Builds Cloudinary-compatible transformation URLs for supported CDNs.
+ * Applies balanced delivery defaults: q_auto:good on Cloudinary, q_auto on OrderingPlus assets
+ * (Bunny rejects q_auto:* variants like q_auto:good with 403), plus f_auto where missing.
+ * In native apps, returns the original URL without transforms.
+ */
+
+const CLOUDINARY_PATH_MARKER = '/image/upload/'
+
+const ORDERINGPLUS_CLOUD_ASSETS_HOST = 'cloud-assets.orderingplus.com'
+
+const CLOUDINARY_HOST_SUFFIXES = [
+  'res.cloudinary.com',
+  ORDERINGPLUS_CLOUD_ASSETS_HOST
+]
+
+const TRANSFORM_PREFIX_WHITELIST = new Set([
+  'a', 'ar', 'b', 'bo', 'br', 'c', 'co', 'd', 'dn', 'du', 'e', 'eo', 'f', 'fl', 'fn',
+  'g', 'h', 'if', 'l', 'o', 'q', 'r', 'so', 't', 'u', 'vc', 'vs', 'w', 'x', 'y', 'z'
+])
+
+const DEFAULT_QUALITY_CLOUDINARY = 'q_auto:good'
+const DEFAULT_QUALITY_ORDERINGPLUS_ASSETS = 'q_auto'
+const DEFAULT_FORMAT = 'f_auto'
+
+const isOrderingPlusCloudAssetsHost = (hostname) => {
+  if (!hostname) {
+    return false
+  }
+  const h = hostname.toLowerCase()
+  return h === ORDERINGPLUS_CLOUD_ASSETS_HOST || h.endsWith(`.${ORDERINGPLUS_CLOUD_ASSETS_HOST}`)
+}
+
+const getDefaultQualityToken = (hostname) => {
+  if (isOrderingPlusCloudAssetsHost(hostname)) {
+    return DEFAULT_QUALITY_ORDERINGPLUS_ASSETS
+  }
+  return DEFAULT_QUALITY_CLOUDINARY
+}
+
+/**
+ * BunnyCDN rejects some Cloudinary-style tokens on this host:
+ * - q_auto:* (e.g. q_auto:good) → q_auto
+ * - ar_* (aspect ratio) → removed (403 when present)
+ */
+const sanitizeTokensForOrderingPlusAssets = (hostname, tokens) => {
+  if (!isOrderingPlusCloudAssetsHost(hostname)) {
+    return tokens
+  }
+  return tokens
+    .map((token) => {
+      if (typeof token !== 'string') {
+        return token
+      }
+      const trimmed = token.trim()
+      if (!trimmed) {
+        return token
+      }
+      if (/^q_auto:/i.test(trimmed)) {
+        return DEFAULT_QUALITY_ORDERINGPLUS_ASSETS
+      }
+      return trimmed
+    })
+    .filter((token) => {
+      if (typeof token !== 'string') {
+        return true
+      }
+      return !/^ar_/i.test(token.trim())
+    })
+}
+
+const normalizeUrlString = (url) => {
+  if (!url || typeof url !== 'string') {
+    return url
+  }
+  const trimmed = url.trim()
+  if (!trimmed) {
+    return trimmed
+  }
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+    return trimmed
+  }
+  if (trimmed.startsWith('//')) {
+    return `https:${trimmed}`
+  }
+  return trimmed
+}
+
+const isCloudinaryHost = (hostname) => {
+  if (!hostname) {
+    return false
+  }
+  const h = hostname.toLowerCase()
+  return CLOUDINARY_HOST_SUFFIXES.some((suffix) => h === suffix || h.endsWith(`.${suffix}`))
+}
+
+const getLeadingTokenPrefix = (segment) => {
+  if (!segment) {
+    return null
+  }
+  const head = segment.includes(',') ? segment.split(',')[0] : segment
+  const underscoreIdx = head.indexOf('_')
+  if (underscoreIdx === -1) {
+    return null
+  }
+  return head.slice(0, underscoreIdx).toLowerCase()
+}
+
+const isLikelyTransformSegment = (segment) => {
+  if (!segment || segment.includes('..')) {
+    return false
+  }
+  if (segment.includes(',')) {
+    return true
+  }
+  if (/^v\d+$/i.test(segment)) {
+    return false
+  }
+  const prefix = getLeadingTokenPrefix(segment)
+  if (!prefix) {
+    return false
+  }
+  return TRANSFORM_PREFIX_WHITELIST.has(prefix)
+}
+
+const parseParamsToTokens = (params) => {
+  if (!params) {
+    return []
+  }
+  if (typeof params === 'string') {
+    return params.split(',').map((t) => t.trim()).filter(Boolean)
+  }
+  return []
+}
+
+const getTokenFamily = (token) => {
+  if (!token) {
+    return ''
+  }
+  const base = token.split(':')[0]
+  const prefix = base.includes('_') ? base.split('_')[0] : base
+  return prefix.toLowerCase()
+}
+
+/**
+ * Caller overrides existing; defaults (q_auto, f_auto) apply only if family missing.
+ */
+const mergeTransformationTokens = (existingTokens, callerTokens, fallbackTokens) => {
+  const familyMap = new Map()
+
+  const apply = (tokens, force = false) => {
+    for (const token of tokens) {
+      const family = getTokenFamily(token)
+      if (!family) {
+        continue
+      }
+      if (force) {
+        familyMap.set(family, token)
+        continue
+      }
+      if (!familyMap.has(family)) {
+        familyMap.set(family, token)
+      }
+    }
+  }
+
+  apply(existingTokens)
+  apply(callerTokens, true)
+  apply(fallbackTokens)
+
+  const sortRank = (family) => {
+    const order = 'whrcreaxydglbtfqo'
+    const idx = order.indexOf(family[0])
+    return idx === -1 ? 50 : idx
+  }
+
+  return [...familyMap.entries()]
+    .sort((a, b) => sortRank(a[0]) - sortRank(b[0]))
+    .map(([, token]) => token)
+    .join(',')
+}
+
+const applyCloudinaryTransforms = (urlObj, extraParamTokens) => {
+  const pathname = urlObj.pathname
+  const markerIndex = pathname.indexOf(CLOUDINARY_PATH_MARKER)
+  if (markerIndex === -1) {
+    return urlObj.toString()
+  }
+
+  const prefix = pathname.slice(0, markerIndex + CLOUDINARY_PATH_MARKER.length)
+  const pathAfter = pathname.slice(markerIndex + CLOUDINARY_PATH_MARKER.length)
+  const segments = pathAfter.split('/').filter(Boolean)
+
+  if (segments.length === 0) {
+    return urlObj.toString()
+  }
+
+  const hostname = urlObj.hostname
+  const mandatoryDefaults = [getDefaultQualityToken(hostname), DEFAULT_FORMAT]
+  let existingTokens = []
+  let contentSegments = segments
+
+  if (isLikelyTransformSegment(segments[0])) {
+    existingTokens = parseParamsToTokens(segments[0].replace(/\s/g, ''))
+    contentSegments = segments.slice(1)
+  }
+
+  const sanitizedExisting = sanitizeTokensForOrderingPlusAssets(hostname, existingTokens)
+  const sanitizedExtra = sanitizeTokensForOrderingPlusAssets(hostname, extraParamTokens)
+
+  const merged = mergeTransformationTokens(
+    sanitizedExisting,
+    sanitizedExtra,
+    mandatoryDefaults
+  )
+
+  urlObj.pathname = `${prefix}${merged}/${contentSegments.join('/')}`
+  return urlObj.toString()
+}
+
+const applyImgixTransforms = (urlObj, extraParamTokens) => {
+  for (const token of extraParamTokens) {
+    if (token.startsWith('w_')) {
+      const w = token.slice(2)
+      if (w) urlObj.searchParams.set('w', w)
+    } else if (token.startsWith('h_')) {
+      const h = token.slice(2)
+      if (h) urlObj.searchParams.set('h', h)
+    } else if (token.startsWith('c_')) {
+      const crop = token.slice(2)
+      if (crop === 'fill' || crop === 'crop') {
+        urlObj.searchParams.set('fit', 'crop')
+      } else {
+        urlObj.searchParams.set('fit', 'max')
+      }
+    } else if (token.startsWith('ar_')) {
+      const ar = token.slice(3)
+      if (ar) {
+        urlObj.searchParams.set('ar', ar)
+        if (!urlObj.searchParams.has('fit')) {
+          urlObj.searchParams.set('fit', 'crop')
+        }
+      }
+    } else if (token.startsWith('q_')) {
+      urlObj.searchParams.set('q', '75')
+    }
+  }
+
+  if (!urlObj.searchParams.has('auto') && !urlObj.searchParams.has('fm')) {
+    urlObj.searchParams.set('auto', 'format,compress')
+  }
+
+  return urlObj.toString()
+}
+
+export const optimizeImageUrl = (url, params) => {
+  const normalized = normalizeUrlString(url)
+  if (!normalized) {
+    return normalized
+  }
+
+  if (normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+    return normalized
+  }
+
+  if (isAppContext()) {
+    return normalized
+  }
+
+  try {
+    const base = typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://ordering.local'
+    const urlObj = new URL(normalized, base)
+
+    if (urlObj.protocol === 'file:') {
+      return normalized
+    }
+
+    if (urlObj.hostname.endsWith('.imgix.net')) {
+      const tokens = parseParamsToTokens(params)
+      return applyImgixTransforms(urlObj, tokens)
+    }
+
+    if (!isCloudinaryHost(urlObj.hostname)) {
+      return normalized
+    }
+
+    if (!urlObj.pathname.includes(CLOUDINARY_PATH_MARKER)) {
+      return normalized
+    }
+
+    const tokens = parseParamsToTokens(params)
+    return applyCloudinaryTransforms(urlObj, tokens)
+  } catch {
+    return normalized
+  }
+}
+
+/**
+ * True when optimizeImageUrl can apply Cloudinary-style transforms.
+ * @param {string} url
+ * @returns {boolean}
+ */
+export const isResponsiveCloudinaryImageUrl = (url) => {
+  const normalized = normalizeUrlString(url)
+  if (!normalized || normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+    return false
+  }
+  try {
+    const base = typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://ordering.local'
+    const urlObj = new URL(normalized, base)
+    if (urlObj.protocol === 'file:') {
+      return false
+    }
+    if (urlObj.hostname.endsWith('.imgix.net')) {
+      return true
+    }
+    return isCloudinaryHost(urlObj.hostname) && urlObj.pathname.includes(CLOUDINARY_PATH_MARKER)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Build src / srcSet (w descriptors) / sizes for responsive <img>.
+ * Non-Cloudinary URLs return src only (no srcSet).
+ *
+ * @param {string} url
+ * @param {object} [options]
+ * @param {number[]} [options.widths] Display widths for `Nw` descriptors
+ * @param {string} [options.extraParams] Extra transform tokens (e.g. `h_86,c_limit`)
+ * @param {string} [options.sizes] Value for the HTML sizes attribute
+ * @param {number} [options.srcWidth] Width token for fallback `src` (defaults to largest in widths)
+ * @returns {{ src: string, srcSet?: string, sizes: string }}
+ */
+export const getResponsiveImageProps = (url, options = {}) => {
+  const {
+    widths = [320, 480, 640, 768, 960],
+    extraParams = 'c_limit',
+    sizes = '100vw',
+    srcWidth: preferredSrcWidth
+  } = options
+
+  if (!url || typeof url !== 'string') {
+    return { src: url || '', sizes }
+  }
+
+  const normalized = normalizeUrlString(url)
+  if (!normalized) {
+    return { src: normalized, sizes }
+  }
+
+  if (isAppContext()) {
+    return { src: normalized, sizes }
+  }
+
+  if (!isResponsiveCloudinaryImageUrl(normalized)) {
+    return { src: normalized, sizes }
+  }
+
+  const widthList = [...new Set(
+    widths.filter((w) => typeof w === 'number' && Number.isFinite(w) && w > 0)
+  )].sort((a, b) => a - b)
+
+  if (widthList.length === 0) {
+    const src = optimizeImageUrl(normalized, extraParams)
+    return { src, sizes }
+  }
+
+  const paramsForWidth = (w) => {
+    const extra = typeof extraParams === 'string' ? extraParams.trim() : ''
+    if (!extra) {
+      return `w_${w},c_limit`
+    }
+    return `w_${w},${extra}`
+  }
+
+  const srcSet = widthList
+    .map((w) => `${optimizeImageUrl(normalized, paramsForWidth(w))} ${w}w`)
+    .join(', ')
+
+  const maxW = widthList[widthList.length - 1]
+  const fallbackW = (typeof preferredSrcWidth === 'number' && widthList.includes(preferredSrcWidth))
+    ? preferredSrcWidth
+    : maxW
+  const src = optimizeImageUrl(normalized, paramsForWidth(fallbackW))
+
+  return { src, srcSet, sizes }
+}

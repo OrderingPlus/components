@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import moment from 'moment'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
 import { useOrder } from '../../contexts/OrderContext'
 import { useConfig } from '../../contexts/ConfigContext'
 import { useApi } from '../../contexts/ApiContext'
@@ -12,7 +9,19 @@ import { ToastType, useToast } from '../../contexts/ToastContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
 
-dayjs.extend(utc)
+let dayjsPromise = null
+const getDayjs = () => {
+  if (!dayjsPromise) {
+    dayjsPromise = Promise.all([
+      import('dayjs'),
+      import('dayjs/plugin/utc')
+    ]).then(([{ default: dayjs }, { default: utc }]) => {
+      dayjs.extend(utc)
+      return dayjs
+    })
+  }
+  return dayjsPromise
+}
 
 export const ProductForm = (props) => {
   props = { ...defaultProps, ...props }
@@ -292,8 +301,6 @@ export const ProductForm = (props) => {
     }
   }
 
-  const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
-
   /**
    * Load product from API
    */
@@ -302,6 +309,8 @@ export const ProductForm = (props) => {
       setProduct({ ...product, loading: true })
       const source = {}
       requestsState.product = source
+      const dayjs = await getDayjs()
+      const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
       const parameters = {
         version: 'v2',
         type: orderState?.options?.type
@@ -658,11 +667,12 @@ export const ProductForm = (props) => {
         }
         if (successful) {
           if (isService) {
+            const dayjs = await getDayjs()
             const updatedProfessional = JSON.parse(JSON.stringify(values?.professional))
             const duration = product?.product?.duration
             updatedProfessional.busy_times.push({
               start: values?.serviceTime,
-              end: moment(values?.serviceTime).add(duration, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
+              end: dayjs(values?.serviceTime).add(duration, 'minute').format('YYYY-MM-DD HH:mm:ss'),
               duration
             })
             handleUpdateProfessionals && handleUpdateProfessionals(updatedProfessional)

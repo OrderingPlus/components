@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { optimizeImageUrl, getResponsiveImageProps } from '../../utils/optimizeImageUrl'
 import { useConfig } from '../ConfigContext'
 import { useLanguage } from '../LanguageContext'
 import { useApi } from '../ApiContext'
@@ -264,7 +265,16 @@ export const UtilsProviders = ({ children, strategy }) => {
 
   const optimizeImage = (url, params, fallback) => {
     if (!url && fallback) return fallback
-    return url
+    if (!url) return url
+    return optimizeImageUrl(url, params)
+  }
+
+  const getResponsiveImage = (url, options, fallback) => {
+    const target = url || fallback
+    if (!target) {
+      return { src: '', srcSet: undefined, sizes: options?.sizes ?? '' }
+    }
+    return getResponsiveImageProps(target, options || {})
   }
 
   const getOrderState = (num) => {
@@ -361,6 +371,7 @@ export const UtilsProviders = ({ children, strategy }) => {
     getTimeAgo,
     getTimeTo,
     optimizeImage,
+    getResponsiveImage,
     getOrderState,
     GiftCardPaymethods,
     getGiftCardPaymethods

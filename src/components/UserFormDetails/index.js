@@ -5,7 +5,7 @@ import { useApi } from '../../contexts/ApiContext'
 import { useCustomer } from '../../contexts/CustomerContext'
 import { useValidationFields as useValidationsFieldsController } from '../../contexts/ValidationsFieldsContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
-import parsePhoneNumber from 'libphonenumber-js'
+import { parsePhoneNumber } from '../../utils/phoneUtils'
 import { ToastType, useToast } from '../../contexts/ToastContext'
 const CONDITIONAL_CODES = ['1787']
 
@@ -126,7 +126,7 @@ export const UserFormDetails = (props) => {
       }
 
       if (!_changes?.country_code && _changes?.country_phone_code && _changes?.cellphone) {
-        const parsedNumber = parsePhoneNumber(`+${_changes?.country_phone_code}${_changes?.cellphone}`)
+        const parsedNumber = await parsePhoneNumber(`+${_changes?.country_phone_code}${_changes?.cellphone}`)
         _changes.country_code = parsedNumber?.country
       }
 

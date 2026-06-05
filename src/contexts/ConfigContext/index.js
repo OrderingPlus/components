@@ -133,14 +133,20 @@ export const ConfigProvider = ({ children, strategy }) => {
         }
       }
 
+      const needsGeoFallback =
+        !countryCode &&
+        !(result?.default_country_code?.value)
+
       let data = null
-      try {
-        const response = await fetch('https://ipapi.co/json/')
-        if (response.status === 200) {
-          data = await response.json()
+      if (needsGeoFallback) {
+        try {
+          const response = await fetch('https://ipapi.co/json/')
+          if (response.status === 200) {
+            data = await response.json()
+          }
+        } catch (geoError) {
+          data = null
         }
-      } catch (error) {
-        data = null
       }
       const conditionalConfigs = {
         dates_moment_format: {
@@ -203,7 +209,14 @@ export const ConfigProvider = ({ children, strategy }) => {
       : null
 
     refreshConfigs(null, _configs)
-  }, [languageState.loading, optimizationLoad.loading, optimizationLoad.result, optimizationLoad.error, ordering?.project])
+  }, [
+    languageState.loading,
+    languageState.language?.code,
+    optimizationLoad.loading,
+    optimizationLoad.result,
+    optimizationLoad.error,
+    ordering?.project
+  ])
 
   useEffect(() => {
     const handleUpdateConfigs = (countryCode) => {

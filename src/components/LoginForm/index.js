@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import parsePhoneNumber from 'libphonenumber-js'
+import { parsePhoneNumber } from '../../utils/phoneUtils'
 import { useSession } from '../../contexts/SessionContext'
 import { useApi } from '../../contexts/ApiContext'
 import { useEvent } from '../../contexts/EventContext'
@@ -114,7 +114,7 @@ export const LoginForm = (props) => {
       setFormState({ ...formState, loading: true })
 
       if (_credentials?.cellphone?.includes('+')) {
-        const parsedNumber = parsePhoneNumber(_credentials.cellphone)
+        const parsedNumber = await parsePhoneNumber(_credentials.cellphone)
         const cellphone = parsedNumber?.nationalNumber
         _credentials.cellphone = cellphone
         if (cellphoneStartZero) {

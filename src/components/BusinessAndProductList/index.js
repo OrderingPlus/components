@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useSelectedStudent } from '../../hooks/useSelectedStudent'
 import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -44,6 +45,7 @@ export const BusinessAndProductList = (props) => {
   const [languageState, t] = useLanguage()
   const [customerState] = useCustomer()
   const [{ user, token }] = useSession()
+  const { studentId: schoolStudentId, setStudentId: setSchoolStudentId } = useSelectedStudent(slug)
   const socket = useWebsocket()
   const [categorySelected, setCategorySelected] = useState({ id: null, name: t('ALL', 'All') })
   const [searchValue, setSearchValue] = useState(null)
@@ -864,8 +866,36 @@ export const BusinessAndProductList = (props) => {
         parameters.user_id = customerState?.user?.id
       }
 
-      let { content: { result } } = await ordering.businesses(slug).select(businessProps).parameters(parameters).get({ cancelToken: source })
+      if (schoolStudentId) {
+        parameters.version = 'v2'
+        parameters.student_id = schoolStudentId
+      }
+
+      let { content: { result, error } } = await ordering.businesses(slug).select(businessProps).parameters(parameters).get({ cancelToken: source })
+
+      if (error && schoolStudentId) {
+        const message = (Array.isArray(result) ? result.join(' ') : String(result || '')).toLowerCase()
+        if (message.includes('student')) {
+          setSchoolStudentId(null)
+          delete parameters.version
+          delete parameters.student_id
+          const retry = await ordering.businesses(slug).select(businessProps).parameters(parameters).get({ cancelToken: source })
+          result = retry?.content?.result
+        }
+      }
+
       result = !slug ? result[0] : result
+
+      if (result?.vertical === 'school' && Array.isArray(result?.categories)) {
+        const todayDow = dayjs().day()
+        result.categories = result.categories.map((category) => {
+          const prepDay = category?.preparation_day_of_week
+          if (prepDay === null || prepDay === undefined || prepDay === '') return category
+          const diff = (Number(prepDay) - todayDow + 7) % 7
+          const dateLabel = dayjs().add(diff, 'day').format('DD/MMM')
+          return { ...category, name: `${category.name} (${dateLabel})` }
+        })
+      }
 
       setErrorQuantityProducts(!result?.categories || result?.categories?.length === 0)
 
@@ -1014,13 +1044,13 @@ export const BusinessAndProductList = (props) => {
     if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !props.avoidBusinessLoading && !props.isExternalLoading) {
       getBusiness()
     }
-  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected, props.isExternalLoading])
+  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected, props.isExternalLoading, schoolStudentId])
 
   useEffect(() => {
     if (!orderState.loading && Object.keys(orderOptions || {})?.length > 0 && !languageState.loading && !businessState.loading && props.avoidBusinessLoading) {
       getBusiness()
     }
-  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected])
+  }, [JSON.stringify(orderOptions), languageState.loading, slug, filterByMenus, professionalSelected, schoolStudentId])
 
   /**
    * getBusiness if orderState is loading the first time when is rendered

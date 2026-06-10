@@ -458,6 +458,7 @@ export const PaymentOptionStripe = (props) => {
   useEffect(() => {
     if (!window.addEventListener) return
     const handleMessage = async (event) => {
+      console.log('[cybersource][web] message event >> origin:', event?.origin, '| raw data:', event?.data)
       if (event?.origin?.includes('plugins.orderingplus.com')) {
         let payment
         try {
@@ -466,9 +467,11 @@ export const PaymentOptionStripe = (props) => {
           console.error('Could not parse message from iframe:', error)
           return
         }
+        console.log('[cybersource][web] parsed payment >>', payment)
+        console.log('[cybersource][web] transient_token:', payment?.data?.transient_token, '| card_token:', payment?.data?.card_token, '| action:', payment?.action)
         const cardToken = payment?.data?.card_token || payment?.data?.transient_token
 
-        if (payment?.action === 'card') {
+        if (payment?.action === 'card' && !payment?.data?.transient_token) {
           setOpenModal && setOpenModal(prev => ({ ...prev, iframe: false }))
           const cards = await getBusinessUserPaymethods()
           if (cards?.length) {
@@ -496,11 +499,13 @@ export const PaymentOptionStripe = (props) => {
             }
 
             try {
-              await changePaymethod(businessId, paymethodSelectedInfo.id, JSON.stringify({
+              console.log('[cybersource][web] >> entrando a rama transient_token, llamando changePaymethod con businessId:', businessId, '| paymethodId:', paymethodSelectedInfo?.id)
+              const changeRes = await changePaymethod(businessId, paymethodSelectedInfo.id, JSON.stringify({
                 ...cybersourceData,
                 success_url: window.location.href,
                 cancel_url: window.location.href
               }))
+              console.log('[cybersource][web] changePaymethod result >>', changeRes)
               onPaymentChange({
                 ...paymethodSelectedInfo,
                 data: {

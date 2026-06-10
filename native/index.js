@@ -118,6 +118,11 @@ import {
 } from '../src/utils/subcategoryProductSort'
 import { CODES } from '../src/constants/code-numbers'
 import { TIMEZONES, createDayjsWithTimezone } from '../src/constants/timezones'
+import { useSchoolStudents } from '../src/hooks/useSchoolStudents'
+import { useCartStudent } from '../src/hooks/useCartStudent'
+import { useSchools } from '../src/hooks/useSchools'
+import { useSelectedStudent } from '../src/hooks/useSelectedStudent'
+import { SCHOOL_ALLERGENS, SCHOOL_DIETARY_TAGS } from '../src/constants/school'
 
 export {
   AddressDetails,
@@ -266,8 +271,14 @@ export {
   buildSubcategoryRankMap,
   sortProductsBySubcategoryRank,
   sortSubcategoriesByRank,
+  useSchoolStudents,
+  useCartStudent,
+  useSchools,
+  useSelectedStudent,
   // Constants
   CODES,
   TIMEZONES,
-  createDayjsWithTimezone
+  createDayjsWithTimezone,
+  SCHOOL_ALLERGENS,
+  SCHOOL_DIETARY_TAGS
 }

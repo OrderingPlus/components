@@ -178,6 +178,11 @@ import {
 
 import { CODES } from './constants/code-numbers'
 import { TIMEZONES, createDayjsWithTimezone } from './constants/timezones'
+import { useSchoolStudents } from './hooks/useSchoolStudents'
+import { useCartStudent } from './hooks/useCartStudent'
+import { useSchools } from './hooks/useSchools'
+import { useSelectedStudent } from './hooks/useSelectedStudent'
+import { SCHOOL_ALLERGENS, SCHOOL_DIETARY_TAGS } from './constants/school'
 
 export {
   AddressDetails,
@@ -387,6 +392,13 @@ export {
   buildSubcategoryRankMap,
   sortProductsBySubcategoryRank,
   sortSubcategoriesByRank,
+  // School module
+  useSchoolStudents,
+  useCartStudent,
+  useSchools,
+  useSelectedStudent,
+  SCHOOL_ALLERGENS,
+  SCHOOL_DIETARY_TAGS,
   // Constants
   CODES,
   TIMEZONES,

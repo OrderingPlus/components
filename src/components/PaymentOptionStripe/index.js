@@ -468,7 +468,7 @@ export const PaymentOptionStripe = (props) => {
         }
         const cardToken = payment?.data?.card_token || payment?.data?.transient_token
 
-        if (payment?.action === 'card') {
+        if (payment?.action === 'card' && !payment?.data?.transient_token) {
           setOpenModal && setOpenModal(prev => ({ ...prev, iframe: false }))
           const cards = await getBusinessUserPaymethods()
           if (cards?.length) {

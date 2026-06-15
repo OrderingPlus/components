@@ -5,13 +5,15 @@ import { useEffect, useState } from 'react'
  * @param {string} apiKey
  */
 export function useGoogleMaps (apiKey) {
-  if (!apiKey) {
-    console.warn('Prop `apiKey` is required to use Google Maps components.')
-    return
-  }
   const [googleReady, setGoogleReady] = useState(false)
 
   useEffect(() => {
+    if (!apiKey) {
+      console.warn('Prop `apiKey` is required to use Google Maps components.')
+      setGoogleReady(false)
+      return
+    }
+
     let checker = null
 
     if (window.document.getElementById('google-maps-sdk')) {

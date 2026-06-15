@@ -1,7 +1,11 @@
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 
+dayjs.extend(utc)
 dayjs.extend(timezone)
+dayjs.extend(isSameOrAfter)
 
 export const TIMEZONES = {
   'Europe/Andorra': 'Andorra',
@@ -488,4 +492,37 @@ export const getValidTimezone = (timezone) => {
 export const createDayjsWithTimezone = (timezone, date = null) => {
   const validTimezone = getValidTimezone(timezone)
   return date ? dayjs(date).tz(validTimezone) : dayjs().tz(validTimezone)
+}
+
+/**
+ * Parses a calendar date + time in the business timezone.
+ * @param {string} date - YYYY-MM-DD
+ * @param {string} time - HH:mm
+ * @param {string} timezone - IANA timezone
+ */
+export const parseBusinessDateTime = (date, time, timezone) => {
+  const validTimezone = getValidTimezone(timezone)
+  return dayjs.tz(`${date} ${time}`, 'YYYY-MM-DD HH:mm', validTimezone)
+}
+
+/**
+ * Formats a UTC datetime string in the business timezone.
+ * @param {string} utcDate - UTC datetime string
+ * @param {string} timezone - IANA timezone
+ * @param {string} format - dayjs format string
+ */
+export const formatUtcInBusinessTimezone = (utcDate, timezone, format = 'YYYY-MM-DD HH:mm') => {
+  if (!utcDate) return null
+  const validTimezone = getValidTimezone(timezone)
+  return dayjs.utc(utcDate).tz(validTimezone).format(format)
+}
+
+/**
+ * Builds max preorder date at end of day in the business timezone.
+ * @param {string} timezone - IANA timezone
+ * @param {number} limitDays - max days ahead allowed for preorder
+ */
+export const getPreorderMaxDate = (timezone, limitDays) => {
+  const daysAhead = limitDays > 1 ? limitDays - 1 : limitDays === 1 ? 0 : 6
+  return createDayjsWithTimezone(timezone).add(daysAhead, 'day').endOf('day').toDate()
 }

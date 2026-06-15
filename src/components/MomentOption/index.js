@@ -3,9 +3,18 @@ import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { useOrder } from '../../contexts/OrderContext'
+import {
+  createDayjsWithTimezone,
+  formatUtcInBusinessTimezone,
+  getValidTimezone,
+  parseBusinessDateTime
+} from '../../constants/timezones'
+
 dayjs.extend(isSameOrAfter)
 dayjs.extend(utc)
+dayjs.extend(timezone)
 
 /**
  * Component to manage moment option behavior without UI component
@@ -27,6 +36,9 @@ export const MomentOption = (props) => {
     preorderMinimumDays
   } = props
 
+  const businessTimezone = getValidTimezone(business?.timezone)
+  const getNow = () => business?.timezone ? createDayjsWithTimezone(business.timezone) : dayjs()
+
   const [orderStatus, { changeMoment }] = useOrder()
 
   /**
@@ -35,10 +47,18 @@ export const MomentOption = (props) => {
    */
   const validDate = (date) => {
     if (!date) return
-    const _date = dayjs(date, 'YYYY-MM-DD HH:mm').isSameOrAfter(dayjs(), 'day')
-      ? dayjs(date).format('YYYY-MM-DD HH:mm')
-      : dayjs().format('YYYY-MM-DD HH:mm')
-    return _date
+    const now = getNow()
+    let parsed
+    if (date instanceof Date) {
+      parsed = business?.timezone ? dayjs(date).tz(businessTimezone) : dayjs(date)
+    } else if (business?.timezone) {
+      parsed = dayjs.utc(date).tz(businessTimezone)
+    } else {
+      parsed = dayjs(date, 'YYYY-MM-DD HH:mm')
+    }
+    return parsed.isSameOrAfter(now, 'day')
+      ? parsed.format('YYYY-MM-DD HH:mm')
+      : now.format('YYYY-MM-DD HH:mm')
   }
 
   /**
@@ -47,16 +67,25 @@ export const MomentOption = (props) => {
    * @param {moment} end
    */
   const calculateDiffDay = (start, end) => {
-    const endVal = end ?? dayjs()
-    const days = dayjs(start).diff(dayjs(endVal), 'day')
-    return days
+    const endVal = end ?? getNow()
+    return dayjs(start).diff(dayjs(endVal), 'day')
+  }
+
+  const formatStoredMoment = (storedMoment) => {
+    if (!storedMoment) return null
+    if (business?.timezone) {
+      return formatUtcInBusinessTimezone(storedMoment, business.timezone, 'YYYY-MM-DD HH:mm')
+    }
+    return dayjs.utc(validDate(storedMoment)).local().format('YYYY-MM-DD HH:mm')
   }
 
   /**
    * This must be containt schedule selected by user
    */
   const _currentDate = useOrderContext ? orderStatus.options?.moment : currentDate
-  const [scheduleSelected, setScheduleSelected] = useState(_currentDate ? dayjs.utc(validDate(_currentDate)).local().format('YYYY-MM-DD HH:mm') : null)
+  const [scheduleSelected, setScheduleSelected] = useState(
+    _currentDate ? formatStoredMoment(_currentDate) : null
+  )
 
   /**
    * Flag to know if user select asap time
@@ -68,7 +97,9 @@ export const MomentOption = (props) => {
    */
   const [hoursList, setHourList] = useState([])
   const [datesList, setDatesList] = useState([])
-  const [dateSelected, setDateSelected] = useState(dayjs(validDate(_currentDate)).add(preorderMinimumDays || 0, 'day').format('YYYY-MM-DD'))
+  const [dateSelected, setDateSelected] = useState(
+    getNow().add(preorderMinimumDays || 0, 'day').format('YYYY-MM-DD')
+  )
   const [timeSelected, setTimeSelected] = useState(null)
 
   const handleChangeDate = (date) => {
@@ -81,7 +112,9 @@ export const MomentOption = (props) => {
 
   const handleChangeTime = (time) => {
     if (!time || time === timeSelected) return
-    const _moment = dayjs(`${dateSelected} ${time}`, 'YYYY-MM-DD HH:mm').toDate()
+    const _moment = business?.timezone
+      ? parseBusinessDateTime(dateSelected, time, business.timezone).toDate()
+      : dayjs(`${dateSelected} ${time}`, 'YYYY-MM-DD HH:mm').toDate()
     setTimeSelected(time)
     setIsAsap(false)
     if (useOrderContext) {
@@ -102,13 +135,14 @@ export const MomentOption = (props) => {
   useEffect(() => {
     if (useOrderContext) {
       if (orderStatus.options?.moment) {
-        const _currentDate = dayjs.utc(validDate(orderStatus.options?.moment)).local()
-        setScheduleSelected(_currentDate.format('YYYY-MM-DD HH:mm'))
-        setDateSelected(_currentDate.format('YYYY-MM-DD'))
-        setTimeSelected(_currentDate.format('HH:mm'))
+        const formatted = formatStoredMoment(orderStatus.options?.moment)
+        setScheduleSelected(formatted)
+        setDateSelected(formatted?.split(' ')[0])
+        setTimeSelected(formatted?.split(' ')[1])
         isAsap && setIsAsap(false)
       } else {
-        dateSelected !== dayjs().format('YYYY-MM-DD') && setDateSelected(dayjs().format('YYYY-MM-DD'))
+        const today = getNow().format('YYYY-MM-DD')
+        dateSelected !== today && setDateSelected(today)
         timeSelected !== null && setTimeSelected(null)
         scheduleSelected !== null && setScheduleSelected(null)
         !isAsap && setIsAsap(true)
@@ -117,14 +151,20 @@ export const MomentOption = (props) => {
       scheduleSelected !== null && setScheduleSelected(null)
       !isAsap && setIsAsap(true)
     }
-  }, [orderStatus.options?.moment])
+  }, [orderStatus.options?.moment, business?.timezone])
 
   useEffect(() => {
     if (!scheduleSelected) {
       return
     }
-    const selected = dayjs(scheduleSelected, 'YYYY-MM-DD HH:mm')
-    const now = dayjs()
+    const selected = business?.timezone
+      ? parseBusinessDateTime(
+        scheduleSelected.split(' ')[0],
+        scheduleSelected.split(' ')[1],
+        business.timezone
+      )
+      : dayjs(scheduleSelected, 'YYYY-MM-DD HH:mm')
+    const now = getNow()
     const secondsDiff = selected.diff(now, 'seconds')
     if (secondsDiff <= 0) {
       handleAsap()
@@ -138,10 +178,12 @@ export const MomentOption = (props) => {
     return () => {
       clearTimeout(checkTime)
     }
-  }, [scheduleSelected])
+  }, [scheduleSelected, business?.timezone])
 
   const getActualSchedule = () => {
-    const dayNumber = dayjs(dateSelected).day()
+    const dayNumber = business?.timezone
+      ? dayjs.tz(dateSelected, 'YYYY-MM-DD', businessTimezone).day()
+      : dayjs(dateSelected).day()
     const schedule = business?.schedule?.find?.((s, i) => dayNumber === i)
     return schedule?.enabled && schedule
   }
@@ -158,52 +200,40 @@ export const MomentOption = (props) => {
    */
   const generateHourList = (preorderLeadTime, preorderTimeRange, preorderSlotInterval) => {
     const hoursAvailable = []
+    const now = getNow()
+    const isToday = dateSelected === now.format('YYYY-MM-DD')
+    const maxDateInTz = business?.timezone
+      ? dayjs(maxDate).tz(businessTimezone)
+      : dayjs(maxDate)
+    const isLastDate = dateSelected === maxDateInTz.format('YYYY-MM-DD')
 
-    const isToday = dateSelected === dayjs().format('YYYY-MM-DD')
-    const isLastDate = dateSelected === dayjs(maxDate).format('YYYY-MM-DD')
-    const now = new Date()
     if (!cateringPreorder) {
       for (let hour = 0; hour < 24; hour++) {
-        /**
-         * Continue if is today and hour is smaller than current hour
-        */
-        if (isToday && hour < now?.getHours()) continue
-        /**
-        * Continue if is max date and hour is greater than max date hour
-        */
-        if (isLastDate && hour > maxDate?.getHours()) continue
+        if (isToday && hour < now.hour()) continue
+        if (isLastDate && hour > maxDateInTz.hour()) continue
         for (let minute = 0; minute < 59; minute += 15) {
-          /**
-           * Continue if is today and hour is equal to current hour and minutes is smaller than current minute
-          */
-          if (isToday && hour === now?.getHours() && minute <= now.getMinutes()) continue
-          /**
-           * Continue if is today and hour is equal to max date hour and minutes is greater than max date minute
-          */
-          if (isLastDate && hour === maxDate?.getHours() && minute > maxDate.getMinutes()) continue
+          if (isToday && hour === now.hour() && minute <= now.minute()) continue
+          if (isLastDate && hour === maxDateInTz.hour() && minute > maxDateInTz.minute()) continue
           const _hour = hour < 10 ? `0${hour}` : hour
           const startMinute = minute < 10 ? `0${minute}` : minute
           const endMinute = (minute + 14) < 10 ? `0${minute + 14}` : minute + 14
-          const startTime = `${_hour}:${startMinute}`
-          const endTime = `${_hour}:${endMinute}`
           hoursAvailable.push({
-            startTime,
-            endTime
+            startTime: `${_hour}:${startMinute}`,
+            endTime: `${_hour}:${endMinute}`
           })
         }
       }
     } else {
       let startTimeAcc = preorderLeadTime
       let endTimeAcc = preorderTimeRange + preorderLeadTime
-      while (startTimeAcc >= 0 && dayjs().startOf('day').add(startTimeAcc || 0, 'minute') < dayjs().startOf('day').add(1, 'day')) {
-        const startTime = dayjs().startOf('day').add(startTimeAcc || 0, 'minute').format('HH:mm')
-        const endTime = dayjs().startOf('day').add(endTimeAcc, 'minute').format('HH:mm')
+      const dayStart = now.startOf('day')
+      while (startTimeAcc >= 0 && dayStart.add(startTimeAcc || 0, 'minute').isBefore(dayStart.add(1, 'day'))) {
+        hoursAvailable.push({
+          startTime: dayStart.add(startTimeAcc || 0, 'minute').format('HH:mm'),
+          endTime: dayStart.add(endTimeAcc, 'minute').format('HH:mm')
+        })
         startTimeAcc = startTimeAcc + preorderSlotInterval
         endTimeAcc = endTimeAcc + preorderSlotInterval
-        hoursAvailable.push({
-          startTime,
-          endTime
-        })
       }
     }
     setHourList(hoursAvailable)
@@ -213,33 +243,41 @@ export const MomentOption = (props) => {
    * Generate a list of available dates
    */
   const generateDatesList = () => {
-    const datesList = []
-    const diff = parseInt(calculateDiffDay(validDate(maxDate)), validDate(minDate))
+    const dates = []
+    const rangeStart = validDate(minDate) || getNow().format('YYYY-MM-DD HH:mm')
+    const rangeEnd = validDate(maxDate)
+    const diff = parseInt(calculateDiffDay(rangeEnd, rangeStart))
 
     for (let i = 0; i < diff + 1; i++) {
-      datesList.push(dayjs(validDate(minDate)).add(i, 'd').format('YYYY-MM-DD'))
+      const base = business?.timezone
+        ? dayjs.tz(rangeStart.split(' ')[0], 'YYYY-MM-DD', businessTimezone)
+        : dayjs(rangeStart.split(' ')[0])
+      dates.push(base.add(i, 'd').format('YYYY-MM-DD'))
     }
-    setDatesList(datesList)
+    setDatesList(dates)
   }
 
   useEffect(() => {
     if (!dateSelected) return
     generateHourList(preorderLeadTime, preorderTimeRange, preorderSlotInterval)
-  }, [dateSelected, preorderLeadTime, preorderTimeRange, preorderSlotInterval])
+  }, [dateSelected, preorderLeadTime, preorderTimeRange, preorderSlotInterval, business?.timezone])
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const diff = dayjs(dateSelected).diff(dayjs(currentDate), 'day')
+      const diff = dayjs(dateSelected).diff(
+        business?.timezone ? createDayjsWithTimezone(business.timezone) : dayjs(currentDate),
+        'day'
+      )
       if (diff === 0) {
         generateHourList(preorderLeadTime, preorderTimeRange, preorderSlotInterval)
       }
     }, 1000)
     return () => clearInterval(interval)
-  }, [dateSelected, preorderLeadTime, preorderTimeRange, preorderSlotInterval])
+  }, [dateSelected, preorderLeadTime, preorderTimeRange, preorderSlotInterval, business?.timezone])
 
   useEffect(() => {
     generateDatesList()
-  }, [maxDate, minDate])
+  }, [maxDate, minDate, business?.timezone])
 
   return (
     <>

@@ -44,7 +44,7 @@ export const Checkout = (props) => {
   /**
    * Order context
    */
-  const [orderState, { placeCart, setStateValues }] = useOrder()
+  const [orderState, { placeCart, setStateValues, changePaymethod }] = useOrder()
   /**
    * Session content
    */
@@ -586,6 +586,36 @@ export const Checkout = (props) => {
     }
   }
 
+  const deleteBusinessUserPaymethod = async (cardId, callback = () => {}) => {
+    try {
+      const paymethodId = paymethodSelected?.id
+      if (!paymethodId || !cardId) return
+      const url = paymethodSelected?.gateway === 'braintree'
+        ? `${ordering.root}/users/${user?.id}/paymethods/${paymethodId}/paymethods/${cardId}`
+        : `${ordering.root}/business/${businessId}/paymethods/${paymethodId}/users/${user?.id}/paymethods/${cardId}`
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-App-X': ordering.appId,
+          'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+          'X-Socket-Id-X': socket?.getId()
+        }
+      })
+      const { result, error } = await response.json()
+      if (error) {
+        showToast(ToastType.Error, result)
+        return
+      }
+      await changePaymethod(businessId, paymethodId, '{}')
+      showToast(ToastType.Success, t('CARD_DELETED_SUCCESS', 'Card deleted successfully'))
+      callback?.()
+    } catch (err) {
+      showToast(ToastType.Error, err.message)
+    }
+  }
+
   useEffect(() => {
     if (businessId && typeof businessId === 'number') {
       getBusiness()
@@ -683,6 +713,7 @@ export const Checkout = (props) => {
           cybersourceIFrameUrl={cybersourceIFrameUrl}
           braintreeIFrameUrl={braintreeIFrameUrl}
           createBusinessUserPaymethod={createBusinessUserPaymethod}
+          deleteBusinessUserPaymethod={deleteBusinessUserPaymethod}
         />
       )}
     </>

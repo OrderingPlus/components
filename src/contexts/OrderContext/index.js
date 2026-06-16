@@ -975,7 +975,21 @@ export const OrderProvider = ({
     if (!paymethodData) {
       throw new Error('`paymethodData` is required.')
     }
-    if (!state.carts[`businessId:${businessId}`] || state.carts[`businessId:${businessId}`]?.paymethodId === paymethodId) {
+    if (!state.carts[`businessId:${businessId}`]) {
+      return
+    }
+    const cart = state.carts[`businessId:${businessId}`]
+    const isSamePaymethod = cart?.paymethodId === paymethodId
+    let parsedPaymethodData = paymethodData
+    if (typeof paymethodData === 'string') {
+      try {
+        parsedPaymethodData = JSON.parse(paymethodData)
+      } catch {
+        parsedPaymethodData = {}
+      }
+    }
+    const hasRedirectData = parsedPaymethodData?.success_url || parsedPaymethodData?.cancel_url
+    if (isSamePaymethod && !hasRedirectData) {
       return
     }
     try {

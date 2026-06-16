@@ -225,6 +225,22 @@ export const PaymentOptions = (props) => {
       if (urlscheme) {
         _paymethodData.urlscheme = urlscheme
       }
+      const needsSync = paymethodsWithAutoUpdate.includes(paymethodSelected?.gateway) &&
+        (paymethodData?.success_url !== _paymethodData.success_url ||
+          paymethodData?.cancel_url !== _paymethodData.cancel_url ||
+          paymethodData?.urlscheme !== _paymethodData.urlscheme)
+      if (needsSync) {
+        setPaymethodData(_paymethodData)
+        onPaymentChange && onPaymentChange({
+          paymethodId: paymethodSelected.id,
+          id: paymethodSelected.id,
+          name: paymethodSelected.name,
+          gateway: paymethodSelected.gateway,
+          paymethod: paymethodSelected?.paymethod || paymethodSelected,
+          credentials: paymethodSelected?.credentials ?? null,
+          data: _paymethodData
+        })
+      }
       changePaymethod(businessId, paymethodSelected.id, JSON.stringify(_paymethodData))
     }
   }, [paymethodSelected, paymethodData, returnUrl])

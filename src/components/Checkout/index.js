@@ -209,6 +209,9 @@ export const Checkout = (props) => {
       payload.paymethod_data.success_url = options.returnUrl
       payload.paymethod_data.cancel_url = options.returnUrl
     }
+    if (options.urlscheme) {
+      payload.paymethod_data.urlscheme = options.urlscheme
+    }
     setPlacing(true)
     await onChangeSpot()
     if (paymethodsWithoutSaveCard.includes(_paymethodSelected?.paymethod?.gateway)) {
@@ -286,8 +289,11 @@ export const Checkout = (props) => {
     }
 
     setPlacing(false)
-    onPlaceOrderClick && onPlaceOrderClick(payload, _paymethodSelected, cartResult, options)
-    return { paymethod: _paymethodSelected, cart: cartResult }
+    const cartForCallback = parsedPaymethodData
+      ? { ...cartResult, paymethod_data: parsedPaymethodData }
+      : cartResult
+    onPlaceOrderClick && onPlaceOrderClick(payload, _paymethodSelected, cartForCallback, options)
+    return { paymethod: _paymethodSelected, cart: cartForCallback }
   }
 
   const handlePaymethodChange = (paymethod) => {

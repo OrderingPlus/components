@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useGoogleMaps } from '../../hooks/useGoogleMaps'
 
+const isValidCoordinate = (value) => Number.isFinite(Number(value))
+
+const resolveMarkerIconUrl = (icon, fallbackIcon) => {
+  if (typeof icon === 'string' && icon.trim()) return icon.trim()
+  if (typeof fallbackIcon === 'string' && fallbackIcon.trim()) return fallbackIcon.trim()
+  return null
+}
+
 export const LocationsMap = (props) => {
   const {
     apiKey,
@@ -9,10 +17,12 @@ export const LocationsMap = (props) => {
     location,
     activeInfoWindow,
     forceCenter,
-    listenLocations
+    listenLocations,
+    fallbackIcon
   } = props
 
   const divRef = useRef()
+  const markersRef = useRef([])
   const [googleMap, setGoogleMap] = useState(null)
   const [markers, setMarkers] = useState([])
   const [boundMap, setBoundMap] = useState(null)
@@ -20,18 +30,31 @@ export const LocationsMap = (props) => {
   const markerRef = useRef()
 
   const generateMarkers = (map) => {
+    markersRef.current.forEach((marker) => marker.setMap(null))
+    markersRef.current = []
+
     const bounds = new window.google.maps.LatLngBounds()
     const locationMarkers = []
 
-    for (const business of locations) {
-      const marker = new window.google.maps.Marker({
-        position: new window.google.maps.LatLng(business.lat, business.lng),
-        map,
-        icon: {
-          url: business.icon,
+    for (const business of locations || []) {
+      const lat = Number(business.lat)
+      const lng = Number(business.lng)
+      if (!isValidCoordinate(lat) || !isValidCoordinate(lng)) continue
+
+      const iconUrl = resolveMarkerIconUrl(business.icon, fallbackIcon)
+      const markerOptions = {
+        position: new window.google.maps.LatLng(lat, lng),
+        map
+      }
+
+      if (iconUrl) {
+        markerOptions.icon = {
+          url: iconUrl,
           scaledSize: new window.google.maps.Size(30, 30)
         }
-      })
+      }
+
+      const marker = new window.google.maps.Marker(markerOptions)
 
       marker.addListener('click', () => {
         if (business.markerPopup) {
@@ -40,7 +63,7 @@ export const LocationsMap = (props) => {
           infowindow.open(map, marker)
 
           infowindow.addListener('closeclick', () => {
-            if (boundMap) {
+            if (boundMap && !boundMap.isEmpty()) {
               map.fitBounds(boundMap)
             }
           })
@@ -57,9 +80,16 @@ export const LocationsMap = (props) => {
       locationMarkers.push(marker)
     }
 
+    markersRef.current = locationMarkers
     setMarkers(locationMarkers)
     setBoundMap(bounds)
-    map.fitBounds(bounds)
+
+    if (locationMarkers.length > 0 && !bounds.isEmpty()) {
+      map.fitBounds(bounds)
+    } else if (isValidCoordinate(location?.lat) && isValidCoordinate(location?.lng)) {
+      map.setCenter({ lat: Number(location.lat), lng: Number(location.lng) })
+      map.setZoom(mapControls?.defaultZoom ?? 15)
+    }
   }
 
   useEffect(() => {
@@ -81,8 +111,8 @@ export const LocationsMap = (props) => {
 
   useEffect(() => {
     if (googleMap && activeInfoWindow) {
-      const { location, content } = activeInfoWindow
-      const position = new window.google.maps.LatLng(location.lat, location.lng)
+      const { location: infoLocation, content } = activeInfoWindow
+      const position = new window.google.maps.LatLng(infoLocation.lat, infoLocation.lng)
       const marker = markers.find(m =>
         m.getPosition().lat() === position.lat() &&
         m.getPosition().lng() === position.lng()
@@ -94,7 +124,7 @@ export const LocationsMap = (props) => {
         infowindow.open(googleMap, marker)
 
         infowindow.addListener('closeclick', () => {
-          if (boundMap) {
+          if (boundMap && !boundMap.isEmpty()) {
             googleMap.fitBounds(boundMap)
           }
         })
@@ -111,7 +141,7 @@ export const LocationsMap = (props) => {
       markerRef.current.close()
       markerRef.current = null
 
-      if (boundMap) {
+      if (boundMap && !boundMap.isEmpty()) {
         googleMap.fitBounds(boundMap)
       }
     }

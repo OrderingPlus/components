@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { useApi } from '../../contexts/ApiContext'
 import { useWebsocket } from '../../contexts/WebsocketContext'
+import { useOrder } from '../../contexts/OrderContext'
+import { useConfig } from '../../contexts/ConfigContext'
+import {
+  filterBusinessTypesByLocation,
+  normalizeAvailableTypeIds
+} from '../../utils/businessTypes'
 
 export const BusinessTypeFilter = (props) => {
   const {
@@ -9,36 +15,53 @@ export const BusinessTypeFilter = (props) => {
     onChangeBusinessType,
     defaultBusinessType,
     hideAllCategory,
+    filterByLocation = true,
+    availableTypeIds,
+    availableLocation,
     UIComponent
   } = props
 
   const [ordering] = useApi()
   const socket = useWebsocket()
+  const [orderState] = useOrder()
+  const [{ configs }] = useConfig()
 
-  /**
-   * This property is used to set in state the current value
-   */
   const [typeSelected, setTypeSelected] = useState(defaultBusinessType)
-
-  /**
-   * This state save the business type info from API
-   */
   const [typesState, setTypesState] = useState({ loading: true, error: null, types: [], pagination: null })
+  const requestIdRef = useRef(0)
 
-  /**
-   * Handle when select value changes
-   */
   const handleChangeBusinessType = (businessType) => {
     setTypeSelected(businessType)
     onChangeBusinessType(businessType)
   }
 
-  /**
-   * Method to get business types from API
-   */
+  const getLocationForFilter = () => {
+    const location = availableLocation ?? orderState?.options?.address?.location
+    if (location?.lat != null && location?.lng != null) {
+      return { lat: Number(location.lat), lng: Number(location.lng) }
+    }
+    const lat = Number(configs?.location_default_latitude?.value)
+    const lng = Number(configs?.location_default_longitude?.value)
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) return { lat, lng }
+    return null
+  }
+
   const getBusinessTypes = async () => {
+    const requestId = ++requestIdRef.current
+    setTypesState((prev) => ({ ...prev, loading: true, error: null }))
+
     try {
-      const response = await fetch(`${ordering.root}/business_types?where=[{"attribute":"enabled","value":true}]`, {
+      const qs = new URLSearchParams()
+      qs.set('where', JSON.stringify([{ attribute: 'enabled', value: true }]))
+
+      const normalizedIds = normalizeAvailableTypeIds(availableTypeIds)
+      const location = filterByLocation && !normalizedIds ? getLocationForFilter() : null
+      if (location) {
+        qs.set('location', JSON.stringify(location))
+        qs.set('order_type_id', orderState?.options?.type ?? 1)
+      }
+
+      const response = await fetch(`${ordering.root}/business_types?${qs.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -48,43 +71,65 @@ export const BusinessTypeFilter = (props) => {
         }
       })
       const { error, result, pagination } = await response.json()
-      if (!error) {
-        if (result.length > 0 && !hideAllCategory) {
-          result.unshift({ id: null, enabled: true, image: null, name: 'All' })
-        }
-        setTypesState({
-          ...typesState,
-          loading: false,
-          types: result,
-          pagination
-        })
+      if (requestId !== requestIdRef.current) return
+
+      if (error) {
+        setTypesState((prev) => ({ ...prev, loading: false, error: result }))
         return
       }
+
+      let types = Array.isArray(result) ? [...result] : []
+      if (normalizedIds) {
+        types = filterBusinessTypesByLocation(types, normalizedIds)
+      }
+      if (types.length > 0 && !hideAllCategory) {
+        types.unshift({ id: null, enabled: true, image: null, name: 'All' })
+      }
+
       setTypesState({
-        ...typesState,
         loading: false,
-        error: result
+        error: null,
+        types,
+        pagination
       })
     } catch (error) {
-      setTypesState({
-        ...typesState,
+      if (requestId !== requestIdRef.current) return
+      setTypesState((prev) => ({
+        ...prev,
         loading: false,
-        error: [error || error?.toString() || error?.message]
-      })
+        error: [error?.message || error?.toString()]
+      }))
     }
   }
 
   useEffect(() => {
     if (businessTypes) {
-      setTypesState({
-        ...typesState,
+      setTypesState((prev) => ({
+        ...prev,
         loading: false,
         types: businessTypes
-      })
-    } else {
-      getBusinessTypes()
+      }))
+      return
     }
-  }, [businessTypes])
+    getBusinessTypes()
+  }, [
+    businessTypes,
+    filterByLocation,
+    availableTypeIds,
+    availableLocation,
+    orderState?.options?.address?.location?.lat,
+    orderState?.options?.address?.location?.lng,
+    orderState?.options?.type
+  ])
+
+  useEffect(() => {
+    if (typeSelected == null || !typesState.types.length) return
+    const isValid = typesState.types.some((type) => type.id === typeSelected)
+    if (!isValid) {
+      setTypeSelected(null)
+      onChangeBusinessType?.(null)
+    }
+  }, [typesState.types, typeSelected])
 
   return (
     <>
@@ -102,16 +147,16 @@ export const BusinessTypeFilter = (props) => {
 }
 
 BusinessTypeFilter.propTypes = {
-  /**
-   * UI Component, this must be containt all graphic elements and use parent props
-   */
   UIComponent: PropTypes.elementType,
-  /**
-   * Array that contains business types to filter
-   */
   businessTypes: PropTypes.arrayOf(PropTypes.object),
-  /**
-   * Default business type to show
-   */
-  defaultBusinessType: PropTypes.string
+  defaultBusinessType: PropTypes.string,
+  filterByLocation: PropTypes.bool,
+  availableTypeIds: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.number),
+    PropTypes.instanceOf(Set)
+  ]),
+  availableLocation: PropTypes.shape({
+    lat: PropTypes.number,
+    lng: PropTypes.number
+  })
 }

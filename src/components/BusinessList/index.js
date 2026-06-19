@@ -814,6 +814,6 @@ BusinessList.propTypes = {
 }
 
 const defaultProps = {
-  propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id', 'featured', 'timezone', 'today', 'enabled', 'disabled_reason', 'available_drivers_count', 'activated_orders'],
+  propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id', 'featured', 'timezone', 'today', 'enabled', 'disabled_reason', 'available_drivers_count', 'activated_orders', 'types'],
   paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' }
 }

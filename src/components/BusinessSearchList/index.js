@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { useApi } from '../../contexts/ApiContext'
 import { useOrder } from '../../contexts/OrderContext'
@@ -44,6 +44,19 @@ export const BusinessSearchList = (props) => {
   const [termValue, setTermValue] = useState(defaultTerm || '')
   const [citiesState, setCitiesState] = useState({ loading: false, cities: [], error: null })
   const showCities = !orderingTheme?.theme?.business_listing_view?.components?.cities?.hidden
+  const prevLocationKeyRef = useRef(null)
+
+  useEffect(() => {
+    const location = orderState?.options?.address?.location
+    const locationKey = location?.lat != null && location?.lng != null
+      ? `${location.lat},${location.lng}`
+      : null
+
+    if (prevLocationKeyRef.current != null && prevLocationKeyRef.current !== locationKey && filters.business_types?.length) {
+      setFilters((prev) => ({ ...prev, business_types: [] }))
+    }
+    prevLocationKeyRef.current = locationKey
+  }, [orderState?.options?.address?.location?.lat, orderState?.options?.address?.location?.lng])
 
   useEffect(() => {
     !lazySearch && (Object.keys(orderState?.options?.address?.location || {})?.length > 0 || defaultLocation) && handleSearchbusinessAndProducts(true)

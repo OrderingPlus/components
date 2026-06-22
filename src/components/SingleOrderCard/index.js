@@ -34,7 +34,6 @@ export const SingleOrderCard = (props) => {
     if (!order || !user) return
 
     try {
-      showToast(ToastType.Info, t('LOADING', 'loading'))
       setActionState({ ...actionState, loading: true, error: null })
       const changes = { object_id: order?.id }
       const requestOptions = {

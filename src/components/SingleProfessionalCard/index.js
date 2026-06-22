@@ -26,7 +26,6 @@ export const SingleProfessionalCard = (props) => {
    */
   const handleFavoriteProfessional = async (isAdd = false) => {
     if (!professional || !user) return
-    showToast(ToastType.Info, t('LOADING', 'loading'))
     try {
       setActionState({ ...actionState, loading: true, error: null })
       const changes = { object_id: professional?.id }

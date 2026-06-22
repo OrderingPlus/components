@@ -119,7 +119,6 @@ export const BusinessController = (props) => {
    */
   const handleFavoriteBusiness = async (isAdd = false) => {
     if (!businessState?.business || !user) return
-    showToast(ToastType.Info, t('LOADING', 'loading'))
 
     try {
       setActionState({ ...actionState, loading: true, error: null })

@@ -258,7 +258,6 @@ export const ProductForm = (props) => {
    */
   const handleFavoriteProduct = async (productFav, isAdd = false) => {
     if (!product || !user) return
-    showToast(ToastType.Info, t('LOADING', 'loading'))
     try {
       const productId = productFav?.id
       const changes = { object_id: productId }

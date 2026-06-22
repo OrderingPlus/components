@@ -29,7 +29,6 @@ export const SingleProductCard = (props) => {
    */
   const handleFavoriteProduct = async (isAdd = false) => {
     if (!product || !user) return
-    showToast(ToastType.Info, t('LOADING', 'loading'))
     try {
       setActionState({ ...actionState, loading: true, error: null })
       const productId = isProductId ? product?.product_id : product?.id

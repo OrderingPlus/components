@@ -45,7 +45,7 @@ export const CmsContent = (props) => {
     getPage(pageSlug)
     return () => {
       if (requestsState.page) {
-        requestsState.page.cancel()
+        requestsState.page?.cancel?.()
       }
     }
   }, [])

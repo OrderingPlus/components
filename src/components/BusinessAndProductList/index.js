@@ -213,7 +213,6 @@ export const BusinessAndProductList = (props) => {
    */
   const handleFavoriteBusiness = async (isAdd = false) => {
     if (!businessState?.business || !user) return
-    showToast(ToastType.Info, t('LOADING', 'loading'))
 
     try {
       const changes = { object_id: businessState?.business?.id }

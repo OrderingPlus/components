@@ -106,14 +106,20 @@ export const AddressForm = (props) => {
 
   /**
    * Update address data
-   * @param {object} changes object with changes
+   * @param {object|function} changes object with changes or updater (prevChanges) => partialChanges
    */
   const updateChanges = (changes) => {
-    setFormState({
-      ...formState,
-      changes: {
-        ...formState.changes,
-        ...changes
+    setFormState((prev) => {
+      const nextChanges = typeof changes === 'function'
+        ? changes(prev.changes)
+        : changes
+
+      return {
+        ...prev,
+        changes: {
+          ...prev.changes,
+          ...nextChanges
+        }
       }
     })
   }

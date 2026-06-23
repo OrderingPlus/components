@@ -105,7 +105,6 @@ export const FacebookLoginButton = (props) => {
    */
   const handleFacebookLogin = (e) => {
     if (window.FB) {
-      setFormState({ ...formState, loading: true })
       window.FB.login((response) => {
         window.FB.api('/me/permissions', (response) => { // only for test
         })

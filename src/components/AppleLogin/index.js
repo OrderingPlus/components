@@ -117,7 +117,7 @@ export const AppleLogin = (props) => {
     } catch { }
   }
 
-  return <>{UIComponent && <UIComponent {...props} initLoginApple={initLoginApple} />}</>
+  return <>{UIComponent && <UIComponent {...props} initLoginApple={initLoginApple} formState={formState} />}</>
 }
 
 AppleLogin.propTypes = {

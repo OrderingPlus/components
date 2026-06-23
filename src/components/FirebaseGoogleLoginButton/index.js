@@ -24,7 +24,6 @@ export const FirebaseGoogleLoginButton = (props) => {
    */
   const signInWithGoogle = async () => {
     try {
-      setActionState({ ...actionState, loading: true })
       firebase.initializeApp({
         apiKey: configs?.google_login_api_key?.value,
         authDomain: configs?.google_login_auth_domain?.value
@@ -49,6 +48,7 @@ export const FirebaseGoogleLoginButton = (props) => {
    */
   const handleSigninSuccess = async (tokenResponse) => {
     try {
+      setActionState({ ...actionState, loading: true })
       const _credentials = {
         access_token: tokenResponse?.oauthIdToken,
         name: tokenResponse?.firstName,
@@ -79,6 +79,7 @@ export const FirebaseGoogleLoginButton = (props) => {
         <UIComponent
           {...props}
           signInWithGoogle={signInWithGoogle}
+          actionState={actionState}
         />
       )}
     </>

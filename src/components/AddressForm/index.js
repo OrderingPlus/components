@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -26,7 +26,9 @@ export const AddressForm = (props) => {
     onSaveCustomAddress,
     franchiseId,
     handleGoToLogin,
-    avoidRefreshUserInfo
+    avoidRefreshUserInfo,
+    createGuestOnSave,
+    onLoadingChange
   } = props
 
   const [ordering] = useApi()
@@ -38,7 +40,8 @@ export const AddressForm = (props) => {
   const [mapBoxSuggestCount, setMapBoxSuggestCount] = useState(0)
   const [uuidv4, setUuidv4] = useState(v4())
   const [mapBoxSuggests, setMapBoxSuggest] = useState([])
-  const [{ auth, user, token }, { refreshUserInfo }] = useSession()
+  const [{ auth, user, token }, { login, refreshUserInfo }] = useSession()
+  const creatingGuestRef = useRef(false)
   const requestsState = {}
   const [{ options }, { changeAddress }] = useOrder()
   const [languageState, t] = useLanguage()
@@ -53,6 +56,10 @@ export const AddressForm = (props) => {
 
   const isValidMoment = (date, format) => dayjs.utc(date, format).format(format) === date
   const useAlternativeMap = configs?.use_alternative_to_google_maps?.value === '1'
+
+  useEffect(() => {
+    onLoadingChange && onLoadingChange(formState.loading)
+  }, [formState.loading])
 
   const orderTypeList = [t('DELIVERY', 'Delivery'), t('PICKUP', 'Pickup'), t('EAT_IN', 'Eat in'), t('CURBSIDE', 'Curbside'), t('DRIVE_THRU', 'Drive thru')]
 
@@ -144,11 +151,80 @@ export const AddressForm = (props) => {
       return
     }
     if (!auth && !userByToken?.session?.token) {
-      changeAddress(
-        { ...values, ...formState.changes, default: values?.default ?? formState.changes?.default ?? true },
-        { country_code: values?.country_code ?? formState.changes?.country_code }
-      )
-      onSaveAddress && onSaveAddress(formState.changes)
+      const addressData = {
+        ...values,
+        ...formState.changes,
+        default: values?.default ?? formState.changes?.default ?? true
+      }
+
+      if (createGuestOnSave) {
+        if (creatingGuestRef.current) return
+        creatingGuestRef.current = true
+        setFormState({ ...formState, loading: true, error: null })
+        try {
+          Object.keys(addressData).forEach(key => {
+            if (addressData[key] === null) delete addressData[key]
+          })
+
+          const { content: { error, result } } = await ordering.users().save({ guest_token: v4() })
+          if (error) {
+            setFormState({ ...formState, loading: false, error: result })
+            return
+          }
+
+          await login({ user: result, token: result.session?.access_token })
+
+          const { content: addressContent } = await ordering
+            .setAccessToken(result.session?.access_token)
+            .users(result.id)
+            .addresses()
+            .save(addressData)
+
+          if (addressContent.error) {
+            setFormState({ ...formState, loading: false, error: addressContent.result })
+            return
+          }
+
+          setAddressState({ ...addressState, address: addressContent.result })
+
+          if (isSelectedAfterAdd) {
+            await changeAddress(addressContent.result.id, {
+              address: addressContent.result,
+              country_code: addressContent.result?.country_code,
+              type: options?.type
+            })
+          } else {
+            await changeAddress(
+              { ...addressContent.result },
+              { country_code: addressContent.result?.country_code }
+            )
+          }
+
+          if (!avoidRefreshUserInfo) {
+            await refreshUserInfo()
+          }
+
+          onSaveAddress && onSaveAddress(addressContent.result)
+          setFormState({ ...formState, loading: false, changes: {}, error: null })
+        } catch (err) {
+          setFormState({ ...formState, loading: false, error: [err.message] })
+        } finally {
+          creatingGuestRef.current = false
+        }
+        return
+      }
+
+      setFormState({ ...formState, loading: true, error: null })
+      try {
+        await changeAddress(
+          addressData,
+          { country_code: addressData?.country_code }
+        )
+        onSaveAddress && onSaveAddress(formState.changes)
+        setFormState({ ...formState, loading: false, changes: {}, error: null })
+      } catch (err) {
+        setFormState({ ...formState, loading: false, error: [err.message] })
+      }
       return
     }
 
@@ -559,7 +635,15 @@ AddressForm.propTypes = {
   /**
    * Custom function
    */
-  onSaveCustomAddress: PropTypes.func
+  onSaveCustomAddress: PropTypes.func,
+  /**
+   * When true and user is not authenticated, create a guest user after saving the address
+   */
+  createGuestOnSave: PropTypes.bool,
+  /**
+   * Callback when form loading state changes
+   */
+  onLoadingChange: PropTypes.func
 }
 
 const defaultProps = {

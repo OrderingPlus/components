@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import dayjs from 'dayjs'
@@ -96,6 +96,7 @@ export const ProductForm = (props) => {
    * Action status
    */
   const [actionStatus, setActionStatus] = useState({ loading: false, error: null })
+  const creatingGuestRef = useRef(false)
 
   /**
    * pizza type and position
@@ -692,8 +693,10 @@ export const ProductForm = (props) => {
   }
 
   const handleCreateGuestUser = async (values) => {
+    if (creatingGuestRef.current) return
+    creatingGuestRef.current = true
+    setActionStatus(prev => ({ ...prev, loading: true, error: null }))
     try {
-      setActionStatus({ ...actionStatus, loading: true })
       const { content: { error, result } } = await ordering.users().save(values)
       if (!error) {
         setActionStatus({ error: null, loading: false })
@@ -706,6 +709,8 @@ export const ProductForm = (props) => {
       }
     } catch (err) {
       setActionStatus({ error: err.message, loading: false })
+    } finally {
+      creatingGuestRef.current = false
     }
   }
 

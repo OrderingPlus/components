@@ -120,11 +120,6 @@ export const UserFormDetails = (props) => {
       setFormState({ ...formState, loading: true })
       const _changes = { ...formState.changes, ...(changes ?? {}) }
 
-      if (userState.result.result?.guest_id) {
-        _changes.guest_cellphone = _changes?.cellphone
-        _changes.guest_email = _changes.email
-      }
-
       if (!_changes?.country_code && _changes?.country_phone_code && _changes?.cellphone) {
         const parsedNumber = parsePhoneNumber(`+${_changes?.country_phone_code}${_changes?.cellphone}`)
         _changes.country_code = parsedNumber?.country
@@ -134,7 +129,6 @@ export const UserFormDetails = (props) => {
         if (_changes?.country_code === 'PR') {
           _changes.cellphone = `787${_changes.cellphone}`
           _changes.country_phone_code = '1'
-          !!userState.result.result?.guest_id && (_changes.guest_cellphone = `787${_changes.cellphone}`)
         }
       }
       if (cellphoneStartZero) {
@@ -157,22 +151,12 @@ export const UserFormDetails = (props) => {
         })
       } else {
         let _changes = formState.changes
-        if (props?.userData?.guest_id || userState.result.result?.guest_id) {
-          if (formState.changes.email) {
-            _changes = {
-              ..._changes,
-              guest_email: formState.changes.email
-            }
+        const guestToken = props?.userData?.guest_id || userState.result.result?.guest_id
+        if (guestToken) {
+          _changes = {
+            ..._changes,
+            guest_token: guestToken
           }
-          if (formState.changes.cellphone) {
-            _changes = {
-              ..._changes,
-              guest_cellphone: formState.changes.cellphone
-            }
-          }
-
-          delete _changes.email
-          delete _changes.cellphone
         }
         response = await ordering.users(props?.userData?.id || userState.result.result.id).save(_changes, {
           accessToken

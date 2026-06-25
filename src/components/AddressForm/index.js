@@ -166,7 +166,7 @@ export const AddressForm = (props) => {
       if (createGuestOnSave) {
         if (creatingGuestRef.current) return
         creatingGuestRef.current = true
-        setFormState({ ...formState, loading: true, error: null })
+        setFormState(prev => ({ ...prev, loading: true, error: null }))
         try {
           Object.keys(addressData).forEach(key => {
             if (addressData[key] === null) delete addressData[key]
@@ -174,7 +174,7 @@ export const AddressForm = (props) => {
 
           const { content: { error, result } } = await ordering.users().save({ guest_token: v4() })
           if (error) {
-            setFormState({ ...formState, loading: false, error: result })
+            setFormState(prev => ({ ...prev, loading: false, error: result }))
             return
           }
 
@@ -187,54 +187,66 @@ export const AddressForm = (props) => {
             .save(addressData)
 
           if (addressContent.error) {
-            setFormState({ ...formState, loading: false, error: addressContent.result })
+            setFormState(prev => ({ ...prev, loading: false, error: addressContent.result }))
             return
           }
 
-          setAddressState({ ...addressState, address: addressContent.result })
+          const savedAddress = addressContent.result
+
+          setAddressState(prev => ({ ...prev, address: savedAddress }))
+
+          if (onSaveAddress) {
+            onSaveAddress(savedAddress)
+          } else {
+            setFormState(prev => ({ ...prev, loading: false, changes: {}, error: null }))
+          }
 
           if (isSelectedAfterAdd) {
-            await changeAddress(addressContent.result.id, {
-              address: addressContent.result,
-              country_code: addressContent.result?.country_code,
+            await changeAddress({
+              ...savedAddress
+            }, {
+              address_id: savedAddress.id,
+              country_code: savedAddress?.country_code,
+              user_id: result.id,
               type: options?.type
             })
           } else {
             await changeAddress(
-              { ...addressContent.result },
-              { country_code: addressContent.result?.country_code }
+              { ...savedAddress },
+              { country_code: savedAddress?.country_code }
             )
           }
 
           if (!avoidRefreshUserInfo) {
             await refreshUserInfo()
           }
-
-          onSaveAddress && onSaveAddress(addressContent.result)
-          setFormState({ ...formState, loading: false, changes: {}, error: null })
         } catch (err) {
-          setFormState({ ...formState, loading: false, error: [err.message] })
+          setFormState(prev => ({ ...prev, loading: false, error: [err.message] }))
         } finally {
           creatingGuestRef.current = false
         }
         return
       }
 
-      setFormState({ ...formState, loading: true, error: null })
+      setFormState(prev => ({ ...prev, loading: true, error: null }))
       try {
+        if (onSaveAddress) {
+          onSaveAddress(formState.changes)
+        }
         await changeAddress(
           addressData,
           { country_code: addressData?.country_code }
         )
-        onSaveAddress && onSaveAddress(formState.changes)
-        setFormState({ ...formState, loading: false, changes: {}, error: null })
+        if (!onSaveAddress) {
+          setFormState(prev => ({ ...prev, loading: false, changes: {}, error: null }))
+        }
       } catch (err) {
-        setFormState({ ...formState, loading: false, error: [err.message] })
+        setFormState(prev => ({ ...prev, loading: false, error: [err.message] }))
       }
       return
     }
 
-    setFormState({ ...formState, loading: true })
+    setFormState(prev => ({ ...prev, loading: true, error: null }))
     try {
       const data = { ...values, ...formState.changes, default: values?.default ?? formState.changes?.default ?? true }
       Object.keys(data).forEach(key => {
@@ -247,41 +259,55 @@ export const AddressForm = (props) => {
         .users(userByToken?.id || userId)
         .addresses(addressState.address?.id)
         .save(data, { accessToken: userByToken?.session?.token || accessToken })
-      setFormState({
-        ...formState,
-        loading: false,
-        error: content.error ? content.result : null,
-        result: content.result,
-        changes: content.error ? formState.changes : {}
-      })
-      if (!content.error) {
-        setAddressState({
-          ...addressState,
-          address: content.result
-        })
-        if (isSelectedAfterAdd) {
-          await changeAddress(content.result.id, {
-            address: isEdit ? null : content.result,
-            country_code: content.result?.country_code,
-            type: options?.type,
-            isEdit
-          })
-        }
-        onSaveAddress && onSaveAddress(content.result)
+
+      if (content.error) {
+        setFormState(prev => ({
+          ...prev,
+          loading: false,
+          error: content.result,
+          result: content.result
+        }))
+        return
       }
+
+      const savedAddress = content.result
+
+      setAddressState(prev => ({ ...prev, address: savedAddress }))
+
+      if (onSaveAddress) {
+        onSaveAddress(savedAddress)
+      } else {
+        setFormState(prev => ({
+          ...prev,
+          loading: false,
+          error: null,
+          result: savedAddress,
+          changes: {}
+        }))
+      }
+
+      if (isSelectedAfterAdd) {
+        await changeAddress(savedAddress.id, {
+          address: isEdit ? null : savedAddress,
+          country_code: savedAddress?.country_code,
+          type: options?.type,
+          isEdit
+        })
+      }
+
       if (userCustomerSetup) {
         await setUserCustomer(userCustomerSetup, true)
       }
+
       if (!avoidRefreshUserInfo) {
         refreshUserInfo()
       }
     } catch (err) {
-      setFormState({
-        ...formState,
+      setFormState(prev => ({
+        ...prev,
         loading: false,
-        error: [err.message],
-        address: {}
-      })
+        error: [err.message]
+      }))
     }
   }
 
@@ -542,10 +568,12 @@ export const AddressForm = (props) => {
   }, [JSON.stringify(formState?.changes?.location), useAlternativeMap])
 
   useEffect(() => {
-    setAddressState({
-      ...addressState,
+    if (formState.loading) return
+    if (!address?.id && addressState.address?.id) return
+    setAddressState(prev => ({
+      ...prev,
       address: address || {}
-    })
+    }))
   }, [address])
 
   useEffect(() => {

@@ -296,6 +296,7 @@ export const OrderProvider = ({
       const options = {
         ...state.options,
         ...optionsStorage,
+        ...params,
         address: {
           ...optionsStorage?.address,
           ...addressId

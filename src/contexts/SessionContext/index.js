@@ -125,21 +125,31 @@ export const SessionProvider = ({ children, strategy }) => {
 
   const refreshUserInfo = async () => {
     try {
+      const currentState = stateRef.current
+      const userId = currentState.user?.id
+      const token = currentState.token
+
+      if (!token || !userId) {
+        return
+      }
+
       const requestOptions = {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `bearer ${state.token}`,
+          Authorization: `bearer ${token}`,
           'X-APP-X': ordering?.appId
         }
       }
-      const response = await fetch(`${ordering.root}/users/${state.user?.id}`, requestOptions)
+      const response = await fetch(`${ordering.root}/users/${userId}`, requestOptions)
       const { result, error } = await response.json()
       if (!error) {
-        setState({
-          ...state,
+        const nextState = {
+          ...currentState,
           user: result,
           loading: false
-        })
+        }
+        stateRef.current = nextState
+        setState(nextState)
         await strategy.setItem('user', result, true)
       } else {
         showToast(ToastType.Error, t('FAILED_TO_REFRESH_USER', 'Failed to refresh user'))

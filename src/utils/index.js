@@ -5,6 +5,13 @@ export {
 } from './subcategoryProductSort'
 
 export {
+  parseUnaddressedOrderTypes,
+  orderTypeRequiresAddress,
+  hasOrderAddress,
+  shouldRequireOrderAddress
+} from './orderTypeAddress'
+
+export {
   collectTypeIdsFromBusinesses,
   filterBusinessTypesByLocation,
   normalizeAvailableTypeIds

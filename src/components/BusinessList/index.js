@@ -127,9 +127,10 @@ export const BusinessList = (props) => {
           term: searchValue,
           order_type_id: orderState?.options?.type,
           location: JSON.stringify(
-            (isAllowUnaddressOrderType && !orderState.options?.address?.location)
+            customLocation ||
+            ((isAllowUnaddressOrderType && !orderState.options?.address?.location)
               ? defaultLocation
-              : { lat: orderState.options?.address?.location?.lat, lng: orderState.options?.address?.location?.lng }
+              : { lat: orderState.options?.address?.location?.lat, lng: orderState.options?.address?.location?.lng })
           )
         }
       }
@@ -465,7 +466,8 @@ export const BusinessList = (props) => {
     timeLimitValue,
     orderByValue,
     maxDeliveryFee,
-    businessId
+    businessId,
+    JSON.stringify(customLocation)
   ])
 
   useEffect(() => {
@@ -485,7 +487,8 @@ export const BusinessList = (props) => {
     timeLimitValue,
     orderByValue,
     maxDeliveryFee,
-    businessId
+    businessId,
+    JSON.stringify(customLocation)
   ])
 
   useLayoutEffect(() => {

@@ -145,6 +145,12 @@ import {
   sortProductsBySubcategoryRank,
   sortSubcategoriesByRank
 } from './utils/subcategoryProductSort'
+import {
+  parseUnaddressedOrderTypes,
+  orderTypeRequiresAddress,
+  hasOrderAddress,
+  shouldRequireOrderAddress
+} from './utils/orderTypeAddress'
 
 import {
   Appointments,
@@ -392,6 +398,10 @@ export {
   buildSubcategoryRankMap,
   sortProductsBySubcategoryRank,
   sortSubcategoriesByRank,
+  parseUnaddressedOrderTypes,
+  orderTypeRequiresAddress,
+  hasOrderAddress,
+  shouldRequireOrderAddress,
   // School module
   useSchoolStudents,
   useCartStudent,

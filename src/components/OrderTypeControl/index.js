@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes, { object } from 'prop-types'
 import { useOrder } from '../../contexts/OrderContext'
+import { useConfig } from '../../contexts/ConfigContext'
+import { useEvent } from '../../contexts/EventContext'
+import { parseUnaddressedOrderTypes, shouldRequireOrderAddress } from '../../utils/orderTypeAddress'
 
 export const OrderTypeControl = (props) => {
   props = { ...defaultProps, ...props }
@@ -9,11 +12,19 @@ export const OrderTypeControl = (props) => {
     disabledUpdateState
   } = props
   const [orderState, { changeType }] = useOrder()
+  const [configState] = useConfig()
+  const [events] = useEvent()
   const [typeSelected, setTypeSelected] = useState(null)
 
   const handleChangeOrderType = async (orderType) => {
     setTypeSelected(orderType)
     await changeType(orderType)
+    const unaddressedTypes = parseUnaddressedOrderTypes(
+      configState?.configs?.unaddressed_order_types_allowed?.value
+    )
+    if (shouldRequireOrderAddress(orderType, orderState?.options, unaddressedTypes)) {
+      events.emit('require_order_address', { orderType })
+    }
     return orderType
   }
 

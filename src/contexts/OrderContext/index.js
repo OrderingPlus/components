@@ -57,12 +57,17 @@ export const OrderProvider = ({
     catering_pickup: 8
   }
 
+  const fromWorker = typeof window !== 'undefined' && (window.__FIRST_LOAD__ || window.__CONFIG__)
+  const defaultOrderType = fromWorker
+    ? orderTypes.pickup
+    : orderTypes[configState?.configs?.default_order_type?.value]
+
   const [state, setState] = useState({
     loading: true,
     options: isDisabledDefaultOpts
       ? { type: null, moment: null, city_id: null }
       : {
-          type: orderTypes[configState?.configs?.default_order_type?.value],
+          type: defaultOrderType,
           moment: null,
           city_id: null
         },
@@ -143,11 +148,17 @@ export const OrderProvider = ({
           }
         })
 
-        setState(prevState => ({
-          ...prevState,
-          options: { ...prevState.options, ...options },
-          carts: newCarts
-        }))
+        setState(prevState => {
+          const mergedOptions = { ...prevState.options, ...options }
+          if (fromWorker && !mergedOptions?.address?.location) {
+            mergedOptions.type = orderTypes.pickup
+          }
+          return {
+            ...prevState,
+            options: mergedOptions,
+            carts: newCarts
+          }
+        })
 
         if (!countryCodeFromLocalStorage && options?.address?.country_code) {
           await updateOrderOptions({ country_code: options?.address?.country_code })
@@ -1296,15 +1307,21 @@ export const OrderProvider = ({
 
   const setOptionFromLocalStorage = async () => {
     const optionsLocalStorage = await strategy.getItem('options', true)
+    const savedAddress = optionsLocalStorage?.address || state?.options?.address || {}
+    const savedType = optionsLocalStorage?.type || defaultOrderType
+    const resolvedType = fromWorker && !savedAddress?.location ? orderTypes.pickup : savedType
+    if (fromWorker && !isDisabledDefaultOpts && optionsLocalStorage && optionsLocalStorage.type !== resolvedType) {
+      await strategy.setItem('options', { ...optionsLocalStorage, type: resolvedType }, true)
+    }
     setState({
       ...state,
       loading: false,
       options: isDisabledDefaultOpts
         ? { type: null, moment: null }
         : {
-            type: optionsLocalStorage?.type || orderTypes[configState?.configs?.default_order_type?.value],
+            type: resolvedType,
             moment: optionsLocalStorage?.moment || null,
-            address: optionsLocalStorage?.address || state?.options?.address || {},
+            address: savedAddress,
             city_id: optionsLocalStorage?.city_id || null
           }
     })
@@ -1427,7 +1444,7 @@ export const OrderProvider = ({
       options: isDisabledDefaultOpts
         ? { type: null, moment: null, city_id: null }
         : {
-            type: orderTypes[configState?.configs?.default_order_type?.value],
+            type: defaultOrderType,
             moment: null,
             city_id: null
           },

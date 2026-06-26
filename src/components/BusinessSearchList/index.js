@@ -45,6 +45,8 @@ export const BusinessSearchList = (props) => {
   const [citiesState, setCitiesState] = useState({ loading: false, cities: [], error: null })
   const showCities = !orderingTheme?.theme?.business_listing_view?.components?.cities?.hidden
   const prevLocationKeyRef = useRef(null)
+  const abortControllerRef = useRef(null)
+  const searchDebounceRef = useRef(null)
 
   useEffect(() => {
     const location = orderState?.options?.address?.location
@@ -59,13 +61,29 @@ export const BusinessSearchList = (props) => {
   }, [orderState?.options?.address?.location?.lat, orderState?.options?.address?.location?.lng])
 
   useEffect(() => {
-    !lazySearch && (Object.keys(orderState?.options?.address?.location || {})?.length > 0 || defaultLocation) && handleSearchbusinessAndProducts(true)
+    if (lazySearch) return
+    if (!(Object.keys(orderState?.options?.address?.location || {})?.length > 0 || defaultLocation)) return
+
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => {
+      handleSearchbusinessAndProducts(true)
+    }, 250)
+
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    }
   }, [filters, JSON.stringify(orderState?.options)])
 
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+    }
+  }, [])
+
   const handleChangeTermValue = (val) => {
-    const returnAllProductsValidation = (val?.length < 2 && termValue?.length >= 2) || val === ''
+    const returnAllProductsValidation = (val?.length < 3 && termValue?.length >= 3) || val === ''
     setTermValue(val)
-    if ((returnAllProductsValidation || val?.length >= 2)) {
+    if (returnAllProductsValidation || val?.length >= 3) {
       const valueLoweredCase = val.toLowerCase()
       handleSearchbusinessAndProducts(true, {}, valueLoweredCase)
     }
@@ -152,7 +170,11 @@ export const BusinessSearchList = (props) => {
 
   const handleSearchbusinessAndProducts = async (newFetch, options, val) => {
     try {
-      let filtParams = val?.length >= 3 ? `&term=${isIos ? val : encodeURI(val)}` : ''
+      const effectiveTerm = val ?? termValue
+      const hasSearchTerm = effectiveTerm?.length >= 3
+      let filtParams = hasSearchTerm
+        ? `&term=${isIos ? effectiveTerm : encodeURI(effectiveTerm)}`
+        : '&excludes=categories'
       Object.keys(filters).map(key => {
         if ((!filters[key] && filters[key] !== 0) || filters[key] === 'default' || filters[key]?.length === 0) return
         Array.isArray(filters[key]) ? filtParams = filtParams + `&${key}=[${filters[key]}]` : filtParams = filtParams + `&${key}=${filters[key]}`
@@ -188,7 +210,15 @@ export const BusinessSearchList = (props) => {
         }
       }
       const location = { lat: orderState.options?.address?.location?.lat || defaultLocation?.lat, lng: orderState.options?.address?.location?.lng || defaultLocation?.lng }
-      const response = await fetch(`${ordering.root}/search?order_type_id=${orderState?.options?.type}${filtParams}&location=${JSON.stringify(options?.location || location)}${where}`, requestOptions)
+
+      abortControllerRef.current?.abort()
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+
+      const response = await fetch(`${ordering.root}/search?order_type_id=${orderState?.options?.type}${filtParams}&location=${JSON.stringify(options?.location || location)}${where}`, {
+        ...requestOptions,
+        signal: controller.signal
+      })
       const { result, error, pagination } = await response.json()
       if (error) {
         setBusinessesSearchList(() => ({
@@ -218,6 +248,7 @@ export const BusinessSearchList = (props) => {
         lengthError: false
       }))
     } catch (err) {
+      if (err?.name === 'AbortError') return
       setBusinessesSearchList(() => ({
         businesses: [],
         loading: false,
@@ -339,6 +370,6 @@ BusinessSearchList.propTypes = {
 }
 
 const defaultProps = {
-  paginationSettings: { initialPage: 1, pageSize: 10, controlType: 'infinity' },
+  paginationSettings: { initialPage: 1, pageSize: 25, controlType: 'infinity' },
   propsToFetch: ['id', 'name', 'header', 'logo', 'location', 'schedule', 'open', 'ribbon', 'delivery_price', 'distance', 'delivery_time', 'pickup_time', 'reviews', 'featured', 'offers', 'food', 'laundry', 'alcohol', 'groceries', 'slug', 'city', 'city_id']
 }

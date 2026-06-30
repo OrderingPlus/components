@@ -48,6 +48,8 @@ export const BusinessSearchList = (props) => {
   const prevLocationKeyRef = useRef(null)
   const abortControllerRef = useRef(null)
   const searchDebounceRef = useRef(null)
+  const orderOptionsRef = useRef(orderState?.options)
+  orderOptionsRef.current = orderState?.options
 
   useEffect(() => {
     const location = orderState?.options?.address?.location || customLocation
@@ -74,7 +76,17 @@ export const BusinessSearchList = (props) => {
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     }
-  }, [filters, JSON.stringify(orderState?.options), customLocation?.lat, customLocation?.lng])
+  }, [
+    filters,
+    orderState?.options?.type,
+    orderState?.options?.moment,
+    orderState?.options?.city_id,
+    orderState?.options?.address_id,
+    orderState?.options?.address?.location?.lat,
+    orderState?.options?.address?.location?.lng,
+    customLocation?.lat,
+    customLocation?.lng
+  ])
 
   useEffect(() => {
     return () => {
@@ -83,9 +95,13 @@ export const BusinessSearchList = (props) => {
   }, [])
 
   const handleChangeTermValue = (val) => {
-    setTermValue(val)
-    if (val === '' || val?.length >= 3) {
-      handleSearchbusinessAndProducts(true, {}, val.toLowerCase())
+    const normalizedVal = (val ?? '').toLowerCase()
+    const hadMinSearchTerm = termValue?.length >= 3
+    setTermValue(normalizedVal)
+    if (normalizedVal.length >= 3) {
+      handleSearchbusinessAndProducts(true, {}, normalizedVal)
+    } else if (hadMinSearchTerm) {
+      handleSearchbusinessAndProducts(true, {}, '')
     }
   }
 
@@ -172,6 +188,8 @@ export const BusinessSearchList = (props) => {
     try {
       const effectiveTerm = val ?? termValue
       const hasSearchTerm = effectiveTerm?.length >= 3
+      const currentOrderOptions = orderOptionsRef.current
+      const currentCityId = currentOrderOptions?.city_id
       let filtParams = hasSearchTerm
         ? `&term=${isIos ? effectiveTerm : encodeURI(effectiveTerm)}`
         : '&excludes=categories'
@@ -179,15 +197,15 @@ export const BusinessSearchList = (props) => {
         if ((!filters[key] && filters[key] !== 0) || filters[key] === 'default' || filters[key]?.length === 0) return
         Array.isArray(filters[key]) ? filtParams = filtParams + `&${key}=[${filters[key]}]` : filtParams = filtParams + `&${key}=${filters[key]}`
       })
-      filtParams = filtParams + (orderState?.options?.type === 1 && defaultLocation ? '&max_distance=20000' : '')
+      filtParams = filtParams + (orderOptionsRef.current?.type === 1 && defaultLocation ? '&max_distance=20000' : '')
       filtParams = filtParams + `&page=${newFetch ? 1 : paginationProps.currentPage + 1}&page_size=${paginationProps.pageSize}`
       brandId && (filtParams = filtParams + `&franchise_ids=[${brandId}]`)
       let where = ''
-      if (cityId) {
+      if (currentCityId) {
         where = {
           conditions: [{
             attribute: 'city_id',
-            value: cityId
+            value: currentCityId
           }],
           conector: 'AND'
         }
@@ -210,15 +228,15 @@ export const BusinessSearchList = (props) => {
         }
       }
       const location = customLocation || {
-        lat: orderState.options?.address?.location?.lat || defaultLocation?.lat,
-        lng: orderState.options?.address?.location?.lng || defaultLocation?.lng
+        lat: currentOrderOptions?.address?.location?.lat || defaultLocation?.lat,
+        lng: currentOrderOptions?.address?.location?.lng || defaultLocation?.lng
       }
 
       abortControllerRef.current?.abort()
       const controller = new AbortController()
       abortControllerRef.current = controller
 
-      const response = await fetch(`${ordering.root}/search?order_type_id=${orderState?.options?.type}${filtParams}&location=${JSON.stringify(options?.location || location)}${where}`, {
+      const response = await fetch(`${ordering.root}/search?order_type_id=${orderOptionsRef.current?.type}${filtParams}&location=${JSON.stringify(options?.location || location)}${where}`, {
         ...requestOptions,
         signal: controller.signal
       })
@@ -246,7 +264,7 @@ export const BusinessSearchList = (props) => {
       }))
       setBusinessesSearchList((prevProps) => ({
         ...prevProps,
-        businesses: cityId ? (newFetch ? result : [...prevProps?.businesses, ...result])?.filter(_business => _business?.city_id === cityId) : newFetch ? result : [...prevProps?.businesses, ...result],
+        businesses: currentCityId ? (newFetch ? result : [...prevProps?.businesses, ...result])?.filter(_business => _business?.city_id === currentCityId) : newFetch ? result : [...prevProps?.businesses, ...result],
         loading: false,
         lengthError: false
       }))

@@ -44,6 +44,7 @@ export const OrderDetails = (props) => {
   const [reorderState, setReorderState] = useState({ loading: false, result: [], error: null })
   const [cartState, setCartState] = useState({ loading: false, error: null })
   const [showReservationAlert, setShowReservationAlert] = useState(false)
+  const [loyaltyPlansState, setLoyaltyPlansState] = useState({ loading: true, result: [] })
   /**
    * Method to accept or reject a logistic order
    */
@@ -625,6 +626,28 @@ export const OrderDetails = (props) => {
   }, [orderId, isDriverNotification])
 
   useEffect(() => {
+    const getLoyaltyPlans = async () => {
+      try {
+        const req = await fetch(`${ordering.root}/loyalty_plans`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+            'X-App-X': ordering.appId,
+            'X-INTERNAL-PRODUCT-X': ordering.appInternalName,
+            'X-Socket-Id-X': socket?.getId()
+          }
+        })
+        const { error, result } = await req.json()
+        setLoyaltyPlansState({ loading: false, result: error ? [] : result })
+      } catch (err) {
+        setLoyaltyPlansState({ loading: false, result: [] })
+      }
+    }
+    if (accessToken) getLoyaltyPlans()
+  }, [accessToken])
+
+  useEffect(() => {
     if (orderState.loading || loading || !socket?.socket) return
     const handleUpdateOrderDetails = (order) => {
       if (order?.id !== orderState.order?.id) return
@@ -773,6 +796,7 @@ export const OrderDetails = (props) => {
           loadMessages={loadMessages}
           showReservationAlert={showReservationAlert}
           setShowReservationAlert={setShowReservationAlert}
+          loyaltyPlansState={loyaltyPlansState}
         />
       )}
     </>

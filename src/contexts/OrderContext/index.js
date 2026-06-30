@@ -9,6 +9,7 @@ import { useCustomer } from '../CustomerContext'
 import { ToastType, useToast } from '../ToastContext'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { parseUnaddressedOrderTypes, shouldRequireOrderAddress } from '../../utils/orderTypeAddress'
 
 dayjs.extend(utc)
 
@@ -61,6 +62,19 @@ export const OrderProvider = ({
   const defaultOrderType = fromWorker
     ? orderTypes.pickup
     : orderTypes[configState?.configs?.default_order_type?.value]
+
+  const shouldForceWorkerPickup = (orderOptions) => (
+    fromWorker &&
+    !orderOptions?.address?.location &&
+    configTypes.includes(orderTypes.pickup)
+  )
+
+  const syncWorkerPickupToApi = async () => {
+    if (!session.auth || !shouldForceWorkerPickup(state.options)) {
+      return true
+    }
+    return updateOrderOptions({ type: orderTypes.pickup })
+  }
 
   const [state, setState] = useState({
     loading: true,
@@ -150,7 +164,7 @@ export const OrderProvider = ({
 
         setState(prevState => {
           const mergedOptions = { ...prevState.options, ...options }
-          if (fromWorker && !mergedOptions?.address?.location) {
+          if (shouldForceWorkerPickup(mergedOptions)) {
             mergedOptions.type = orderTypes.pickup
           }
           return {
@@ -160,8 +174,16 @@ export const OrderProvider = ({
           }
         })
 
-        if (!countryCodeFromLocalStorage && options?.address?.country_code) {
-          await updateOrderOptions({ country_code: options?.address?.country_code })
+        const shouldSyncPickup = shouldForceWorkerPickup(options) && options.type !== orderTypes.pickup
+        const shouldSyncCountryCode = !countryCodeFromLocalStorage && options?.address?.country_code
+
+        if (shouldSyncPickup || shouldSyncCountryCode) {
+          const syncParams = {}
+          if (shouldSyncPickup) syncParams.type = orderTypes.pickup
+          if (shouldSyncCountryCode) syncParams.country_code = options.address.country_code
+          await updateOrderOptions(syncParams)
+        } else {
+          setState(prevState => ({ ...prevState, loading: false }))
         }
       }
       if (error) {
@@ -233,7 +255,7 @@ export const OrderProvider = ({
           options.city_id = localOptions?.city_id
         }
         if (options && Object.keys(options).length > 0) {
-          updateOrderOptions(options)
+          await updateOrderOptions(options)
         } else {
           setState(prevState => ({ ...prevState, loading: false }))
         }
@@ -321,6 +343,16 @@ export const OrderProvider = ({
         ...state,
         options
       })
+      if (!session.auth) {
+        return
+      }
+      const syncParams = {}
+      if (addressId?.id) syncParams.address_id = addressId.id
+      if (params?.country_code) syncParams.country_code = params.country_code
+      if (params?.type) syncParams.type = params.type
+      if (Object.keys(syncParams).length > 0) {
+        await updateOrderOptions(syncParams)
+      }
       return
     }
 
@@ -357,31 +389,26 @@ export const OrderProvider = ({
    * Change order type
    */
   const changeType = async (type) => {
-    const options = {
-      ...state.options,
-      type
-    }
     if (state.options.type === type) {
       return
     }
 
-    const cityId = state.options?.city_id
     const params = { type }
 
-    if (cityId && type !== 2) {
+    if (state.options?.city_id && type !== 2) {
       params.city_id = null
     }
 
-    if (!session.auth) {
-      const _options = { ...options, ...params }
-      await strategy.setItem('options', _options, true)
-      setState({
-        ...state,
-        options: _options
-      })
-    }
+    const _options = { ...state.options, ...params }
+    await strategy.setItem('options', _options, true)
+    setState(prevState => ({
+      ...prevState,
+      options: _options
+    }))
 
-    updateOrderOptions(params)
+    if (session.auth) {
+      await updateOrderOptions(params)
+    }
   }
 
   /**
@@ -514,6 +541,21 @@ export const OrderProvider = ({
     isPlatformProduct = false
   ) => {
     try {
+      const unaddressedTypes = parseUnaddressedOrderTypes(
+        configState?.configs?.unaddressed_order_types_allowed?.value
+      )
+      if (shouldRequireOrderAddress(state.options?.type, state.options, unaddressedTypes)) {
+        events.emit('require_order_address', { orderType: state.options?.type })
+        return false
+      }
+
+      if (session.auth) {
+        const synced = await syncWorkerPickupToApi()
+        if (!synced) {
+          return false
+        }
+      }
+
       setState({ ...state, loading: true })
       const countryCode = await strategy.getItem('country-code')
       const customerFromLocalStorage = await strategy.getItem('user-customer', true)
@@ -1309,7 +1351,7 @@ export const OrderProvider = ({
     const optionsLocalStorage = await strategy.getItem('options', true)
     const savedAddress = optionsLocalStorage?.address || state?.options?.address || {}
     const savedType = optionsLocalStorage?.type || defaultOrderType
-    const resolvedType = fromWorker && !savedAddress?.location ? orderTypes.pickup : savedType
+    const resolvedType = shouldForceWorkerPickup({ address: savedAddress }) ? orderTypes.pickup : savedType
     if (fromWorker && !isDisabledDefaultOpts && optionsLocalStorage && optionsLocalStorage.type !== resolvedType) {
       await strategy.setItem('options', { ...optionsLocalStorage, type: resolvedType }, true)
     }
@@ -1485,6 +1527,7 @@ export const OrderProvider = ({
   useEffect(() => {
     if (session.loading || languageState.loading || !ordering?.project) return
     if (session.auth) {
+      setState(prevState => (prevState.loading ? prevState : { ...prevState, loading: true }))
       refreshOrderOptions()
     }
   }, [session.auth, session.loading, languageState.loading, ordering?.project, session?.user?.id])

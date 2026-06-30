@@ -10,7 +10,6 @@ export const orderTypeRequiresAddress = (orderType, unaddressedTypes = []) => {
 
 export const hasOrderAddress = (orderOptions) => {
   const address = orderOptions?.address
-  if (orderOptions?.address_id) return true
   if (address?.location?.lat == null || address?.location?.lng == null) return false
   return true
 }

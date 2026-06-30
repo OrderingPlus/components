@@ -14,6 +14,7 @@ export const BusinessSearchList = (props) => {
     lazySearch,
     defaultTerm,
     defaultLocation,
+    customLocation,
     brandId,
     isIos
   } = props
@@ -49,7 +50,7 @@ export const BusinessSearchList = (props) => {
   const searchDebounceRef = useRef(null)
 
   useEffect(() => {
-    const location = orderState?.options?.address?.location
+    const location = orderState?.options?.address?.location || customLocation
     const locationKey = location?.lat != null && location?.lng != null
       ? `${location.lat},${location.lng}`
       : null
@@ -58,11 +59,12 @@ export const BusinessSearchList = (props) => {
       setFilters((prev) => ({ ...prev, business_types: [] }))
     }
     prevLocationKeyRef.current = locationKey
-  }, [orderState?.options?.address?.location?.lat, orderState?.options?.address?.location?.lng])
+  }, [orderState?.options?.address?.location?.lat, orderState?.options?.address?.location?.lng, customLocation?.lat, customLocation?.lng])
 
   useEffect(() => {
     if (lazySearch) return
-    if (!(Object.keys(orderState?.options?.address?.location || {})?.length > 0 || defaultLocation)) return
+    const hasAddressLocation = Object.keys(orderState?.options?.address?.location || {})?.length > 0
+    if (!(hasAddressLocation || customLocation)) return
 
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     searchDebounceRef.current = setTimeout(() => {
@@ -72,7 +74,7 @@ export const BusinessSearchList = (props) => {
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     }
-  }, [filters, JSON.stringify(orderState?.options)])
+  }, [filters, JSON.stringify(orderState?.options), customLocation?.lat, customLocation?.lng])
 
   useEffect(() => {
     return () => {
@@ -81,11 +83,9 @@ export const BusinessSearchList = (props) => {
   }, [])
 
   const handleChangeTermValue = (val) => {
-    const returnAllProductsValidation = (val?.length < 3 && termValue?.length >= 3) || val === ''
     setTermValue(val)
-    if (returnAllProductsValidation || val?.length >= 3) {
-      const valueLoweredCase = val.toLowerCase()
-      handleSearchbusinessAndProducts(true, {}, valueLoweredCase)
+    if (val === '' || val?.length >= 3) {
+      handleSearchbusinessAndProducts(true, {}, val.toLowerCase())
     }
   }
 
@@ -209,7 +209,10 @@ export const BusinessSearchList = (props) => {
           'X-Socket-Id-X': socket?.getId()
         }
       }
-      const location = { lat: orderState.options?.address?.location?.lat || defaultLocation?.lat, lng: orderState.options?.address?.location?.lng || defaultLocation?.lng }
+      const location = customLocation || {
+        lat: orderState.options?.address?.location?.lat || defaultLocation?.lat,
+        lng: orderState.options?.address?.location?.lng || defaultLocation?.lng
+      }
 
       abortControllerRef.current?.abort()
       const controller = new AbortController()

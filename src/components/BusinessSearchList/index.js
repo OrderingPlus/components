@@ -14,6 +14,7 @@ export const BusinessSearchList = (props) => {
     lazySearch,
     defaultTerm,
     defaultLocation,
+    customLocation,
     brandId,
     isIos
   } = props
@@ -47,9 +48,11 @@ export const BusinessSearchList = (props) => {
   const prevLocationKeyRef = useRef(null)
   const abortControllerRef = useRef(null)
   const searchDebounceRef = useRef(null)
+  const orderOptionsRef = useRef(orderState?.options)
+  orderOptionsRef.current = orderState?.options
 
   useEffect(() => {
-    const location = orderState?.options?.address?.location
+    const location = orderState?.options?.address?.location || customLocation
     const locationKey = location?.lat != null && location?.lng != null
       ? `${location.lat},${location.lng}`
       : null
@@ -58,11 +61,12 @@ export const BusinessSearchList = (props) => {
       setFilters((prev) => ({ ...prev, business_types: [] }))
     }
     prevLocationKeyRef.current = locationKey
-  }, [orderState?.options?.address?.location?.lat, orderState?.options?.address?.location?.lng])
+  }, [orderState?.options?.address?.location?.lat, orderState?.options?.address?.location?.lng, customLocation?.lat, customLocation?.lng])
 
   useEffect(() => {
     if (lazySearch) return
-    if (!(Object.keys(orderState?.options?.address?.location || {})?.length > 0 || defaultLocation)) return
+    const hasAddressLocation = Object.keys(orderState?.options?.address?.location || {})?.length > 0
+    if (!(hasAddressLocation || customLocation)) return
 
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     searchDebounceRef.current = setTimeout(() => {
@@ -72,7 +76,17 @@ export const BusinessSearchList = (props) => {
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     }
-  }, [filters, JSON.stringify(orderState?.options)])
+  }, [
+    filters,
+    orderState?.options?.type,
+    orderState?.options?.moment,
+    orderState?.options?.city_id,
+    orderState?.options?.address_id,
+    orderState?.options?.address?.location?.lat,
+    orderState?.options?.address?.location?.lng,
+    customLocation?.lat,
+    customLocation?.lng
+  ])
 
   useEffect(() => {
     return () => {
@@ -81,11 +95,13 @@ export const BusinessSearchList = (props) => {
   }, [])
 
   const handleChangeTermValue = (val) => {
-    const returnAllProductsValidation = (val?.length < 3 && termValue?.length >= 3) || val === ''
-    setTermValue(val)
-    if (returnAllProductsValidation || val?.length >= 3) {
-      const valueLoweredCase = val.toLowerCase()
-      handleSearchbusinessAndProducts(true, {}, valueLoweredCase)
+    const normalizedVal = (val ?? '').toLowerCase()
+    const hadMinSearchTerm = termValue?.length >= 3
+    setTermValue(normalizedVal)
+    if (normalizedVal.length >= 3) {
+      handleSearchbusinessAndProducts(true, {}, normalizedVal)
+    } else if (hadMinSearchTerm) {
+      handleSearchbusinessAndProducts(true, {}, '')
     }
   }
 
@@ -172,6 +188,8 @@ export const BusinessSearchList = (props) => {
     try {
       const effectiveTerm = val ?? termValue
       const hasSearchTerm = effectiveTerm?.length >= 3
+      const currentOrderOptions = orderOptionsRef.current
+      const currentCityId = currentOrderOptions?.city_id
       let filtParams = hasSearchTerm
         ? `&term=${isIos ? effectiveTerm : encodeURI(effectiveTerm)}`
         : '&excludes=categories'
@@ -179,15 +197,15 @@ export const BusinessSearchList = (props) => {
         if ((!filters[key] && filters[key] !== 0) || filters[key] === 'default' || filters[key]?.length === 0) return
         Array.isArray(filters[key]) ? filtParams = filtParams + `&${key}=[${filters[key]}]` : filtParams = filtParams + `&${key}=${filters[key]}`
       })
-      filtParams = filtParams + (orderState?.options?.type === 1 && defaultLocation ? '&max_distance=20000' : '')
+      filtParams = filtParams + (orderOptionsRef.current?.type === 1 && defaultLocation ? '&max_distance=20000' : '')
       filtParams = filtParams + `&page=${newFetch ? 1 : paginationProps.currentPage + 1}&page_size=${paginationProps.pageSize}`
       brandId && (filtParams = filtParams + `&franchise_ids=[${brandId}]`)
       let where = ''
-      if (cityId) {
+      if (currentCityId) {
         where = {
           conditions: [{
             attribute: 'city_id',
-            value: cityId
+            value: currentCityId
           }],
           conector: 'AND'
         }
@@ -209,13 +227,16 @@ export const BusinessSearchList = (props) => {
           'X-Socket-Id-X': socket?.getId()
         }
       }
-      const location = { lat: orderState.options?.address?.location?.lat || defaultLocation?.lat, lng: orderState.options?.address?.location?.lng || defaultLocation?.lng }
+      const location = customLocation || {
+        lat: currentOrderOptions?.address?.location?.lat || defaultLocation?.lat,
+        lng: currentOrderOptions?.address?.location?.lng || defaultLocation?.lng
+      }
 
       abortControllerRef.current?.abort()
       const controller = new AbortController()
       abortControllerRef.current = controller
 
-      const response = await fetch(`${ordering.root}/search?order_type_id=${orderState?.options?.type}${filtParams}&location=${JSON.stringify(options?.location || location)}${where}`, {
+      const response = await fetch(`${ordering.root}/search?order_type_id=${orderOptionsRef.current?.type}${filtParams}&location=${JSON.stringify(options?.location || location)}${where}`, {
         ...requestOptions,
         signal: controller.signal
       })
@@ -243,7 +264,7 @@ export const BusinessSearchList = (props) => {
       }))
       setBusinessesSearchList((prevProps) => ({
         ...prevProps,
-        businesses: cityId ? (newFetch ? result : [...prevProps?.businesses, ...result])?.filter(_business => _business?.city_id === cityId) : newFetch ? result : [...prevProps?.businesses, ...result],
+        businesses: currentCityId ? (newFetch ? result : [...prevProps?.businesses, ...result])?.filter(_business => _business?.city_id === currentCityId) : newFetch ? result : [...prevProps?.businesses, ...result],
         loading: false,
         lengthError: false
       }))

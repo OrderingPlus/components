@@ -65,6 +65,7 @@ export const OrderProvider = ({
 
   const shouldForceWorkerPickup = (orderOptions) => (
     fromWorker &&
+    !orderOptions?.address_id &&
     !orderOptions?.address?.location &&
     configTypes.includes(orderTypes.pickup)
   )
@@ -133,8 +134,10 @@ export const OrderProvider = ({
       const error = res?.content?.error
       const result = res?.content?.result
       const status = res?.status
+      let hasApiAddressContext = false
       if (!error) {
         const { carts, ...options } = result
+        hasApiAddressContext = Boolean(options.address_id || options.address?.location)
 
         if (!Array.isArray(carts)) {
           return
@@ -242,7 +245,11 @@ export const OrderProvider = ({
           }
           address && (options.address_id = address.id)
         }
-        if (localOptions.type) {
+        const localOptionsHasAddress = Boolean(
+          localOptions?.address_id ||
+          Object.keys(localOptions?.address || {}).length > 0
+        )
+        if (localOptions.type && (!hasApiAddressContext || localOptionsHasAddress)) {
           options.type = localOptions.type
         }
         if (localOptions.moment) {
@@ -251,7 +258,7 @@ export const OrderProvider = ({
         if (localOptions?.address_id) {
           options.address_id = localOptions?.address_id
         }
-        if (localOptions?.city_id) {
+        if (localOptions?.city_id && !hasApiAddressContext) {
           options.city_id = localOptions?.city_id
         }
         if (options && Object.keys(options).length > 0) {
@@ -459,6 +466,21 @@ export const OrderProvider = ({
 
     updateOrderOptions({ city_id: id })
   }
+
+  /**
+   * Clear order address and location (e.g. when selecting a city from home)
+   */
+  const clearOrderAddress = async () => {
+    const options = { ...state.options }
+    delete options.address
+    delete options.address_id
+    await strategy.setItem('options', options, true)
+    setState(prevState => ({
+      ...prevState,
+      options
+    }))
+  }
+
   /**
    * Update order option data
    * @param {object} changes Changes to update order options
@@ -1350,8 +1372,9 @@ export const OrderProvider = ({
   const setOptionFromLocalStorage = async () => {
     const optionsLocalStorage = await strategy.getItem('options', true)
     const savedAddress = optionsLocalStorage?.address || state?.options?.address || {}
+    const savedAddressId = optionsLocalStorage?.address_id || state?.options?.address_id || null
     const savedType = optionsLocalStorage?.type || defaultOrderType
-    const resolvedType = shouldForceWorkerPickup({ address: savedAddress }) ? orderTypes.pickup : savedType
+    const resolvedType = shouldForceWorkerPickup({ address: savedAddress, address_id: savedAddressId }) ? orderTypes.pickup : savedType
     if (fromWorker && !isDisabledDefaultOpts && optionsLocalStorage && optionsLocalStorage.type !== resolvedType) {
       await strategy.setItem('options', { ...optionsLocalStorage, type: resolvedType }, true)
     }
@@ -1364,6 +1387,7 @@ export const OrderProvider = ({
             type: resolvedType,
             moment: optionsLocalStorage?.moment || null,
             address: savedAddress,
+            address_id: savedAddressId,
             city_id: optionsLocalStorage?.city_id || null
           }
     })
@@ -1680,6 +1704,7 @@ export const OrderProvider = ({
     placeMultiCarts,
     getLastOrderHasNoReview,
     changeCityFilter,
+    clearOrderAddress,
     confirmMultiCarts,
     addMultiProduct,
     setStateInitialValues,
@@ -1739,7 +1764,8 @@ export const useOrder = () => {
     reorder: warningMessage,
     changePaymethod: warningMessage,
     setStateValues: warningMessage,
-    getLastOrderHasNoReview: warningMessage
+    getLastOrderHasNoReview: warningMessage,
+    clearOrderAddress: warningMessage
   }
   return orderManager || [{}, functionsPlaceholders]
 }

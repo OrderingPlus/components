@@ -395,7 +395,9 @@ export const OrderListGroups = (props) => {
       }
     }
 
-    const pageSize = paginationSettings.pageSize
+    const pageSize = options?.allStatusses
+      ? (paginationSettings.filteredPageSize ?? paginationSettings.pageSize)
+      : paginationSettings.pageSize
 
     try {
       if (options?.allStatusses) {
@@ -503,6 +505,7 @@ export const OrderListGroups = (props) => {
     try {
       const { content: { error, result, pagination } } = await getOrders({
         page: options?.allStatusses ? ordersFiltered.pagination.currentPage + 1 : ordersGroup[currentTabSelected].pagination.currentPage + 1,
+        pageSize: options?.allStatusses ? (paginationSettings.filteredPageSize ?? paginationSettings.pageSize) : paginationSettings.pageSize,
         orderStatus: options?.allStatusses ? null : ordersGroup[currentTabSelected]?.currentFilter,
         newFetch: true
       })

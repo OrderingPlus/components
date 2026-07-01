@@ -1,11 +1,22 @@
 import io from 'socket.io-client'
 
+const LEAVE_DEBOUNCE_MS = 500
+
 export class Socket {
   constructor ({ url, project, accessToken }) {
     this.url = url
     this.project = project
     this.accessToken = accessToken
     this.queue = []
+    this.pendingLeaves = {}
+  }
+
+  roomTarget (room) {
+    return typeof room === 'string' ? `${this.project}_${room}` : room
+  }
+
+  roomKey (room) {
+    return typeof room === 'string' ? `${this.project}_${room}` : JSON.stringify(room)
   }
 
   connect () {
@@ -32,7 +43,7 @@ export class Socket {
         } else if (item.action === 'leave') {
           this.leave(item.room)
         } else if (item.action === 'off') {
-          this.off(item.room)
+          this.off(item.event, item.func)
         }
       }
     })
@@ -49,11 +60,13 @@ export class Socket {
   }
 
   join (room) {
+    const key = this.roomKey(room)
+    if (this.pendingLeaves[key]) {
+      clearTimeout(this.pendingLeaves[key])
+      delete this.pendingLeaves[key]
+    }
     if (this.socket?.connected) {
-      this.socket.emit(
-        'join',
-        typeof room === 'string' ? `${this.project}_${room}` : room
-      )
+      this.socket.emit('join', this.roomTarget(room))
     } else {
       this.queue.push({ action: 'join', room })
     }
@@ -61,14 +74,16 @@ export class Socket {
   }
 
   leave (room) {
-    if (this.socket?.connected) {
-      this.socket.emit(
-        'leave',
-        typeof room === 'string' ? `${this.project}_${room}` : room
-      )
-    } else {
-      this.queue.push({ action: 'leave', room })
-    }
+    const key = this.roomKey(room)
+    if (this.pendingLeaves[key]) return this
+    this.pendingLeaves[key] = setTimeout(() => {
+      delete this.pendingLeaves[key]
+      if (this.socket?.connected) {
+        this.socket.emit('leave', this.roomTarget(room))
+      } else {
+        this.queue.push({ action: 'leave', room })
+      }
+    }, LEAVE_DEBOUNCE_MS)
     return this
   }
 

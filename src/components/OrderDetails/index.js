@@ -712,9 +712,7 @@ export const OrderDetails = (props) => {
       }
     })
     socket.on('tracking_driver', handleTrackingDriver)
-    if (!socket?.socket?._callbacks?.$update_order || socket?.socket?._callbacks?.$update_order?.find(func => func?.name !== 'handleUpdateOrderDetails')) {
-      socket.on('update_order', handleUpdateOrderDetails)
-    }
+    socket.on('update_order', handleUpdateOrderDetails)
     return () => {
       if (!isDisabledOrdersRoom && !props.disabledLeaveOrderSocket) socket.leave(getRoom('orders'))
       socket.off('update_order', handleUpdateOrderDetails)

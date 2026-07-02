@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
-import { useLanguage } from '../../contexts/LanguageContext'
 import { useGoogleMaps } from '../../hooks/useGoogleMaps'
 
 /**
@@ -17,7 +16,6 @@ export const GpsButton = (props) => {
     isGetAddress
   } = props
 
-  const [, t] = useLanguage()
   const [googleReady] = useGoogleMaps(apiKey)
   const [isLoading, setIsLoading] = useState(false)
   const isGoogleButton = typeof googleReady !== 'undefined'
@@ -100,7 +98,7 @@ export const GpsButton = (props) => {
           utc_offset: (new Date()).getTimezoneOffset()
         })
       }
-    }, (err) => {
+    }, () => {
       setIsLoading(false)
       onError && onError('ERROR_GPS_BUTTON')
     }, {

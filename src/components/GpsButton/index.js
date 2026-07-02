@@ -87,10 +87,10 @@ export const GpsButton = (props) => {
                 ...addressObj
               })
             } else {
-              onError && onError(t('ERROR_GPS_BUTTON', 'Error to get result with gps button'), true)
+              onError && onError('ERROR_GPS_BUTTON')
             }
           } else {
-            onError && onError(t('ERROR_NOT_FOUND_ADDRESS', 'The Address was not found'), true)
+            onError && onError('ERROR_NOT_FOUND_ADDRESS')
           }
         })
       } else {
@@ -102,7 +102,7 @@ export const GpsButton = (props) => {
       }
     }, (err) => {
       setIsLoading(false)
-      onError && onError(t('ERROR_GPS_BUTTON', err.message), true)
+      onError && onError('ERROR_GPS_BUTTON')
     }, {
       timeout: 5000,
       enableHighAccuracy: true

@@ -203,6 +203,16 @@ export const OrderListGroups = (props) => {
       options.query.where.push({ attribute: 'status', value: filtered.state })
     }
 
+    if (filtered?.excludeStatuses?.length) {
+      options.query.where.push({
+        attribute: 'status',
+        value: {
+          condition: '!=',
+          value: filtered.excludeStatuses
+        }
+      })
+    }
+
     if (filtered?.city) {
       options.query.where.push({
         attribute: 'business',

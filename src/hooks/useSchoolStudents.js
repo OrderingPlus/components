@@ -55,5 +55,5 @@ export const useSchoolStudents = () => {
 
   useEffect(() => { doLoad() }, [doLoad])
 
-  return { ...store, refresh: () => doLoad(true), createStudent, updateStudent }
+  return { ...store, loaded: loadedToken === token, refresh: () => doLoad(true), createStudent, updateStudent }
 }

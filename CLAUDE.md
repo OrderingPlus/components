@@ -4,17 +4,33 @@ Guidance for AI assistants working in **ordering-components** — the shared log
 
 **Repository:** [Finitless-com/ordering-components](https://github.com/Finitless-com/ordering-components) (formerly `OrderingPlus/components` / `OrderingX/components`)
 
-**Consumed as a git submodule** at `src/@/components` in marketplace apps such as [website-marketplace-v26](https://github.com/Finitless-com/website-marketplace-v26). Changes here affect **every app** that embeds this submodule — keep them generic and backward-compatible.
+**Consumed as a git submodule** at `src/@/components` in marketplace apps:
+
+| Consumer | Platform | Submodule path |
+|----------|----------|----------------|
+| [website-marketplace-v26](https://github.com/Finitless-com/website-marketplace-v26) | Web SPA | `src/@/components` |
+| [ordering-app-marketplace-v26](https://github.com/Finitless-com/ordering-app-marketplace-v26) | React Native | `src/@/components` |
+
+Changes here affect **every app** that embeds this submodule — keep them generic and backward-compatible.
 
 ## What this repo is
 
-A **headless React layer**: controllers, React contexts, hooks, and the Ordering SDK. It contains **no marketplace-specific UI skin**. Each consumer app (e.g. website-marketplace-v26) provides styled `UIComponent` implementations in its own `src/ui` folder.
+A **headless React layer**: controllers, React contexts, hooks, and the Ordering SDK. It contains **no marketplace-specific UI skin**. Each consumer app (e.g. website-marketplace-v26, ordering-app-marketplace-v26) provides styled `UIComponent` implementations in its own `src/ui` folder.
 
 **Stack:** React (peer >=16; consumers use 18), functional components, React Hooks, ES modules. ESLint standard + react. **No styled-components** in this repo.
 
-**Package manager for lint:** `yarn lint` (this repo's own scripts). Consumer apps use pnpm.
+**Package manager for lint:** `yarn lint` (this repo's own scripts). Consumer apps use their own package managers (web: pnpm, mobile: yarn).
 
 **No test suite.** Verify with `yarn lint` and integration testing in a consumer app.
+
+## Platform entry points
+
+| Platform | Barrel import | OrderingProvider | Storage strategy |
+|----------|---------------|------------------|------------------|
+| **Web** (website-marketplace-v26) | Deep-import `~components/components/Feature` — **never** `src/index.js` | `src/contexts/OrderingContext` | `WebStrategy` (localStorage) |
+| **React Native** (ordering-app-marketplace-v26) | `@components` alias → `native/index.js` — **never** `src/index.js` | `native/src/contexts/OrderingContext` | `NativeStrategy` (AsyncStorage) |
+
+Both platforms share the same controllers in `src/components/*` and contexts in `src/contexts/*`. Platform-specific code lives only in `native/` (RN) and `webStrategy/` (web).
 
 ## Directory layout
 
@@ -33,7 +49,8 @@ src/
 ├── utils/                   # Pure helpers
 ├── constants/               # Shared constants (timezones, etc.)
 ├── webStrategy/             # localStorage adapter for web apps
-└── index.js                 # Barrel re-export — consumers must NOT import this
+├── native/                  # React Native barrel + NativeStrategy + RN OrderingProvider
+└── index.js                 # Web barrel re-export — consumers must NOT import this
 ```
 
 ## Controller pattern (mandatory)
@@ -89,12 +106,24 @@ ExampleFeature.propTypes = {
 
 ### How consumers wire controllers
 
-In website-marketplace-v26 (`src/ui/src/components/ExampleFeature/index.js`):
+**Web** — in website-marketplace-v26 (`src/ui/src/components/ExampleFeature/index.js`):
 
 ```js
 import { ExampleFeature as ExampleFeatureController } from '~components/components/ExampleFeature'
 
 const ExampleFeatureUI = (props) => { /* styled JSX */ }
+
+export const ExampleFeature = (props) => (
+  <ExampleFeatureController {...props} UIComponent={ExampleFeatureUI} />
+)
+```
+
+**React Native** — in ordering-app-marketplace-v26 (`src/ui/src/components/ExampleFeature/index.tsx`):
+
+```tsx
+import { ExampleFeature as ExampleFeatureController } from '@components'
+
+const ExampleFeatureUI = (props) => { /* styled-components/native JSX */ }
 
 export const ExampleFeature = (props) => (
   <ExampleFeatureController {...props} UIComponent={ExampleFeatureUI} />
@@ -194,16 +223,16 @@ When adding a new export, add it to `index.js` for backward compatibility, but d
 9. **Dashboard vs customer confusion** — verify the correct component folder.
 10. **Forgetting `{...props}` spread** on UIComponent — skins lose passthrough props.
 
-## Relationship to website-marketplace-v26
+## Relationship to consumer apps
 
-| Layer | Repo | Path |
-|-------|------|------|
-| Logic (this repo) | ordering-components | `src/@/components/src/` |
-| Presentation | website-marketplace-v26 | `src/ui/` |
-| Routes | website-marketplace-v26 | `src/pages/`, `src/App.js` |
-| Worker/SEO | website-marketplace-v26 | `worker/` |
+| Layer | Web (website-marketplace-v26) | Mobile (ordering-app-marketplace-v26) |
+|-------|-------------------------------|---------------------------------------|
+| Logic (this repo) | `src/@/components/src/` | `src/@/components/src/` |
+| Presentation | `src/ui/` | `src/ui/` |
+| Routes / screens | `src/pages/`, `src/App.js` | `src/pages/`, `src/navigators/` |
+| Worker/SEO | `worker/` | N/A (native app) |
 
-When working **inside the marketplace repo's submodule checkout**, treat edits as ordering-components PRs. The marketplace's `CLAUDE.md` forbids casual submodule edits — coordinate cross-repo changes explicitly.
+When working **inside a consumer repo's submodule checkout**, treat edits as ordering-components PRs. Each consumer's `CLAUDE.md` forbids casual submodule edits — coordinate cross-repo changes explicitly.
 
 ## Conventions
 

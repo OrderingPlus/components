@@ -7,8 +7,13 @@
     "lint": "eslint . --fix"
   },
   "repository": {
-    "url": "git@github.com:OrderingX/components.git"
+    "type": "git",
+    "url": "git+https://github.com/Finitless-com/ordering-components.git"
   },
+  "bugs": {
+    "url": "https://github.com/Finitless-com/ordering-components/issues"
+  },
+  "homepage": "https://github.com/Finitless-com/ordering-components",
   "keywords": [
     "orderingx",
     "orderingx-components"

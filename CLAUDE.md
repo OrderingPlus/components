@@ -8,14 +8,15 @@ Guidance for AI assistants working in **ordering-components** — the shared log
 
 | Consumer | Platform | Submodule path |
 |----------|----------|----------------|
-| [website-marketplace-v26](https://github.com/Finitless-com/website-marketplace-v26) | Web SPA | `src/@/components` |
-| [ordering-app-marketplace-v26](https://github.com/Finitless-com/ordering-app-marketplace-v26) | React Native | `src/@/components` |
+| [website-marketplace-v26](https://github.com/Finitless-com/website-marketplace-v26) | Web SPA (customers) | `src/@/components` |
+| [ordering-app-marketplace-v26](https://github.com/Finitless-com/ordering-app-marketplace-v26) | React Native (customers) | `src/@/components` |
+| [ordering-app-driver-26](https://github.com/Finitless-com/ordering-app-driver-26) | React Native (drivers) | `src/@/components` |
 
 Changes here affect **every app** that embeds this submodule — keep them generic and backward-compatible.
 
 ## What this repo is
 
-A **headless React layer**: controllers, React contexts, hooks, and the Ordering SDK. It contains **no marketplace-specific UI skin**. Each consumer app (e.g. website-marketplace-v26, ordering-app-marketplace-v26) provides styled `UIComponent` implementations in its own `src/ui` folder.
+A **headless React layer**: controllers, React contexts, hooks, and the Ordering SDK. It contains **no app-specific UI skin**. Each consumer app (marketplace web/mobile, driver mobile) provides styled `UIComponent` implementations in its own `src/ui` folder.
 
 **Stack:** React (peer >=16; consumers use 18), functional components, React Hooks, ES modules. ESLint standard + react. **No styled-components** in this repo.
 
@@ -28,7 +29,7 @@ A **headless React layer**: controllers, React contexts, hooks, and the Ordering
 | Platform | Barrel import | OrderingProvider | Storage strategy |
 |----------|---------------|------------------|------------------|
 | **Web** (website-marketplace-v26) | Deep-import `~components/components/Feature` — **never** `src/index.js` | `src/contexts/OrderingContext` | `WebStrategy` (localStorage) |
-| **React Native** (ordering-app-marketplace-v26) | `@components` alias → `native/index.js` — **never** `src/index.js` | `native/src/contexts/OrderingContext` | `NativeStrategy` (AsyncStorage) |
+| **React Native** (ordering-app-marketplace-v26, ordering-app-driver-26) | `@components` alias → `native/index.js` — **never** `src/index.js` | `native/src/contexts/OrderingContext` | `NativeStrategy` (AsyncStorage) |
 
 Both platforms share the same controllers in `src/components/*` and contexts in `src/contexts/*`. Platform-specific code lives only in `native/` (RN) and `webStrategy/` (web).
 
@@ -118,7 +119,7 @@ export const ExampleFeature = (props) => (
 )
 ```
 
-**React Native** — in ordering-app-marketplace-v26 (`src/ui/src/components/ExampleFeature/index.tsx`):
+**React Native** — in ordering-app-marketplace-v26 or ordering-app-driver-26 (`src/ui/src/components/ExampleFeature/index.tsx`):
 
 ```tsx
 import { ExampleFeature as ExampleFeatureController } from '@components'
@@ -225,12 +226,14 @@ When adding a new export, add it to `index.js` for backward compatibility, but d
 
 ## Relationship to consumer apps
 
-| Layer | Web (website-marketplace-v26) | Mobile (ordering-app-marketplace-v26) |
-|-------|-------------------------------|---------------------------------------|
-| Logic (this repo) | `src/@/components/src/` | `src/@/components/src/` |
-| Presentation | `src/ui/` | `src/ui/` |
-| Routes / screens | `src/pages/`, `src/App.js` | `src/pages/`, `src/navigators/` |
-| Worker/SEO | `worker/` | N/A (native app) |
+| Layer | Web (website-marketplace-v26) | Mobile marketplace | Mobile driver |
+|-------|-------------------------------|--------------------|---------------|
+| Logic (this repo) | `src/@/components/src/` | `src/@/components/src/` | `src/@/components/src/` |
+| Presentation | `src/ui/` | `src/ui/` | `src/ui/` |
+| Routes / screens | `src/pages/`, `src/App.js` | `src/pages/`, `src/navigators/` | `src/pages/`, `src/navigators/` |
+| Worker/SEO | `worker/` | N/A | N/A |
+
+**Driver app note:** ordering-app-driver-26 reuses the same controller pattern but wires driver-specific skins (`OrdersListManager`, `AcceptOrRejectOrder`, `DriverMap`, `NewOrderNotification`, etc.) and passes driver order action keys (`acceptByDriver`, `rejectByDriver`, …) from pages. Do not add driver-only presentation here.
 
 When working **inside a consumer repo's submodule checkout**, treat edits as ordering-components PRs. Each consumer's `CLAUDE.md` forbids casual submodule edits — coordinate cross-repo changes explicitly.
 

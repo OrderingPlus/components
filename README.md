@@ -30,6 +30,8 @@ git clone --recursive https://github.com/Finitless-com/website-marketplace-v26.g
 git clone --recursive https://github.com/Finitless-com/ordering-app-marketplace-v26.git
 # or
 git clone --recursive https://github.com/Finitless-com/ordering-app-driver-26.git
+# or
+git clone --recursive https://github.com/Finitless-com/ordering-app-business-v26.git
 ```
 
 Once added, you can import the components directly from the submodule. This allows you to keep your project and these components separate, making updates and maintenance easier.

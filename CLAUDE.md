@@ -21,9 +21,11 @@ A **headless React layer**: controllers, React contexts, hooks, and the Ordering
 
 **Stack:** React (peer >=16; consumers use 18), functional components, React Hooks, ES modules. ESLint standard + react. **No styled-components** in this repo.
 
-**Package manager for lint:** `yarn lint` (this repo's own scripts). Consumer apps use their own package managers (web: pnpm, mobile: yarn).
+**Package manager for lint/tests:** `yarn lint` / `yarn test` (this repo's own scripts). Consumer apps use their own package managers (web: pnpm, mobile: yarn).
 
-**No test suite.** Verify with `yarn lint` and integration testing in a consumer app.
+**Test suite (ORD-1084):** Vitest + jsdom. Run `yarn test`, `yarn test:coverage:summary`, `yarn lint:check`. CI Quality Gate on `main`/`production` with 70% average coverage on scoped include in `vitest.config.js`.
+
+**CI docs:** `docs/ci-coverage-plan.md` (progress), `docs/TEST_BATCH_REGISTRY.md` (batch-by-batch test plan), `docs/BRANCH_PROTECTION.md`, `docs/CONSUMER_SUBMODULE.md`.
 
 ## Platform entry points
 

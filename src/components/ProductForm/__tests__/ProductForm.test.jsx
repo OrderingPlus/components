@@ -333,7 +333,7 @@ describe('ProductForm', () => {
       expect(lastControllerProps.productObject.loading).toBe(false)
     })
     expect(detail.mockProductGet).toHaveBeenCalled()
-    expect(lastControllerProps.productObject.product.extras[0].rank).toBe(1)
+    expect(lastControllerProps.productObject.product.extras[0].rank).toBe(2)
   })
 
   it('creates a guest user and logs in', async () => {

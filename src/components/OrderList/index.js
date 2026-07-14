@@ -123,11 +123,11 @@ export const OrderList = props => {
       query: {
         orderBy: `${sortBy.direction === 'desc' ? '-' : ''}${sortBy.param}`,
         page,
-        page_size: pageSize
+        page_size: pageSize,
+        where: []
       }
     }
     if (orderIds || orderStatus) {
-      options.query.where = []
       if (orderIds) {
         options.query.where.push({ attribute: 'id', value: orderIds })
       }

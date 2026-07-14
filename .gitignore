@@ -1,4 +1,5 @@
 node_modules/
+coverage/
 .idea/
 cypress/integration/examples
 .DS_Store

@@ -17,37 +17,117 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Detect package manager
+        id: pm
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "manager=pnpm" >> $GITHUB_OUTPUT
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+          else
+            echo "::error::No lockfile found (pnpm-lock.yaml or yarn.lock)"
+            exit 1
+          fi
+      - uses: pnpm/action-setup@v4
+        if: steps.pm.outputs.manager == 'pnpm'
+        with:
+          version: 9.15.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: yarn
-      - run: yarn install --frozen-lockfile
+          node-version: 24
+          cache: ${{ steps.pm.outputs.manager }}
+      - name: Install dependencies
+        run: |
+          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
+            pnpm install --frozen-lockfile
+          else
+            yarn install --frozen-lockfile
+          fi
       - name: ESLint
-        run: yarn lint:check
+        run: |
+          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
+            pnpm lint:check
+          else
+            yarn lint:check
+          fi
 
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Detect package manager
+        id: pm
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "manager=pnpm" >> $GITHUB_OUTPUT
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+          else
+            echo "::error::No lockfile found (pnpm-lock.yaml or yarn.lock)"
+            exit 1
+          fi
+      - uses: pnpm/action-setup@v4
+        if: steps.pm.outputs.manager == 'pnpm'
+        with:
+          version: 9.15.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: yarn
-      - run: yarn install --frozen-lockfile
-      - run: yarn test
+          node-version: 24
+          cache: ${{ steps.pm.outputs.manager }}
+      - name: Install dependencies
+        run: |
+          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
+            pnpm install --frozen-lockfile
+          else
+            yarn install --frozen-lockfile
+          fi
+      - name: Run tests
+        run: |
+          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
+            pnpm test
+          else
+            yarn test
+          fi
 
   coverage:
     name: Test Coverage Report
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Detect package manager
+        id: pm
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "manager=pnpm" >> $GITHUB_OUTPUT
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+          else
+            echo "::error::No lockfile found (pnpm-lock.yaml or yarn.lock)"
+            exit 1
+          fi
+      - uses: pnpm/action-setup@v4
+        if: steps.pm.outputs.manager == 'pnpm'
+        with:
+          version: 9.15.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: yarn
-      - run: yarn install --frozen-lockfile
-      - run: yarn test:coverage
+          node-version: 24
+          cache: ${{ steps.pm.outputs.manager }}
+      - name: Install dependencies
+        run: |
+          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
+            pnpm install --frozen-lockfile
+          else
+            yarn install --frozen-lockfile
+          fi
+      - name: Run coverage
+        run: |
+          if [ "${{ steps.pm.outputs.manager }}" = "pnpm" ]; then
+            pnpm test:coverage
+          else
+            yarn test:coverage
+          fi
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4

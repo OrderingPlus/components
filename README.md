@@ -39,3 +39,18 @@ Once added, you can import the components directly from the submodule. This allo
 ## Format code
 
 Run `yarn lint` to execute the linter.
+
+## Tests and CI (ORD-1084)
+
+```bash
+COREPACK_ENABLE_STRICT=0 yarn install
+yarn test
+yarn lint:check
+yarn test:coverage:summary
+```
+
+- **CI Quality Gate** on `main` and `production`: lint + tests + 70% average coverage (scoped include).
+- Plan and progress: [docs/ci-coverage-plan.md](./docs/ci-coverage-plan.md)
+- **Batch registry (read before each test session):** [docs/TEST_BATCH_REGISTRY.md](./docs/TEST_BATCH_REGISTRY.md)
+- Branch protection setup: [docs/BRANCH_PROTECTION.md](./docs/BRANCH_PROTECTION.md)
+- Bumping this submodule in consumer apps: [docs/CONSUMER_SUBMODULE.md](./docs/CONSUMER_SUBMODULE.md)

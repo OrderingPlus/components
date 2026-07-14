@@ -1,0 +1,285 @@
+name: CI Quality Gate
+
+on:
+  pull_request:
+    branches: ["main", "production"]
+  push:
+    branches: ["main", "production"]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - name: ESLint
+        run: yarn lint:check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn test
+
+  coverage:
+    name: Test Coverage Report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn test:coverage
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-ordering-components
+          path: coverage
+          retention-days: 30
+
+      - name: Generate Coverage Summary
+        id: coverage-summary
+        run: |
+          COVERAGE_FILE="coverage/coverage-final.json"
+          if [ -f "$COVERAGE_FILE" ]; then
+            AVERAGE=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('$COVERAGE_FILE', 'utf8'));
+              const files = Object.keys(data);
+              let total = { statements: { total: 0, covered: 0 }, branches: { total: 0, covered: 0 }, functions: { total: 0, covered: 0 }, lines: { total: 0, covered: 0 } };
+              files.forEach(file => {
+                const fileData = data[file];
+                if (fileData && fileData.s) {
+                  Object.values(fileData.s).forEach(v => { total.statements.total++; if (v > 0) total.statements.covered++; });
+                }
+                if (fileData && fileData.b) {
+                  Object.values(fileData.b).forEach(branch => { total.branches.total += branch.length; total.branches.covered += branch.filter(v => v > 0).length; });
+                }
+                if (fileData && fileData.f) {
+                  Object.values(fileData.f).forEach(v => { total.functions.total++; if (v > 0) total.functions.covered++; });
+                }
+                if (fileData && fileData.l) {
+                  Object.values(fileData.l).forEach(v => { total.lines.total++; if (v > 0) total.lines.covered++; });
+                } else if (fileData && fileData.s) {
+                  Object.values(fileData.s).forEach(v => { total.lines.total++; if (v > 0) total.lines.covered++; });
+                }
+              });
+              const statementsPct = total.statements.total > 0 ? (total.statements.covered / total.statements.total) * 100 : 0;
+              const branchesPct = total.branches.total > 0 ? (total.branches.covered / total.branches.total) * 100 : 0;
+              const functionsPct = total.functions.total > 0 ? (total.functions.covered / total.functions.total) * 100 : 0;
+              const linesPct = total.lines.total > 0 ? (total.lines.covered / total.lines.total) * 100 : (statementsPct > 0 ? statementsPct : 0);
+              const avg = (statementsPct + branchesPct + functionsPct + linesPct) / 4;
+              console.log(Math.round(avg * 100) / 100);
+            ")
+            LINES=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('$COVERAGE_FILE', 'utf8'));
+              const files = Object.keys(data);
+              let total = { lines: { total: 0, covered: 0 }, statements: { total: 0, covered: 0 } };
+              files.forEach(file => {
+                const fileData = data[file];
+                if (fileData && fileData.l) {
+                  Object.values(fileData.l).forEach(v => { total.lines.total++; if (v > 0) total.lines.covered++; });
+                } else if (fileData && fileData.s) {
+                  Object.values(fileData.s).forEach(v => { total.lines.total++; if (v > 0) total.lines.covered++; });
+                }
+              });
+              const linesPct = total.lines.total > 0 ? (total.lines.covered / total.lines.total) * 100 : (total.statements.total > 0 ? (total.statements.covered / total.statements.total) * 100 : 0);
+              console.log(Math.round(linesPct));
+            ")
+            FUNCTIONS=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('$COVERAGE_FILE', 'utf8'));
+              const files = Object.keys(data);
+              let total = { functions: { total: 0, covered: 0 } };
+              files.forEach(file => {
+                const fileData = data[file];
+                if (fileData && fileData.f) {
+                  Object.values(fileData.f).forEach(v => { total.functions.total++; if (v > 0) total.functions.covered++; });
+                }
+              });
+              const functionsPct = total.functions.total > 0 ? (total.functions.covered / total.functions.total) * 100 : 0;
+              console.log(Math.round(functionsPct));
+            ")
+            BRANCHES=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('$COVERAGE_FILE', 'utf8'));
+              const files = Object.keys(data);
+              let total = { branches: { total: 0, covered: 0 } };
+              files.forEach(file => {
+                const fileData = data[file];
+                if (fileData && fileData.b) {
+                  Object.values(fileData.b).forEach(branch => { total.branches.total += branch.length; total.branches.covered += branch.filter(v => v > 0).length; });
+                }
+              });
+              const branchesPct = total.branches.total > 0 ? (total.branches.covered / total.branches.total) * 100 : 0;
+              console.log(Math.round(branchesPct));
+            ")
+            STATEMENTS=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('$COVERAGE_FILE', 'utf8'));
+              const files = Object.keys(data);
+              let total = { statements: { total: 0, covered: 0 } };
+              files.forEach(file => {
+                const fileData = data[file];
+                if (fileData && fileData.s) {
+                  Object.values(fileData.s).forEach(v => { total.statements.total++; if (v > 0) total.statements.covered++; });
+                }
+              });
+              const statementsPct = total.statements.total > 0 ? (total.statements.covered / total.statements.total) * 100 : 0;
+              console.log(Math.round(statementsPct));
+            ")
+            echo "coverage=$AVERAGE" >> $GITHUB_OUTPUT
+            echo "lines=$LINES" >> $GITHUB_OUTPUT
+            echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+            echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+            echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+            echo "Coverage: Average $AVERAGE% (Lines: $LINES%, Functions: $FUNCTIONS%, Branches: $BRANCHES%, Statements: $STATEMENTS%)"
+          else
+            echo "coverage=0" >> $GITHUB_OUTPUT
+            echo "lines=0" >> $GITHUB_OUTPUT
+            echo "functions=0" >> $GITHUB_OUTPUT
+            echo "branches=0" >> $GITHUB_OUTPUT
+            echo "statements=0" >> $GITHUB_OUTPUT
+            echo "Coverage report not found: $COVERAGE_FILE"
+            ls -la coverage/ || echo "Coverage directory does not exist"
+          fi
+
+      - name: Check Coverage Threshold
+        run: |
+          COVERAGE=${{ steps.coverage-summary.outputs.coverage }}
+          LINES=${{ steps.coverage-summary.outputs.lines }}
+          FUNCTIONS=${{ steps.coverage-summary.outputs.functions }}
+          BRANCHES=${{ steps.coverage-summary.outputs.branches }}
+          STATEMENTS=${{ steps.coverage-summary.outputs.statements }}
+          THRESHOLD_CHECK=$(node -e "console.log($COVERAGE >= 70 ? 'pass' : 'fail')")
+          if [ "$THRESHOLD_CHECK" = "fail" ]; then
+            echo "❌ Average coverage ($COVERAGE%) is below the required threshold of 70%"
+            echo "   Breakdown: Lines: $LINES%, Functions: $FUNCTIONS%, Branches: $BRANCHES%, Statements: $STATEMENTS%"
+            exit 1
+          else
+            echo "✅ Average coverage ($COVERAGE%) meets the required threshold of 70%"
+            echo "   Breakdown: Lines: $LINES%, Functions: $FUNCTIONS%, Branches: $BRANCHES%, Statements: $STATEMENTS%"
+          fi
+
+      - name: Comment PR with Coverage
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            let coverage = 0;
+            let lines = 0;
+            let functions = 0;
+            let branches = 0;
+            let statements = 0;
+
+            try {
+              const coveragePath = path.join('coverage', 'coverage-final.json');
+              if (fs.existsSync(coveragePath)) {
+                const data = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+                const files = Object.keys(data);
+                let totals = { statements: { total: 0, covered: 0 }, branches: { total: 0, covered: 0 }, functions: { total: 0, covered: 0 }, lines: { total: 0, covered: 0 } };
+                files.forEach(file => {
+                  const fileData = data[file];
+                  if (fileData && fileData.s) {
+                    Object.values(fileData.s).forEach(v => { totals.statements.total++; if (v > 0) totals.statements.covered++; });
+                  }
+                  if (fileData && fileData.b) {
+                    Object.values(fileData.b).forEach(branch => { totals.branches.total += branch.length; totals.branches.covered += branch.filter(v => v > 0).length; });
+                  }
+                  if (fileData && fileData.f) {
+                    Object.values(fileData.f).forEach(v => { totals.functions.total++; if (v > 0) totals.functions.covered++; });
+                  }
+                  if (fileData && fileData.l) {
+                    Object.values(fileData.l).forEach(v => { totals.lines.total++; if (v > 0) totals.lines.covered++; });
+                  } else if (fileData && fileData.s) {
+                    Object.values(fileData.s).forEach(v => { totals.lines.total++; if (v > 0) totals.lines.covered++; });
+                  }
+                });
+                const statementsPct = totals.statements.total > 0 ? (totals.statements.covered / totals.statements.total) * 100 : 0;
+                const branchesPct = totals.branches.total > 0 ? (totals.branches.covered / totals.branches.total) * 100 : 0;
+                const functionsPct = totals.functions.total > 0 ? (totals.functions.covered / totals.functions.total) * 100 : 0;
+                const linesPct = totals.lines.total > 0 ? (totals.lines.covered / totals.lines.total) * 100 : (statementsPct > 0 ? statementsPct : 0);
+                lines = Math.round(linesPct);
+                functions = Math.round(functionsPct);
+                branches = Math.round(branchesPct);
+                statements = Math.round(statementsPct);
+                coverage = Math.round(((statementsPct + branchesPct + functionsPct + linesPct) / 4) * 100) / 100;
+              }
+            } catch (e) {
+              console.error('Error reading coverage:', e);
+            }
+
+            const threshold = 70;
+            const emoji = coverage >= threshold ? '✅' : '❌';
+
+            const body = `## 📊 Coverage Report for \`ordering-components\`
+
+            ${emoji} **Average Coverage: ${coverage}%** (Threshold: ${threshold}%)
+
+            | Metric | Coverage |
+            |--------|----------|
+            | Lines | ${lines}% |
+            | Functions | ${functions}% |
+            | Branches | ${branches}% |
+            | Statements | ${statements}% |
+            | **Average** | **${coverage}%** |
+
+            ${coverage < threshold ? '⚠️ **Average coverage is below the required threshold of 70%**. Please add more tests before merging.' : '✅ **Average coverage meets the required threshold.**'}
+
+            📁 Coverage report available as artifact: \`coverage-ordering-components\`
+            `;
+
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } catch (error) {
+              console.warn('Could not create PR comment (permissions may be restricted):', error.message);
+              console.log('Coverage summary:', body);
+            }
+
+  quality-gate:
+    name: CI Quality Gate
+    needs: [lint, test, coverage]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Require lint, test, and coverage
+        run: |
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Test: ${{ needs.test.result }}"
+          echo "Coverage: ${{ needs.coverage.result }}"
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.coverage.result }}" != "success" ]; then
+            echo "❌ CI Quality Gate failed — fix failing jobs before merge."
+            exit 1
+          fi
+          echo "✅ CI Quality Gate passed (lint + test + 70% coverage)."

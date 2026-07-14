@@ -50,6 +50,9 @@ importers:
       socket.io-client:
         specifier: ^4.7.2
         version: 4.8.3
+      uuid:
+        specifier: ^8.3.2
+        version: 8.3.2
     devDependencies:
       '@babel/cli':
         specifier: ^7.11.6
@@ -9314,7 +9317,7 @@ snapshots:
       eslint: 6.8.0
       eslint-plugin-react: 7.14.3(eslint@6.8.0)
 
-  eslint-config-standard@14.1.1(eslint-plugin-import@2.18.2(eslint@6.8.0))(eslint-plugin-node@10.0.0(eslint@6.8.0))(eslint-plugin-promise@4.2.1)(eslint-plugin-standard@4.0.2(eslint@6.8.0))(eslint@6.8.0):
+  eslint-config-standard@14.1.1(eslint-plugin-import@2.18.2(eslint@6.8.0))(eslint-plugin-node@10.0.0(eslint@8.57.1))(eslint-plugin-promise@4.2.1)(eslint-plugin-standard@4.0.2(eslint@8.57.1))(eslint@6.8.0):
     dependencies:
       eslint: 6.8.0
       eslint-plugin-import: 2.18.2(eslint@6.8.0)
@@ -12639,7 +12642,7 @@ snapshots:
   standard@14.3.4:
     dependencies:
       eslint: 6.8.0
-      eslint-config-standard: 14.1.1(eslint-plugin-import@2.18.2(eslint@6.8.0))(eslint-plugin-node@10.0.0(eslint@6.8.0))(eslint-plugin-promise@4.2.1)(eslint-plugin-standard@4.0.2(eslint@6.8.0))(eslint@6.8.0)
+      eslint-config-standard: 14.1.1(eslint-plugin-import@2.18.2(eslint@6.8.0))(eslint-plugin-node@10.0.0(eslint@8.57.1))(eslint-plugin-promise@4.2.1)(eslint-plugin-standard@4.0.2(eslint@8.57.1))(eslint@6.8.0)
       eslint-config-standard-jsx: 8.1.0(eslint-plugin-react@7.14.3(eslint@6.8.0))(eslint@6.8.0)
       eslint-plugin-import: 2.18.2(eslint@6.8.0)
       eslint-plugin-node: 10.0.0(eslint@6.8.0)

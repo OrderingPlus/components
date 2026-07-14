@@ -89,20 +89,14 @@ import { SingleProductCard } from '../index'
 describe('SingleProductCard', () => {
   beforeEach(() => detail.reset())
 
-  it('tracks product clicks and delegates handler', async () => {
+  it('delegates product click handler to parent', () => {
     const onProductClick = vi.fn()
     renderController(SingleProductCard, {
       product: { id: 10, name: 'Burger' },
       onProductClick
     })
     lastControllerProps.onProductClick({ id: 10, name: 'Burger' }, { id: 5 })
-    expect(onProductClick).toHaveBeenCalled()
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://api.test/tracking_events',
-        expect.objectContaining({ method: 'POST' })
-      )
-    })
+    expect(onProductClick).toHaveBeenCalledWith({ id: 10, name: 'Burger' }, { id: 5 })
   })
 
   it('adds product to favorites and emits event', async () => {

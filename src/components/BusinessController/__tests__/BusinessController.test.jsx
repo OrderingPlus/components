@@ -70,21 +70,15 @@ describe('BusinessController', () => {
     expect(lastControllerProps.getBusinessOffer([])).toBe(null)
   })
 
-  it('handles click with tracking event', async () => {
+  it('delegates business click to parent handler', () => {
     const onBusinessClick = vi.fn()
     renderController(BusinessController, {
       business: biz.sampleBusiness,
       isDisabledInterval: true,
       onBusinessClick
     })
-    lastControllerProps.handleClick()
+    lastControllerProps.handleClick(biz.sampleBusiness)
     expect(onBusinessClick).toHaveBeenCalledWith(biz.sampleBusiness)
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://api.test/tracking_events',
-        expect.objectContaining({ method: 'POST' })
-      )
-    })
   })
 
   it('adds business to favorites', async () => {

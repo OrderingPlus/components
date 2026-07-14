@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { waitFor, act } from '@testing-library/react'
 import { renderController, lastControllerProps } from '../../../__tests__/helpers/renderController'
 
@@ -21,7 +21,20 @@ describe('MomentOption', () => {
   const maxDate = new Date('2026-12-31T23:59:59')
   const minDate = new Date('2026-01-01T00:00:00')
 
-  beforeEach(() => upm.reset())
+  const pickScheduledDate = () => {
+    const today = new Date().toISOString().slice(0, 10)
+    return lastControllerProps.datesList.find((date) => date !== today) || lastControllerProps.datesList[0]
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-06-15T10:00:00'))
+    upm.reset()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   it('generates date list and selects ASAP by default', async () => {
     renderController(MomentOption, {
@@ -44,7 +57,7 @@ describe('MomentOption', () => {
       useOrderContext: true
     })
     await waitFor(() => expect(lastControllerProps.datesList.length).toBeGreaterThan(0))
-    const date = lastControllerProps.datesList[0]
+    const date = pickScheduledDate()
     act(() => {
       lastControllerProps.handleChangeDate(date)
     })
@@ -67,7 +80,7 @@ describe('MomentOption', () => {
       useOrderContext: true
     })
     await waitFor(() => expect(lastControllerProps.datesList.length).toBeGreaterThan(0))
-    const date = lastControllerProps.datesList[0]
+    const date = pickScheduledDate()
     act(() => {
       lastControllerProps.handleChangeDate(date)
     })
